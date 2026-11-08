@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional, Any, Dict, List
 import uvicorn
 
-from src.backend.puzzle_state import PuzzleEngine
+from src.backend.puzzle_state import PuzzleEngine, PhaseEnum
 
 app = FastAPI(
     title="The Midnight Audit (1928) — Local Daemon Bridge",
@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-engine = PuzzleEngine()
+engine = PuzzleEngine(load_existing=True)
 
 class EventRequest(BaseModel):
     event_type: str
@@ -38,6 +38,7 @@ class BanishRequest(BaseModel):
 
 @app.get("/")
 def root():
+    engine.load_state()
     return {
         "service": "The Midnight Audit (1928) Local Daemon Bridge",
         "status": "haunting",
@@ -47,10 +48,12 @@ def root():
 
 @app.get("/api/status")
 def get_status():
+    engine.load_state()
     return engine.get_state()
 
 @app.post("/api/event")
 def handle_event(req: EventRequest):
+    engine.load_state()
     event = req.event_type.lower()
     
     if event == "cell_change":
@@ -60,7 +63,10 @@ def handle_event(req: EventRequest):
     elif event in ["reagent_spray", "spray_reagent"] or (event == "button_click" and req.button == "SPRAY_REAGENT"):
         res = engine.handle_reagent_spray()
     elif event == "banish":
-        res = engine.judge_ritual(str(req.value or ""))
+        phrase = str(req.value or "").strip()
+        if not phrase and engine.current_phase == PhaseEnum.MIDNIGHT_SETTLEMENT:
+            phrase = "SEAL THE DEEP VAULT"
+        res = engine.judge_ritual(phrase)
     else:
         res = {
             "accepted": False,
@@ -85,21 +91,25 @@ def handle_event(req: EventRequest):
 
 @app.get("/api/pixel_radar")
 def get_pixel_radar():
+    engine.load_state()
     return engine.get_pixel_radar()
 
 @app.post("/api/haunt")
 def queue_haunt(req: HauntRequest):
+    engine.load_state()
     engine.queue_haunt(req.haunt_type, req.target_cell, req.message)
     return {"queued": True, "message": "Spectral haunt queued for dispatch."}
 
 @app.post("/api/banish")
 def banish(req: BanishRequest):
+    engine.load_state()
     return engine.judge_ritual(req.phrase)
 
 @app.post("/api/reset")
 def reset_game():
     global engine
     engine = PuzzleEngine()
+    engine.save_state()
     return {"reset": True, "phase": 1}
 
 if __name__ == "__main__":

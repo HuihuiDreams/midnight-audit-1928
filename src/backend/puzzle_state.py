@@ -1,6 +1,14 @@
+import os
+import json
+import tempfile
 from enum import Enum
 import re
 from typing import Dict, Any, List, Optional
+
+GAME_STATE_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "game_state.json"
+)
 
 PALETTE = {
     "BONE_PAPER": "#D3CEB9",
@@ -22,7 +30,7 @@ class PhaseEnum(str, Enum):
     MIDNIGHT_SETTLEMENT = "MIDNIGHT_SETTLEMENT"
 
 class PuzzleEngine:
-    def __init__(self):
+    def __init__(self, load_existing: bool = False):
         self.current_phase: PhaseEnum = PhaseEnum.THE_AUDIT_DISCREPANCY
         self.row13_awakened: bool = False
         self.intruder_revealed: bool = False
@@ -40,6 +48,8 @@ class PuzzleEngine:
             11: {"id": "ARK-031", "borrower": "Pickman, R.U.", "tome": "Ars Magna Lucis et Umbrae", "overdue": 95, "fee": 4.75, "status": "CLEARED"},
             12: {"id": "ARK-040", "borrower": "Edward Derby", "tome": "Liber Ivonis", "overdue": 5, "fee": 0.25, "status": "CLEARED"},
         }
+        if load_existing:
+            self.load_state()
 
     @property
     def phase_number(self) -> int:
@@ -51,6 +61,59 @@ class PuzzleEngine:
             return 3
         else:
             return 4
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "current_phase": self.current_phase.value,
+            "row13_awakened": self.row13_awakened,
+            "intruder_revealed": self.intruder_revealed,
+            "archive_sealed": self.archive_sealed,
+            "hijack_triggered": self.hijack_triggered,
+            "pending_effects": list(self.pending_effects),
+            "ledger_data": {str(k): v for k, v in self.ledger_data.items()}
+        }
+
+    def from_dict(self, data: Dict[str, Any]) -> None:
+        if not data:
+            return
+        if "current_phase" in data:
+            try:
+                self.current_phase = PhaseEnum(data["current_phase"])
+            except ValueError:
+                pass
+        self.row13_awakened = data.get("row13_awakened", self.row13_awakened)
+        self.intruder_revealed = data.get("intruder_revealed", self.intruder_revealed)
+        self.archive_sealed = data.get("archive_sealed", self.archive_sealed)
+        self.hijack_triggered = data.get("hijack_triggered", self.hijack_triggered)
+        if "pending_effects" in data:
+            self.pending_effects = list(data["pending_effects"])
+        if "ledger_data" in data:
+            self.ledger_data = {int(k): v for k, v in data["ledger_data"].items()}
+
+    def save_state(self, filepath: Optional[str] = None) -> None:
+        target_path = filepath or GAME_STATE_FILE
+        try:
+            dir_name = os.path.dirname(target_path)
+            if dir_name and not os.path.exists(dir_name):
+                os.makedirs(dir_name, exist_ok=True)
+            with tempfile.NamedTemporaryFile("w", dir=dir_name, delete=False) as tf:
+                json.dump(self.to_dict(), tf, indent=2)
+                temp_name = tf.name
+            os.replace(temp_name, target_path)
+        except Exception:
+            pass
+
+    def load_state(self, filepath: Optional[str] = None) -> bool:
+        target_path = filepath or GAME_STATE_FILE
+        if not os.path.exists(target_path):
+            return False
+        try:
+            with open(target_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self.from_dict(data)
+            return True
+        except Exception:
+            return False
 
     def get_state(self) -> Dict[str, Any]:
         return {
@@ -79,7 +142,7 @@ class PuzzleEngine:
                         self.ledger_data[7]["status"] = "BALANCED (UNHOLY)"
                         self.current_phase = PhaseEnum.THE_UNSEEN_INTRUDER
                         self.row13_awakened = True
-                        return {
+                        res = {
                             "accepted": True,
                             "current_phase": self.phase_number,
                             "message": "Overdue balance settled. The floorboards moan.",
@@ -105,24 +168,52 @@ class PuzzleEngine:
                                 }
                             ]
                         }
+                        self.save_state()
+                        return res
                     else:
-                        return {
+                        res = {
                             "accepted": False,
                             "current_phase": self.phase_number,
-                            "message": f"Incorrect fee calculation. Expected 140 days * $0.05 ($7.00), got {str_val}."
+                            "message": f"Incorrect fee calculation. Expected 140 days * $0.05 ($7.00), got {str_val}.",
+                            "actions": [
+                                {
+                                    "command": "TRIGGER_FX",
+                                    "effect": "SPREAD_BLOOD_SCAB",
+                                    "cell": "H7"
+                                },
+                                {
+                                    "command": "TRIGGER_FX",
+                                    "effect": "THUD_BEEP"
+                                }
+                            ]
                         }
+                        self.save_state()
+                        return res
                 except ValueError:
-                    return {
+                    res = {
                         "accepted": False,
                         "current_phase": self.phase_number,
-                        "message": "Invalid numeric input in fee column."
+                        "message": "Invalid numeric input in fee column.",
+                        "actions": [
+                            {
+                                "command": "TRIGGER_FX",
+                                "effect": "SPREAD_BLOOD_SCAB",
+                                "cell": "H7"
+                            },
+                            {
+                                "command": "TRIGGER_FX",
+                                "effect": "THUD_BEEP"
+                            }
+                        ]
                     }
+                    self.save_state()
+                    return res
 
         elif self.current_phase == PhaseEnum.HIJACKED_CIPHER:
             if cell == "B18":
                 if not self.hijack_triggered:
                     self.hijack_triggered = True
-                    return {
+                    res = {
                         "accepted": False,
                         "hijacked": True,
                         "ghost_text": "YOUR SALARY CANNOT SAVE YOU",
@@ -139,11 +230,13 @@ class PuzzleEngine:
                             }
                         ]
                     }
+                    self.save_state()
+                    return res
                 else:
                     norm = re.sub(r"\s+", " ", str_val.upper())
                     if norm == "SEAL THE DEEP VAULT":
                         self.current_phase = PhaseEnum.MIDNIGHT_SETTLEMENT
-                        return {
+                        res = {
                             "accepted": True,
                             "hijacked": False,
                             "current_phase": self.phase_number,
@@ -156,13 +249,28 @@ class PuzzleEngine:
                                 }
                             ]
                         }
+                        self.save_state()
+                        return res
                     else:
-                        return {
+                        res = {
                             "accepted": False,
                             "hijacked": False,
                             "current_phase": self.phase_number,
-                            "message": "Decryption failed. The cipher remains locked."
+                            "message": "Decryption failed. The cipher remains locked.",
+                            "actions": [
+                                {
+                                    "command": "TRIGGER_FX",
+                                    "effect": "SPREAD_BLOOD_SCAB",
+                                    "cell": "B18"
+                                },
+                                {
+                                    "command": "TRIGGER_FX",
+                                    "effect": "THUD_BEEP"
+                                }
+                            ]
                         }
+                        self.save_state()
+                        return res
 
         return {
             "accepted": False,
@@ -174,7 +282,7 @@ class PuzzleEngine:
         if self.current_phase == PhaseEnum.THE_UNSEEN_INTRUDER:
             self.intruder_revealed = True
             self.current_phase = PhaseEnum.HIJACKED_CIPHER
-            return {
+            res = {
                 "accepted": True,
                 "current_phase": self.phase_number,
                 "message": "Reagent sprayed onto Annex Basement floorplan. The anomaly manifests.",
@@ -193,6 +301,8 @@ class PuzzleEngine:
                     }
                 ]
             }
+            self.save_state()
+            return res
         return {
             "accepted": False,
             "current_phase": self.phase_number,
@@ -207,11 +317,8 @@ class PuzzleEngine:
         rows, cols = 30, 30
         grid: List[List[str]] = [[PALETTE["BONE_PAPER"] for _ in range(cols)] for _ in range(rows)]
 
-        # Procedurally paint the cosmic demon/eye face
-        # Outline and horns (CARBON)
         for r in range(rows):
             for c in range(cols):
-                # Center is around r=14, c=14
                 dr = r - 14
                 dc = c - 14
                 dist_sq = dr * dr + dc * dc
@@ -222,7 +329,7 @@ class PuzzleEngine:
                 elif dist_sq < 120:
                     grid[r][c] = PALETTE["DECAYING_PAPER"]
 
-                # Horns curving up from r=6, c=6 and r=6, c=22
+                # Horns curving up
                 if (r < 10) and ((c == r or c == (29 - r)) or (abs(c - 8) <= 1 and r < 8) or (abs(c - 21) <= 1 and r < 8)):
                     grid[r][c] = PALETTE["CARBON"]
 
@@ -242,9 +349,6 @@ class PuzzleEngine:
                 if 14 <= r <= 15 and 13 <= c <= 16:
                     grid[r][c] = PALETTE["DRIED_BLOOD"]
 
-        # Blinking eye coordinates in Excel range K20:AN49
-        # Center is r=14, 15 -> Row 20 + 14 = Row 34, Row 35
-        # Column K is 11. Col 11 + 12 = 23 (W), 24 (X)
         blinking_cells = ["W34", "X34", "W35", "X35"]
 
         return {
@@ -260,10 +364,10 @@ class PuzzleEngine:
         phrase_clean = re.sub(r"\s+", " ", str(phrase).strip().upper())
         valid_phrases = ["SEAL THE DEEP VAULT", "BANISH WILBUR", "BANISH", "MEMENTO MORI", "PH'NGLUI MGLW'NAFH"]
 
-        if phrase_clean in valid_phrases or "SEAL" in phrase_clean:
+        if phrase_clean in valid_phrases or "SEAL" in phrase_clean or (not phrase_clean and self.current_phase == PhaseEnum.MIDNIGHT_SETTLEMENT):
             self.archive_sealed = True
             self.current_phase = PhaseEnum.MIDNIGHT_SETTLEMENT
-            return {
+            res = {
                 "banished": True,
                 "stamp": "[ ARCHIVE SEALED - OCTOBER 14, 1928 - 00:01 AM ]",
                 "message": "THE ENTRY IS BALANCED. CLOCK OUT AND NEVER RETURN.",
@@ -283,8 +387,10 @@ class PuzzleEngine:
                     }
                 ]
             }
+            self.save_state()
+            return res
         else:
-            return {
+            res = {
                 "banished": False,
                 "message": "MISMATCHED DEBIT. YOUR RITUAL VOID ACCRUES BLOOD DEBT.",
                 "actions": [
@@ -294,6 +400,8 @@ class PuzzleEngine:
                     }
                 ]
             }
+            self.save_state()
+            return res
 
     def queue_haunt(self, haunt_type: str, target_cell: Optional[str] = None, message: Optional[str] = None):
         self.pending_effects.append({
@@ -301,8 +409,10 @@ class PuzzleEngine:
             "target_cell": target_cell,
             "message": message
         })
+        self.save_state()
 
     def pop_pending_effects(self) -> List[Dict[str, Any]]:
         effects = list(self.pending_effects)
         self.pending_effects.clear()
+        self.save_state()
         return effects

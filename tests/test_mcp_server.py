@@ -5,7 +5,14 @@ from src.backend.puzzle_state import PuzzleEngine
 
 @pytest.fixture(autouse=True)
 def reset_mcp_engine():
+    import os
+    from src.backend.puzzle_state import PuzzleEngine, GAME_STATE_FILE
     import src.backend.mcp_server as mcp
+    if os.path.exists(GAME_STATE_FILE):
+        try:
+            os.remove(GAME_STATE_FILE)
+        except Exception:
+            pass
     mcp.engine = PuzzleEngine()
 
 def test_list_tools():
@@ -22,10 +29,32 @@ def test_call_inspect_ledger():
     assert "Current Phase: 1" in text
     assert "Wilbur Whateley" in text
 
+def test_call_inspect_ledger_include_anomalies():
+    res = call_tool("inspect_ledger", {"include_anomalies": True})
+    assert "content" in res
+    text = res["content"][0]["text"]
+    assert "[SUPERNATURAL ANOMALY DOSSIER]" in text
+    assert "Wilbur V. Whateley" in text
+    assert "W34:X35" in text
+    assert "SEAL THE DEEP VAULT" in text
+
 def test_call_inspect_ledger_target_range():
     res = call_tool("inspect_ledger", {"target_range": "H7"})
     text = res["content"][0]["text"]
     assert "H7" in text
+
+def test_cross_process_shared_state_sync():
+    # Simulate server changing state to Phase 2
+    from src.backend.puzzle_state import PuzzleEngine
+    srv_engine = PuzzleEngine()
+    srv_engine.handle_cell_change("H7", "7.00")
+    assert srv_engine.phase_number == 2
+
+    # MCP tool inspect_ledger should observe Phase 2 through game_state.json
+    res = call_tool("inspect_ledger", {})
+    text = res["content"][0]["text"]
+    assert "Current Phase: 2" in text
+    assert "Row 13 Awakened: True" in text
 
 def test_call_haunt_spreadsheet():
     res = call_tool("haunt_spreadsheet", {"haunt_type": "cell_text", "target_cell": "B18", "message": "YOUR SOUL IS OVERDUE"})

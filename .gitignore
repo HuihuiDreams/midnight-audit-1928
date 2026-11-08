@@ -34,6 +34,9 @@ htmlcov/
 ~$*.xlsm
 *.tmp
 
+# Runtime State
+game_state.json
+
 # OS
 .DS_Store
 Thumbs.db

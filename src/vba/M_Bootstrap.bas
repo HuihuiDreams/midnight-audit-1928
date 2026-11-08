@@ -37,7 +37,7 @@ Public Const COLOR_DECAYING_PAPER As Long = 11059141 ' RGB(197, 191, 168)
 Public Const COLOR_CARBON As Long = 1316376         ' RGB(24, 22, 20)
 Public Const COLOR_HOSPITAL_GREEN As Long = 4738885 ' RGB(69, 79, 72)
 Public Const COLOR_DRIED_BLOOD As Long = 855854     ' RGB(46, 15, 13)
-Public Const COLOR_WARNING_RED As Long = 13179242   ' RGB(138, 28, 20)
+Public Const COLOR_WARNING_RED As Long = 1318026     ' RGB(138, 28, 20)
 Public Const COLOR_PHOSPHOR_GREEN As Long = 4084539 ' RGB(59, 83, 62)
 Public Const COLOR_COLD_ASH As Long = 9407882       ' RGB(138, 141, 143)
 Public Const COLOR_ABYSS As Long = 0                ' RGB(0, 0, 0)
@@ -63,6 +63,9 @@ Public Sub InitializeArchiveUI()
         ActiveWindow.DisplayHeadings = False
         ActiveWindow.DisplayGridlines = True
         ActiveWindow.GridlineColor = COLOR_HOSPITAL_GREEN
+        ActiveWindow.DisplayWorkbookTabs = False
+        ActiveWindow.DisplayHorizontalScrollBar = False
+        ActiveWindow.DisplayVerticalScrollBar = False
     End If
     
     On Error GoTo 0
@@ -82,6 +85,9 @@ Public Sub EmergencyReset()
     If Not ActiveWindow Is Nothing Then
         ActiveWindow.DisplayHeadings = True
         ActiveWindow.DisplayGridlines = True
+        ActiveWindow.DisplayWorkbookTabs = True
+        ActiveWindow.DisplayHorizontalScrollBar = True
+        ActiveWindow.DisplayVerticalScrollBar = True
     End If
     
     ' Clear shortcut bindings

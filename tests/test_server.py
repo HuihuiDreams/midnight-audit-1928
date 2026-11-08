@@ -1,12 +1,17 @@
+import os
 import pytest
-from starlette.testclient import TestClient
+from fastapi.testclient import TestClient
 from src.backend.server import app, engine
 
 @pytest.fixture(autouse=True)
 def reset_engine():
-    # Reset engine before each test
-    from src.backend.puzzle_state import PuzzleEngine
+    from src.backend.puzzle_state import PuzzleEngine, GAME_STATE_FILE
     import src.backend.server as srv
+    if os.path.exists(GAME_STATE_FILE):
+        try:
+            os.remove(GAME_STATE_FILE)
+        except Exception:
+            pass
     srv.engine = PuzzleEngine()
 
 client = TestClient(app)
@@ -24,6 +29,7 @@ def test_event_cell_change_phase1_flow():
     assert res.status_code == 200
     data = res.json()
     assert data["accepted"] is False
+    assert any(a["effect"] == "SPREAD_BLOOD_SCAB" for a in data["actions"])
 
     # Submit correct fee
     res = client.post("/api/event", json={"event_type": "cell_change", "cell": "H7", "value": "$7.00"})
@@ -52,14 +58,37 @@ def test_event_spray_reagent():
     assert data["current_phase"] == 3
 
 def test_haunt_and_pending_effects():
-    # Queue a haunt
-    res = client.post("/api/haunt", json={"haunt_type": "whisper", "target_cell": "B18", "message": "TEST WHISPER"})
-    assert res.status_code == 200
-    assert res.json()["queued"] is True
+    haunt_types = ["cell_text", "flicker_lamp", "thunder_invert", "ink_spread", "whisper", "screen_tremor"]
+    
+    for idx, ht in enumerate(haunt_types):
+        res = client.post("/api/haunt", json={
+            "haunt_type": ht,
+            "target_cell": f"B{18 + idx}",
+            "message": f"HAUNT MSG FOR {ht}"
+        })
+        assert res.status_code == 200
+        assert res.json()["queued"] is True
 
-    # Check status includes pending effect
+    # Check status includes all 6 pending effects
     status_res = client.get("/api/status")
-    assert len(status_res.json()["pending_effects"]) == 1
+    assert len(status_res.json()["pending_effects"]) == 6
+
+    # Next event should pop all pending effects into actions as TRIGGER_HAUNT
+    event_res = client.post("/api/event", json={"event_type": "unknown_probe"})
+    assert event_res.status_code == 200
+    actions = event_res.json().get("actions", [])
+    haunt_actions = [a for a in actions if a.get("command") == "TRIGGER_HAUNT"]
+    assert len(haunt_actions) == 6
+    received_types = [a["haunt_type"] for a in haunt_actions]
+    assert received_types == haunt_types
+    for a in haunt_actions:
+        assert a["cell"].startswith("B")
+        assert a["message"].startswith("HAUNT MSG FOR")
+
+    # Pending effects queue should now be empty
+    status_after = client.get("/api/status")
+    assert len(status_after.json()["pending_effects"]) == 0
+
 
 def test_banish_endpoint():
     # Advance to Phase 4
@@ -73,3 +102,8 @@ def test_banish_endpoint():
     data = res.json()
     assert data["banished"] is True
     assert "ARCHIVE SEALED" in data["stamp"]
+
+    # Test banish event without phrase in Phase 4
+    res_event = client.post("/api/event", json={"event_type": "banish"})
+    assert res_event.status_code == 200
+    assert res_event.json()["banished"] is True

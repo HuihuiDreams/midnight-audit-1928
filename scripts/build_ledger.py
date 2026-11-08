@@ -162,6 +162,16 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     )
     ws["B18"].alignment = Alignment(horizontal="center", vertical="center")
 
+    # Phase 4 Button: [ SEAL ARCHIVE ] (C18:D18)
+    ws.merge_cells("C18:D18")
+    seal_btn = ws["C18"]
+    seal_btn.value = "[ SEAL ARCHIVE ]"
+    seal_btn.font = Font(name="Courier New", size=10, bold=True, color=COLOR_DECAYING_PAPER)
+    seal_btn.fill = PatternFill(fill_type="solid", start_color=COLOR_HOSPITAL_GREEN, end_color=COLOR_HOSPITAL_GREEN)
+    seal_btn.alignment = Alignment(horizontal="center", vertical="center")
+    for c in range(3, 5):
+        ws.cell(row=18, column=c).border = thin_border
+
     # 7. Yellow Handover Note (Post-It in K4:N16)
     ws.merge_cells("K4:N16")
     note_cell = ws["K4"]
@@ -182,6 +192,16 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     for r in range(4, 17):
         for c in range(11, 15):
             ws.cell(row=r, column=c).border = thick_note_border
+
+    # Phase 2 Button: [ SPRAY REAGENT ] (K18:N18)
+    ws.merge_cells("K18:N18")
+    spray_btn = ws["K18"]
+    spray_btn.value = "[ SPRAY REAGENT ]"
+    spray_btn.font = Font(name="Courier New", size=10, bold=True, color=COLOR_BONE_PAPER)
+    spray_btn.fill = PatternFill(fill_type="solid", start_color="3B533E", end_color="3B533E")
+    spray_btn.alignment = Alignment(horizontal="center", vertical="center")
+    for c in range(11, 15):
+        ws.cell(row=18, column=c).border = thin_border
 
     # 8. 30x30 Radar Grid (K20:AN49)
     ws.cell(row=19, column=11, value="ANNEX BASEMENT PLAN RADAR (30x30) — CORRUPTED").font = font_header

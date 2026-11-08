@@ -42,6 +42,10 @@ def test_build_ledger_generates_file():
     assert ws["K19"].value is not None
     assert "RADAR" in ws["K19"].value
 
+    # Verify Interactive Button Cells
+    assert ws["C18"].value == "[ SEAL ARCHIVE ]"
+    assert ws["K18"].value == "[ SPRAY REAGENT ]"
+
     # Cleanup
     if os.path.exists(output_path):
         os.remove(output_path)

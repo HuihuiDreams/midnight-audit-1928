@@ -1,8 +1,19 @@
+import os
 import pytest
-from src.backend.puzzle_state import PuzzleEngine, PhaseEnum
+from src.backend.puzzle_state import PuzzleEngine, PhaseEnum, GAME_STATE_FILE
 from src.backend.mcp_server import call_tool, handle_json_rpc
-from starlette.testclient import TestClient
+from fastapi.testclient import TestClient
 from src.backend.server import app
+
+@pytest.fixture(autouse=True)
+def reset_edge_state():
+    if os.path.exists(GAME_STATE_FILE):
+        try:
+            os.remove(GAME_STATE_FILE)
+        except Exception:
+            pass
+    import src.backend.server as srv
+    srv.engine = PuzzleEngine()
 
 client = TestClient(app)
 
@@ -70,3 +81,76 @@ def test_server_error_paths():
     res = client.post("/api/reset")
     assert res.status_code == 200
     assert res.json()["phase"] == 1
+
+def test_mcp_all_haunt_types():
+    haunt_types = ["cell_text", "flicker_lamp", "thunder_invert", "ink_spread", "whisper", "screen_tremor"]
+    for ht in haunt_types:
+        res = call_tool("haunt_spreadsheet", {"haunt_type": ht, "target_cell": "B18", "message": f"Eldritch {ht}"})
+        assert "content" in res
+        assert ht in res["content"][0]["text"]
+
+def test_vba_bootstrap_ui_stripping_and_restoration():
+    vba_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src", "vba", "M_Bootstrap.bas")
+    with open(vba_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    
+    # InitializeArchiveUI must hide tabs and scrollbars
+    assert "ActiveWindow.DisplayWorkbookTabs = False" in content
+    assert "ActiveWindow.DisplayHorizontalScrollBar = False" in content
+    assert "ActiveWindow.DisplayVerticalScrollBar = False" in content
+
+    # EmergencyReset must restore tabs and scrollbars
+    assert "ActiveWindow.DisplayWorkbookTabs = True" in content
+    assert "ActiveWindow.DisplayHorizontalScrollBar = True" in content
+    assert "ActiveWindow.DisplayVerticalScrollBar = True" in content
+
+def test_vba_daemon_bridge_haunt_handling():
+    vba_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src", "vba", "M_DaemonBridge.bas")
+    with open(vba_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Must extract JSON fields, match braces, and handle all 6 haunt types
+    assert "ExtractJsonField" in content
+    assert "ExecuteHauntAction" in content
+    assert "FindMatchingBrace" in content
+    assert "TRIGGER_HAUNT" in content
+
+    haunt_types = ["cell_text", "flicker_lamp", "thunder_invert", "ink_spread", "whisper", "screen_tremor"]
+    for ht in haunt_types:
+        assert f'Case "{ht}"' in content or f'"{ht}"' in content
+
+def test_server_complex_haunt_payloads():
+    # Test queueing haunt messages containing braces, colons, quotes and special characters
+    complex_haunt = {
+        "haunt_type": "cell_text",
+        "target_cell": "B18",
+        "message": "ANOMALY {LEVEL: 9}: \"SEAL THE DEEP VAULT\" IMMEDIATELY!"
+    }
+    res = client.post("/api/haunt", json=complex_haunt)
+    assert res.status_code == 200
+
+    # Pop via event dispatch
+    event_res = client.post("/api/event", json={"event_type": "cell_change", "cell": "H7", "value": "1.00"})
+    assert event_res.status_code == 200
+    data = event_res.json()
+    assert data["accepted"] is False
+    actions = data.get("actions", [])
+    
+    # Must contain both standard FX (SPREAD_BLOOD_SCAB) and TRIGGER_HAUNT
+    assert any(a.get("effect") == "SPREAD_BLOOD_SCAB" for a in actions)
+    haunt_acts = [a for a in actions if a.get("command") == "TRIGGER_HAUNT"]
+    assert len(haunt_acts) == 1
+    assert haunt_acts[0]["haunt_type"] == "cell_text"
+    assert haunt_acts[0]["cell"] == "B18"
+    assert "ANOMALY {LEVEL: 9}" in haunt_acts[0]["message"]
+
+def test_spec_consistency():
+    spec_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".kiro", "specs", "puzzle_engine_spec.md")
+    with open(spec_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    assert "LocalPuzzleState.bas" not in content
+    assert "HandleOfflineEvent" in content
+    assert "M_HorrorFX.bas" in content
+
+

@@ -22,6 +22,7 @@ def test_phase_1_verification_invalid():
     # Non-numeric input
     res = engine.handle_cell_change("H7", "invalid_text")
     assert res["accepted"] is False
+    assert any(a.get("effect") == "SPREAD_BLOOD_SCAB" for a in res["actions"])
 
 def test_phase_1_verification_success():
     engine = PuzzleEngine()
@@ -117,3 +118,15 @@ def test_haunt_queue():
     popped = engine.pop_pending_effects()
     assert len(popped) == 1
     assert len(engine.pending_effects) == 0
+
+def test_state_persistence(tmp_path):
+    state_file = str(tmp_path / "test_game_state.json")
+    engine1 = PuzzleEngine()
+    engine1.handle_cell_change("H7", "7.00")
+    engine1.save_state(state_file)
+
+    engine2 = PuzzleEngine()
+    loaded = engine2.load_state(state_file)
+    assert loaded is True
+    assert engine2.phase_number == 2
+    assert engine2.row13_awakened is True

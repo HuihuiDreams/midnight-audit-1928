@@ -43,6 +43,18 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     On Error Resume Next
     If Target Is Nothing Then Exit Sub
     
+    ' Check for Click on [ SPRAY REAGENT ] Button (K18:N18)
+    If Not Intersect(Target, Me.Range("K18:N18")) Is Nothing Then
+        TriggerReagentMacro
+        Exit Sub
+    End If
+    
+    ' Check for Click on [ SEAL ARCHIVE ] Button (C18:D18)
+    If Not Intersect(Target, Me.Range("C18:D18")) Is Nothing Then
+        TriggerBanishMacro
+        Exit Sub
+    End If
+    
     ' Intersecting Row 13 Abyss
     If Not Intersect(Target, Me.Range("A13:I13")) Is Nothing Then
         ThudBeep

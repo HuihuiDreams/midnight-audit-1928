@@ -131,10 +131,20 @@ Public Sub SpreadBloodScab(ByVal Target As Range)
     Dim baseCell As Range
     Set baseCell = Target.Cells(1, 1)
     
+    Dim baseRow As Long, baseCol As Long
+    baseRow = baseCell.Row
+    baseCol = baseCell.Column
+    
+    Dim maxSpread As Long
+    maxSpread = 2
+    If baseRow - maxSpread < 1 Then maxSpread = baseRow - 1
+    If baseCol - maxSpread < 1 Then maxSpread = baseCol - 1
+    If maxSpread < 1 Then maxSpread = 1
+    
     Dim r As Long
-    For r = 1 To 3
+    For r = 1 To maxSpread
         Dim spreadRange As Range
-        Set spreadRange = baseCell.Offset(-r + 1, -r + 1).Resize(r * 2 - 1, r * 2 - 1)
+        Set spreadRange = baseCell.Offset(-r, -r).Resize(r * 2 + 1, r * 2 + 1)
         spreadRange.Interior.Color = COLOR_DRIED_BLOOD
         DoEvents
         PlatformSleep 30
@@ -142,7 +152,12 @@ Public Sub SpreadBloodScab(ByVal Target As Range)
     
     ' Restore after brief hesitation
     PlatformSleep 150
-    baseCell.Offset(-2, -2).Resize(5, 5).Interior.Color = COLOR_BONE_PAPER
+    baseCell.Offset(-maxSpread, -maxSpread).Resize(maxSpread * 2 + 1, maxSpread * 2 + 1).Interior.Color = COLOR_BONE_PAPER
+    
+    ' Restore Table Header styling if affected
+    If baseRow - maxSpread <= 5 And baseRow + maxSpread >= 5 Then
+        baseCell.Worksheet.Range("A5:I5").Interior.Color = COLOR_DECAYING_PAPER
+    End If
     On Error GoTo 0
 End Sub
 
@@ -207,7 +222,7 @@ Public Sub ToggleEyeBlink()
     On Error Resume Next
     Dim ws As Worksheet
     Set ws = ThisWorkbook.Sheets("Audit_Ledger_1928")
-    
+    If ws Is Nothing Then Set ws = ActiveSheet
     If ws Is Nothing Then Exit Sub
     
     Dim eyeRange As Range
@@ -215,12 +230,12 @@ Public Sub ToggleEyeBlink()
     
     mEyeBlinkState = Not mEyeBlinkState
     If mEyeBlinkState Then
-        eyeRange.Interior.Color = COLOR_WARNING_RED
+        eyeRange.Interior.Color = COLOR_DRIED_BLOOD
     Else
         eyeRange.Interior.Color = COLOR_PHOSPHOR_GREEN
     End If
     
-    ' Schedule next blink in 2 seconds if still in Phase 2/3
+    ' Schedule next blink in 1.5 seconds if still in Phase 2/3
     mNextBlinkTime = Now + TimeValue("00:00:02")
     Application.OnTime mNextBlinkTime, "ToggleEyeBlink"
     On Error GoTo 0

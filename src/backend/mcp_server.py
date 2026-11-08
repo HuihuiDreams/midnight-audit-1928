@@ -3,7 +3,7 @@ import json
 from typing import Dict, Any, List, Optional
 from src.backend.puzzle_state import PuzzleEngine
 
-engine = PuzzleEngine()
+engine = PuzzleEngine(load_existing=True)
 
 def list_tools() -> List[Dict[str, Any]]:
     return [
@@ -65,9 +65,11 @@ def list_tools() -> List[Dict[str, Any]]:
 
 def call_tool(name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
     global engine
+    engine.load_state()
 
     if name == "inspect_ledger":
         target = arguments.get("target_range")
+        include_anomalies = arguments.get("include_anomalies", False)
         state = engine.get_state()
         
         lines = [
@@ -97,6 +99,16 @@ def call_tool(name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
             lines.append("Active Ledger Records:")
             for row_idx, r in engine.ledger_data.items():
                 lines.append(f"  Row {row_idx}: {r['id']} | {r['borrower']} | Due Overdue: {r['overdue']}d | Fee: {r['fee']} | {r['status']}")
+
+        if include_anomalies:
+            lines.append("")
+            lines.append("[SUPERNATURAL ANOMALY DOSSIER]")
+            lines.append("  Bound Entity: Wilbur V. Whateley (The Floorboard Sleeper / Auditor Emeritus)")
+            lines.append("  Abyss Epicenter: Row 13 (A13:I13, Height 220pt, pure black)")
+            lines.append("  Basement Grid: K20:AN49 (30x30 spatial disruption)")
+            lines.append("  Cosmic Eye Coordinates: W34:X35 (Blinking Phosphor Green / Dried Blood)")
+            lines.append("  Sealing Cipher: ROT-3 strip 'VHDO WKH GHHS YDXOW' -> 'SEAL THE DEEP VAULT'")
+            lines.append(f"  Pending Spectral Injections: {len(state['pending_effects'])}")
 
         return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 

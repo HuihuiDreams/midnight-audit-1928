@@ -98,11 +98,11 @@
 ## 3. Offline Fallback Logic
 
 When the Python Daemon is not running:
-1. `M_DaemonBridge.bas` catches connection timeouts (`WinHttp` or `MSXML2` status != 200).
-2. It immediately routes the event to `LocalPuzzleState.bas`.
-3. `LocalPuzzleState` contains exact matching verification rules:
-   - `CheckPhase1(val)` -> checks if `Abs(val - 7.00) < 0.01`.
-   - `GeneratePixelRadar()` -> reads built-in 30x30 hex table.
-   - `CheckPhase3(val)` -> checks if `UCase(Trim(val)) == "SEAL THE DEEP VAULT"`.
-   - `ExecuteBanishment()` -> triggers internal VBA visual thunder & stamp.
-Thus the `.xlsm` file remains 100% playable in standalone offline mode.
+1. `PostEvent` in `src/vba/M_DaemonBridge.bas` catches connection timeouts (`curl` or `MSXML2.ServerXMLHTTP` failure) via `On Error GoTo FallbackHandler`.
+2. It immediately routes the event to `HandleOfflineEvent(eventType, cellCoord, cellVal, buttonName)` in `src/vba/M_DaemonBridge.bas`.
+3. `HandleOfflineEvent` maintains `gLocalPhase` (1 to 4) and executes the exact phase rules and sensory feedback by invoking procedures in `src/vba/M_HorrorFX.bas`:
+   - **Phase 1 (H7)**: Validates overdue fee `Abs(Val(cleanVal) - 7.00) < 0.01`. If valid, updates cell `I7` to `"BALANCED (UNHOLY)"`, awakens Row 13 (`"STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS"`), reveals censored rows 14-16, triggers `ThudBeep` and `ScreenTremor`, and advances `gLocalPhase` to 2. If invalid, triggers `SpreadBloodScab` on `H7` and `ThudBeep`.
+   - **Phase 2 (reagent_spray / SPRAY_REAGENT)**: Calls `RenderPixelFace(ws)` in `M_HorrorFX.bas` to paint the 30x30 floorplan (`K20:AN49`), starts eye blinking via `StartEyeBlink` / `ToggleEyeBlink`, triggers `ThudBeep`, and advances `gLocalPhase` to 3.
+   - **Phase 3 (B18 Override Code)**: On initial interaction (`gHijackTriggered = False`), hijacks typing with `"YOUR SALARY CANNOT SAVE YOU"` in dried blood font, rumbles with `ThudBeep`, pauses 1.2s via `PlatformSleep`, and clears the cell. On subsequent input, checks `Trim(UCase(cellVal)) = "SEAL THE DEEP VAULT"`. If matched, arms the `[ SEAL ARCHIVE ]` button in `C18:D18` (`COLOR_WARNING_RED`) and advances `gLocalPhase` to 4. If invalid, triggers `SpreadBloodScab` on `B18` and `ThudBeep`.
+   - **Phase 4 (banish / SEAL ARCHIVE)**: Calls `StopEyeBlink`, `ThunderInvert`, and `ScreenTremor` in `M_HorrorFX.bas`, paints the Cold Ash banishment stamp across `B10:H12` (`[ ARCHIVE SEALED - OCTOBER 14, 1928 - 00:01 AM ]`), and displays the termination notification.
+Thus the `.xlsm` file remains 100% playable in standalone offline mode without any external Python daemon or dependencies.
