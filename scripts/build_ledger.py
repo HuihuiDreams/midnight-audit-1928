@@ -1,0 +1,227 @@
+#!/usr/bin/env python3
+"""
+The Midnight Audit (1928) — Ledger Builder Script
+Generates the pre-formatted Morbid Archive template with 1928 visual styling,
+Row 13 Abyss (220pt height), yellow handover notes, and 30x30 corrupted radar grid.
+"""
+
+import os
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+
+TEMPLATE_FILENAME = "Midnight_Audit_1928_Template.xlsx"
+
+# Palette definitions
+COLOR_BONE_PAPER = "D3CEB9"
+COLOR_DECAYING_PAPER = "C5BFA8"
+COLOR_CARBON = "181614"
+COLOR_HOSPITAL_GREEN = "454F48"
+COLOR_DRIED_BLOOD = "2E0F0D"
+COLOR_ABYSS = "000000"
+COLOR_YELLOW_NOTE = "E5D982"
+COLOR_WARNING_RED = "8A1C14"
+
+def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Audit_Ledger_1928"
+    ws.views.sheetView[0].showGridLines = True
+
+    # Styling helpers
+    font_title = Font(name="Courier New", size=15, bold=True, color=COLOR_CARBON)
+    font_subtitle = Font(name="Courier New", size=10, italic=True, color=COLOR_HOSPITAL_GREEN)
+    font_header = Font(name="Courier New", size=11, bold=True, color=COLOR_CARBON)
+    font_body = Font(name="Courier New", size=10, bold=False, color=COLOR_CARBON)
+    font_flagged = Font(name="Courier New", size=10, bold=True, color=COLOR_WARNING_RED)
+    font_hidden = Font(name="Courier New", size=14, bold=True, color=COLOR_ABYSS)
+    font_censored = Font(name="Courier New", size=10, bold=False, color=COLOR_ABYSS)
+    font_note = Font(name="Courier New", size=9, bold=False, color=COLOR_CARBON)
+
+    fill_bone = PatternFill(fill_type="solid", start_color=COLOR_BONE_PAPER, end_color=COLOR_BONE_PAPER)
+    fill_decay = PatternFill(fill_type="solid", start_color=COLOR_DECAYING_PAPER, end_color=COLOR_DECAYING_PAPER)
+    fill_abyss = PatternFill(fill_type="solid", start_color=COLOR_ABYSS, end_color=COLOR_ABYSS)
+    fill_note = PatternFill(fill_type="solid", start_color=COLOR_YELLOW_NOTE, end_color=COLOR_YELLOW_NOTE)
+
+    thin_border = Border(
+        left=Side(style='thin', color=COLOR_HOSPITAL_GREEN),
+        right=Side(style='thin', color=COLOR_HOSPITAL_GREEN),
+        top=Side(style='thin', color=COLOR_HOSPITAL_GREEN),
+        bottom=Side(style='thin', color=COLOR_HOSPITAL_GREEN)
+    )
+
+    thick_note_border = Border(
+        left=Side(style='medium', color=COLOR_CARBON),
+        right=Side(style='medium', color=COLOR_CARBON),
+        top=Side(style='medium', color=COLOR_CARBON),
+        bottom=Side(style='medium', color=COLOR_CARBON)
+    )
+
+    # 1. Document Title Banners
+    ws.merge_cells("A2:I2")
+    ws["A2"] = "MISKATONIC UNIVERSITY — ANNEX ARCHIVE DELINQUENCY LEDGER"
+    ws["A2"].font = font_title
+    ws["A2"].alignment = Alignment(horizontal="left", vertical="center")
+
+    ws.merge_cells("A3:I3")
+    ws["A3"] = "FISCAL PERIOD: OCTOBER 1928 | STATION: NIGHT AUDITOR DESK | ALL BALANCES SUBJECT TO CUSTODIAL SEAL"
+    ws["A3"].font = font_subtitle
+    ws["A3"].alignment = Alignment(horizontal="left", vertical="center")
+
+    # 2. Table Column Headers
+    headers = [
+        "Record ID",
+        "Borrower Name",
+        "Department / Town",
+        "Catalog / Tome Title",
+        "Checkout Date",
+        "Due Date",
+        "Overdue Days",
+        "Late Fee Paid ($)",
+        "Audit Status"
+    ]
+    for col_idx, h in enumerate(headers, start=1):
+        cell = ws.cell(row=5, column=col_idx, value=h)
+        cell.font = font_header
+        cell.fill = fill_decay
+        cell.border = thin_border
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[5].height = 26
+
+    # 3. Active Borrower Records (Rows 6-12)
+    records = [
+        ("ARK-001", "Henry Armitage", "Dept of Rare Books", "Cultes des Goules", "1928-09-01", "1928-10-01", 12, 0.60, "CLEARED"),
+        ("ARK-007", "Wilbur Whateley", "Dunwich Settlement", "Necronomicon (Dee Trans.)", "1928-04-15", "1928-05-26", 140, None, "FLAGGED"),
+        ("ARK-012", "Francis Morgan", "Dept of Archaeology", "Book of Eibon", "1928-08-10", "1928-09-08", 35, 1.75, "CLEARED"),
+        ("ARK-019", "Warren Rice", "Dept of Classical Lang", "De Vermis Mysteriis", "1928-06-20", "1928-07-25", 80, 4.00, "CLEARED"),
+        ("ARK-023", "Asenath Waite", "Innsmouth Requisition", "Unaussprechlichen Kulten", "1928-09-10", "1928-09-28", 15, 0.75, "CLEARED"),
+        ("ARK-031", "Pickman, R.U.", "Boston Fine Arts", "Ars Magna Lucis et Umbrae", "1928-06-01", "1928-07-10", 95, 4.75, "CLEARED"),
+        ("ARK-040", "Edward Derby", "Dept of Literature", "Liber Ivonis", "1928-10-01", "1928-10-08", 5, 0.25, "CLEARED"),
+    ]
+
+    for i, row_data in enumerate(records, start=6):
+        ws.row_dimensions[i].height = 20
+        for j, val in enumerate(row_data, start=1):
+            cell = ws.cell(row=i, column=j, value=val)
+            cell.font = font_body
+            cell.fill = fill_bone
+            cell.border = thin_border
+            
+            # Format currency & numbers
+            if j == 7: # Overdue Days
+                cell.alignment = Alignment(horizontal="right", vertical="center")
+            elif j == 8: # Fee
+                cell.alignment = Alignment(horizontal="right", vertical="center")
+                if val is not None:
+                    cell.number_format = "$#,##0.00"
+            elif j == 9: # Status
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+                if val == "FLAGGED":
+                    cell.font = font_flagged
+
+    # 4. Row 13: The Abyss (Height = 220)
+    ws.row_dimensions[13].height = 220
+    for col_idx in range(1, 10):
+        cell = ws.cell(row=13, column=col_idx)
+        cell.fill = fill_abyss
+        cell.border = thin_border
+
+    ws.merge_cells("A13:I13")
+    ws["A13"] = "STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS"
+    ws["A13"].font = font_hidden
+    ws["A13"].alignment = Alignment(horizontal="center", vertical="center")
+
+    # 5. Censored Rows (Rows 14-16)
+    censored_records = [
+        ("ARK-066", "[EXPUNGED BY ORDER]", "Dunwich Vault", "The Seven Cryptical Books", "1928-01-01", "1928-01-13", 273, None, "COORDINATE: RADAR GRID K20:AN49"),
+        ("ARK-067", "[NAME MUTATED]", "Kadath Sub-basement", "Pnakotic Manuscripts", "1927-10-31", "1927-11-13", 345, None, "ACCESS DENIED"),
+        ("ARK-068", "Keziah Mason", "Arkham Witch House", "Azathoth & Other Horrors", "1692-05-01", "1692-05-19", 86320, None, "REMAINS UNBURIED"),
+    ]
+    for i, row_data in enumerate(censored_records, start=14):
+        ws.row_dimensions[i].height = 18
+        for j, val in enumerate(row_data, start=1):
+            cell = ws.cell(row=i, column=j, value=val)
+            cell.font = font_censored
+            cell.fill = fill_abyss
+            cell.border = thin_border
+            cell.alignment = Alignment(horizontal="left", vertical="center")
+
+    # 6. Row 18: Emergency Vault Override Input
+    ws.row_dimensions[18].height = 24
+    ws["A18"] = "EMERGENCY OVERRIDE CODE (PHASE 3):"
+    ws["A18"].font = font_header
+    ws["A18"].alignment = Alignment(horizontal="left", vertical="center")
+    
+    ws["B18"].font = Font(name="Courier New", size=11, bold=True, color=COLOR_CARBON)
+    ws["B18"].fill = fill_bone
+    ws["B18"].border = Border(
+        left=Side(style='medium', color=COLOR_DRIED_BLOOD),
+        right=Side(style='medium', color=COLOR_DRIED_BLOOD),
+        top=Side(style='medium', color=COLOR_DRIED_BLOOD),
+        bottom=Side(style='medium', color=COLOR_DRIED_BLOOD)
+    )
+    ws["B18"].alignment = Alignment(horizontal="center", vertical="center")
+
+    # 7. Yellow Handover Note (Post-It in K4:N16)
+    ws.merge_cells("K4:N16")
+    note_cell = ws["K4"]
+    note_cell.value = (
+        "--- NIGHT AUDITOR HANDOVER NOTE ---\n"
+        "Date: Oct 14, 1928 | Shift: 11:00 PM - 07:00 AM\n\n"
+        "RULE 1: Verify all delinquent borrowings. Any record overdue by > 100 days must have its late penalty calculated in Column H ($0.05 per overdue day) to lift the red flag.\n\n"
+        "RULE 2: If the Annex Basement floorplan radar displays spatial anomalies (#ROT!), spray the chemical reagent [CLICK: SPRAY REAGENT] to expose the intruder.\n\n"
+        "RULE 3: In case of structural breach, transcribe the 4-word sealing code into Cell B18. Note: the cipher strip on the desk is shifted by 3 letters:\n"
+        "  CIPHER: 'VHDO WKH GHHS YDXOW' (ROT-3)\n\n"
+        "WARNING: Under no circumstances alter or inspect Row 13.\n"
+        "- Former Auditor Ward (Missing since yesterday)"
+    )
+    note_cell.font = font_note
+    note_cell.fill = fill_note
+    note_cell.alignment = Alignment(horizontal="left", vertical="top", wrap_text=True)
+    
+    for r in range(4, 17):
+        for c in range(11, 15):
+            ws.cell(row=r, column=c).border = thick_note_border
+
+    # 8. 30x30 Radar Grid (K20:AN49)
+    ws.cell(row=19, column=11, value="ANNEX BASEMENT PLAN RADAR (30x30) — CORRUPTED").font = font_header
+
+    glitch_tokens = ["#ROT!", "#REF!", "#N/A", "??", "[VOID]", "#ERR!"]
+    for r in range(20, 50):
+        ws.row_dimensions[r].height = 14
+        for c in range(11, 41):
+            cell = ws.cell(row=r, column=c)
+            token = glitch_tokens[(r * 7 + c * 13) % len(glitch_tokens)]
+            cell.value = token
+            cell.font = Font(name="Courier New", size=8, color=COLOR_HOSPITAL_GREEN)
+            cell.fill = fill_decay if (r + c) % 2 == 0 else fill_bone
+            cell.border = thin_border
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    # Column widths
+    col_widths = {
+        1: 14, # A: Record ID
+        2: 24, # B: Borrower Name
+        3: 26, # C: Department
+        4: 32, # D: Tome Title
+        5: 15, # E: Checkout Date
+        6: 15, # F: Due Date
+        7: 15, # G: Overdue Days
+        8: 20, # H: Late Fee Paid
+        9: 24, # I: Status
+        10: 4, # J: Spacer
+    }
+    for col_idx, width in col_widths.items():
+        ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+    # Radar columns K to AN (11 to 40) square aspect ratio
+    for col_idx in range(11, 41):
+        ws.column_dimensions[get_column_letter(col_idx)].width = 4.0
+
+    wb.save(output_path)
+    return wb
+
+if __name__ == "__main__":
+    output = os.path.join(os.path.dirname(os.path.dirname(__file__)), TEMPLATE_FILENAME)
+    build_ledger_workbook(output)
+    print(f"Successfully generated {output}")
