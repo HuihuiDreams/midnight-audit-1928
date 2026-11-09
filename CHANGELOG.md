@@ -10,55 +10,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Yellow Handover Note Full 30-Column Layout & Handwritten Typography (`K4:AN12`, `Bradley Hand`)**:
-  - Expanded Ward's sticky note across all 30 columns (`K4:AN12`, spanning Rows 4..12 at ~221pt height), eliminating the artificial column AN/Row 12 drop-shadow gaps that cramped the text.
+  - Expanded Ward's sticky note across all 30 columns (`K4:AN12`, spanning Rows 4..12 at ~221pt height), eliminating artificial column AN/Row 12 drop-shadow gaps that cramped the text.
   - Tailored line lengths (<50 chars) and switched font to `Bradley Hand` (bold, 9.5pt), providing an authentic organic ink-pen handwriting aesthetic (replacing plain/flat sans fonts) and ensuring 100% of the header, Rules 1-3, and Ward's bottom warning (`🩸 WARNING: Never alter or inspect Row 13. — Former Auditor Ward (Missing since Oct 30, 11:59 PM)`) are fully visible without truncation.
+- **Special Collections Night Protocol & Reagent Card (`K13:AN16`, `American Typewriter`)**:
+  - Added a full 30-column wide diegetic document card spanning Rows 13..16 (~277pt height) in authentic typewriter font, naturally absorbing the 220pt Row 13 Abyss height.
+  - Features Dr. Armitage's archive directive #1928-X, detailing Wilbur Whateley's delinquent Necronomicon custody lock ($7.00 penalty in H7), Ibn-Ghazi reagent atomizer spray instructions for radar grid `K20:AN49`, and midnight vault sealing rules.
 - **Charred Cipher Key Strip Full Box Display (`B21:H28`)**:
   - Expanded the charred ROT-3 cipher strip from `B21:H25` (60pt) to `B21:H28` (8 rows × 12pt = 96pt), giving all 6 lines of `Courier New` monospace cipher text and the bottom box border `╚════════════════════════════════════════════════════════════════════════════╝` comfortable breathing room with zero clipping.
   - Shifted the charred ash dither to Row 29 and re-anchored Dr. Henry Armitage's Archival Memorandum to `B30:H48` (19 rows = 228pt), preserving symmetrical alignment with Row 50 plaques (`B50:H50` and `K50:AN50`).
+- **Dr. Henry Armitage's Restricted Archival Memorandum (`B30:H48`) & Plaque (`B50:H50`)**:
+  - Added a 19-row (`B30:H48`) typed archival memorandum in authentic 9pt `American Typewriter` monospace font, recording late-night incident logs (floorboard groaning beneath Row 13, former auditor Ward's disappearance, non-Euclidean beam warping) and 4-step shift instructions.
+  - Anchored with double-red borders, a Row 49 charred ash dither, and an official restricted directive plaque at `B50:H50` (`📜 ARCHIVAL FOLIO #1928-31B | DR. H. ARMITAGE RESTRICTED DIRECTIVE | VAULT SEAL REQUIRED`).
 - **Emergency Override Label Clean Wrapping (`A18`) & Column A Width**:
-  - Widened Column A from 16 to 19 and updated `A18` to `"EMERGENCY OVERRIDE\nCODE (PHASE 3):"` in `Copperplate` bold (8.5pt), completely eliminating text truncation against cell `B18`.
+  - Widened Column A (width 21) and updated `A18` to `"EMERGENCY OVERRIDE\nCODE (PHASE 3):"` in `Copperplate` bold (8.5pt), completely eliminating text truncation against cell `B18`.
 - **Radar Bottom Plaque Geometry & Text Display (`K50:AN50`)**:
   - Refined the footer plaque under the 30x30 micro-pixel canvas to `"🕯️ ANNEX SUB-VAULT 13 SANCTUM | EPICENTER W34:X35"` (49 characters) at 8pt `Copperplate` bold centered, completely eliminating text truncation across the 390pt cell width while maintaining strict symmetry with the left-wing directive plaque (`B50:H50`).
 - **Holistic Layout Convergence & Boundary Enforcement (`A1:AN50`)**:
   - Grounded the layout strictly in 1928 Miskatonic University lore and enforced the global `A1:AN50` canvas boundary, embedding the 30x30 16-bit candlelit sanctum pixel art directly within `K20:AN49` and removing non-canon exterior blocks (`Rows 51..80` and `Columns AO..BC`).
 - **1928 Archival Plaque & Table Header Typography (`Copperplate`)**:
   - Upgraded table column headers (`A5:I5`) and classification banner (`A1`) to `Copperplate` bold (9.5pt), reinforcing the vintage 1928 bank/library ledger aesthetic.
+- **Tactile 3D Action Button Bevels & Seamless Composite Borders**:
+  - Upgraded `[ SEAL ARCHIVE ]` (`C18:D18`) and `[ SPRAY REAGENT ]` (`K18:AN18`) with bone paper highlights (top/left) and carbon shadows (bottom/right), removing internal green dividing lines for seamless mechanical button feedback, and cleaned internal borders on the Custodial Wax Seal box (`E18:I18`).
+- **Charred Ash Ordered Dithering (`Row 29` & `Row 49`)**:
+  - Added dithered crumbling ash borders across columns B..H at Row 29 (directly beneath the Charred Cipher Key Strip) and Row 49 (beneath Dr. Armitage's Archival Memorandum), creating authentic deteriorating burnt paper edges.
 - **Universal Agent Working Guidelines (`AGENTS.md`)**: Established standardized repository development and collaboration guidelines for all AI agents and human contributors:
   - Architectural retrospective and design principles: strict adherence to the original Miskatonic University 1928 story lore and rejection of narrative drift (e.g., coroner autopsy reports or unrelated clip-art).
   - Holistic UI design principles: strict `A1:AN50` canvas boundary alignment, zero irregular protruding blocks, natural absorption of the 220pt Row 13 Abyss, and dedicated 30x30 1:1 micro-pixel canvas (`K20:AN49`).
   - Strict compliance with Karpathy Guidelines (Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution).
   - Test-Driven Development (TDD) protocol requiring test synchronization and 100% pytest pass rate.
   - Mandatory changelog and specification synchronization procedures.
-- **16-Bit High-Density Micro-Pixel Art Sanctum (Option B: `K51:BC80`)**: Built a dedicated 16-bit fine micro-grid occult relic gallery on an unconstrained canvas below the radar (`Rows 51..80`, `Columns K..BC`) with uniform 12pt row heights and 2.2 column widths (~16px x 16px 1:1 square micro-pixels):
-  1. *16-Bit Sanatorium Kerosene Candle* (`K52:V79`, 12x28): Elaborate tallow dripping down a fluted candle body, brass saucer with sculpted finger loop, and glowing layered phosphor green/gold flame core.
-  2. *16-Bit Occult Horned Cranium* (`X52:AK79`, 14x28): Anatomical human skull with curved ram horns, zygomatic arches, nasal aperture void, dual glowing phosphor pupils (`AA63`, `AH63`), ivory teeth, and mental protuberance.
-  3. *16-Bit Halloween Jack-o'-Lantern* (`AM52:AZ79`, 14x28): Ribbed pumpkin rind with twisted woody vine stem, glowing triangular candlelight eyes (`AP62`, `AW62`), carved nose cavity, and multi-tier jagged saw-tooth grin blazing with internal candlefire.
-  4. *Occult Relic Plaques (`K51:BC51`, `K80:BC80`)*: Header and footer forensic catalog banners with solid Carbon Desk borders.
-- **True Square-Pixel Occult Altar Triptych (`W4:AN12`)**: Replaced non-square stretched sprites with handcrafted 1:1 true square pixel art sprites on square-width columns (`width = 3.5`):
-  1. *1928 Sanatorium Kerosene Candle* (`W4:AA12`): 5x9 pixel art featuring dripping bone wax, brass saucer with finger loop handle, and glowing phosphor green flame core.
-  2. *Occult Memento Mori Skull* (`AC4:AH12`): 6x9 pixel art with cranium dome, suture crack, deep eye socket void, glowing green phosphor pupils (`AE8`, `AF8`), maxilla, and grinning teeth.
-  3. *Halloween Jack-o'-Lantern Pumpkin* (`AJ4:AN12`): 5x9 pixel art with withered stem, triangular carved glowing eyes (`AK7`), jagged saw-tooth mouth, and vibrant pumpkin orange rind (`#D9681A` at `AL11`).
-  4. *Occult Altar Header & Evidence Dossier Card* (`W3:AN16`): Added an engraved brass altar plaque at `W3:AN3` and an authentic Arkham Police & Sanatorium Incident Evidence Box in `W13:AN16` utilizing the 220pt Row 13 height for readable forensic evidence cards.
-- **Arkham Coroner Autopsy Dossier (`B28:H48`)**: Replaced the 8:1 horizontally stretched smears below the cipher key with a richly detailed, typed 1928 coroner autopsy log and custodial directive bounded by double-red rules, dithered ash, and an official evidence plaque (`B50:H50`).
-- **50% Bayer Ordered Dithering**: Softened physical drop shadows on the yellow handover note (`V5:V17`, `L17:V17`) with a 2x2 Bayer checkerboard dither pattern and dog-eared corner chamfer.
-- **Charred Ash Crumbling Edge (`B26:H26`, `B49:H49`)**: Added dithered crumbling ash and dog-eared paper curl beneath the Charred Cipher Key Strip and Autopsy Dossier artifacts.
-- **Tactile 3D Action Button Bevels & Seamless Composite Borders**: Upgraded `[ SEAL ARCHIVE ]` (`C18:D18`) and `[ SPRAY REAGENT ]` (`K18:AN18`) with bone paper highlights (top/left) and carbon shadows (bottom/right), removing internal green dividing lines for seamless mechanical button feedback, and cleaned internal borders on the Custodial Wax Seal box (`E18:I18`).
-- **Concentric Radar Dither Anomaly (`K20:AN49`)**: Implemented ordered dithering gradient across pre-spray corrupted radar cells, transitioning from deep dried blood scab to decaying paper.
 
 ### Changed
 
-- **Annex Basement Radar De-Cluttering & Silhouette Clarity (`K20:AN49`)**: Removed text error noise (`#ROT!`, `#REF!`, `[VOID]`, etc.) from the entity face and skull interior cells so the pixel-art geometry is crisp and unobstructed. Retained glitch tokens exclusively on perimeter scanning margins, while rendering solid dried-blood ram horns and revealing the central Cosmic Eye / Abyss Core at `W34:X35`.
-- **Compact Ledger Column Widths & Viewport Fit (`A1:AN50`)**: Tightened ledger columns A..I to 156 total units and set `zoomScale = 85` so the entire sheet, including the 30x30 radar and occult altar sprites, fits 100% inside the visible display without right-edge clipping.
-- **Handover Note Proportioned Memo Card (`K4:U16`)**: Rebalanced Post-It note to 11 columns (`K4:U16`) with structured typographic dividers and 9pt font, leaving columns `W..AN` open for the square-pixel altar triptych.
-- **Spray Reagent Full-Width Action Bar**: Expanded `[ SPRAY REAGENT ]` button (`K18:AN18`) and radar header (`K19:AN19`) to match the 30x30 radar grid geometry, updating click interception across `K18:AN18` in `Sheet1_Archive.cls`.
+- **Annex Basement Radar De-Cluttering & Silhouette Clarity (`K20:AN49`)**:
+  - Removed text error noise (`#ROT!`, `#REF!`, `[VOID]`, etc.) from the entity face and skull interior cells so the pixel-art geometry is crisp and unobstructed. Retained glitch tokens exclusively on perimeter scanning margins, while rendering solid dried-blood ram horns and revealing the central Cosmic Eye / Abyss Core at `W34:X35`.
+- **Corrupted Radar Ghostly Watermark & Concentric Dither (`K20:AN49`)**:
+  - Rendered a faint, ghostly 30x30 horned demonic skull and cosmic eye silhouette beneath the glitch tokens in the pre-spray state using organic blood and decaying paper fills, matching the revealed occult anatomy.
+- **Compact Ledger Column Widths & Viewport Fit (`A1:AN50`)**:
+  - Tightened ledger columns A..I to 156 total units and set `zoomScale = 85` so the entire sheet, including the 30x30 radar and right-wing dossier wing, fits 100% inside the visible display without right-edge clipping.
+- **Spray Reagent Full-Width Action Bar**:
+  - Expanded `[ SPRAY REAGENT ]` button (`K18:AN18`) and radar header (`K19:AN19`) to match the 30x30 radar grid geometry, updating click interception across `K18:AN18` in `Sheet1_Archive.cls`.
+- **Text Overflow in Censored Cell `I14`**:
+  - Added `wrap_text=True` and `shrink_to_fit=True` to prevent text from leaking across column J into the yellow handover note.
+- **A18 Label Background & Text Truncation**:
+  - Styled A18 with Decaying Paper fill (`#C5BFA8`) and Hospital Green thin border; widened Column A to 21 and enabled 2-line word wrapping at 28pt height to eliminate text truncation behind cell B18.
+- **Letterhead Banner Paper Fill**:
+  - Added Bone Paper (`#D3CEB9`) background fill and hairline borders to title banners `A2:I2` and `A3:I3`, eliminating raw unstyled white patches.
+- **Row 18 Control Bar Completion**:
+  - Set `D18` button background fill and styled trailing cells `E18:I18` with Bone Paper fill and thin borders, closing off the bottom table perimeter.
+- **Phase 4 Cold Ash Stamp Text Collisions**:
+  - Cleared range `B10:H12` (`.Value = Empty`) before applying Cold Ash banishment stamp in `M_DaemonBridge.bas`, preventing visual collisions with existing borrower entries.
 
-- **Pumpkin Sprite Containment & Vertical Symmetry (`AJ4:AN12`)**: Corrected `SPRITE_PUMPKIN` rows 10 and 11 from 6 columns to strict 5-column symmetric matrices (`"oEEEo"` and `".oOo."`), eliminating horizontal spill into margin column AO and centering the jack-o'-lantern on Column AL.
-- **Corrupted Radar Ghostly Watermark (`K20:AN49`)**: Rendered a faint, ghostly 30x30 horned demonic skull and cosmic eye silhouette beneath the glitch tokens in the pre-spray state using organic blood and decaying paper fills, matching the revealed occult anatomy.
-- **Text Overflow in Censored Cell `I14`**: Added `wrap_text=True` and `shrink_to_fit=True` to prevent text from leaking across column J into the yellow handover note.
-- **A18 Label Background & Text Truncation**: Styled A18 with Decaying Paper fill (`#C5BFA8`) and Hospital Green thin border; widened Column A to 20 and enabled 2-line word wrapping at 28pt height to eliminate text truncation behind cell B18.
-- **Letterhead Banner Paper Fill**: Added Bone Paper (`#D3CEB9`) background fill and hairline borders to title banners `A2:I2` and `A3:I3`, eliminating raw unstyled white patches.
-- **Row 18 Control Bar Completion**: Set `D18` button background fill and styled trailing cells `E18:I18` with Bone Paper fill and thin borders, closing off the bottom table perimeter.
-- **Phase 4 Cold Ash Stamp Text Collisions**: Cleared range `B10:H12` (`.Value = Empty`) before applying Cold Ash banishment stamp in `M_DaemonBridge.bas`, preventing visual collisions with existing borrower entries.
+### Removed
+
+- **Non-Canon Relic Galleries & External Canvas Extensions (`Rows 51..80`, `Columns AO..BC`)**:
+  - Scrapped the experimental 16-bit relic gallery (Option B) below the radar and extraneous column margins to strictly enforce the unified `A1:AN50` canvas boundary and 1:1 square micro-grid geometry.
+- **Detached Altar Triptych & Halloween Pumpkin Clip-Art (`W4:AN12`, `AJ4:AN12`)**:
+  - Removed detached pixel-art sprites (including standalone Halloween pumpkin lamps and separate candle/skull icons) that overcrowded the top-right wing; replaced with authentic 1928 university archival documents (the 30-column Yellow Handover Note `K4:AN12` and Special Collections Protocol Card `K13:AN16`).
+- **External Police Autopsy Dossier (`B28:H48`)**:
+  - Removed the non-diegetic coroner autopsy log, returning focus to the core 1928 Miskatonic University Library lore with Dr. Henry Armitage's restricted archival memorandum (`B30:H48`).
 
 ## [1.2.1]
 
