@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Handover Note Full-Width Responsive Alignment**: Expanded yellow Post-It note (`K4:AN16`) across the full 30-column width of the radar grid (width 120 chars), eliminating receipt-ribbon word wrapping and severe vertical text truncation while increasing font to crisp 10pt Courier New.
+- **Handover Note Proportioned Memo Card (`K4:AA16`)**: Rebalanced Post-It note to 17 columns (`K4:AA16`, width 68) with 10.5pt font, vertical centering, and structured typographic dividers, completely eliminating excessive blank yellow void and giant billboard aesthetics.
 - **Spray Reagent Full-Width Action Bar**: Expanded `[ SPRAY REAGENT ]` button (`K18:AN18`) and radar header (`K19:AN19`) to match the 30x30 radar grid geometry, updating click interception across `K18:AN18` in `Sheet1_Archive.cls`.
 
 ### Fixed

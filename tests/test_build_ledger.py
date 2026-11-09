@@ -53,6 +53,22 @@ def test_build_ledger_generates_file():
     assert ws["C18"].value == "[ SEAL ARCHIVE ]"
     assert ws["K18"].value == "[ SPRAY REAGENT ]"
 
+    # Verify 1928 Retro & Halloween Horror Atmosphere Enhancements
+    assert ws.views.sheetView[0].showGridLines is False
+    # Full-bleed dark desk canvas (eliminating raw white Excel background)
+    assert ws["J1"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
+    assert ws["A30"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
+    # Engraved inverted masthead banner
+    assert ws["A2"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
+    assert ws["A2"].font.color.rgb in ["00D3CEB9", "FFD3CEB9", "D3CEB9"]
+    # Accounting double-red vertical audit lines on Column H
+    assert ws["H6"].border.left.style == "double"
+    assert ws["H7"].border.left.style == "double"
+    # Pinned Incident Dossier & Charred Cipher Key Strip artifacts
+    assert "INCIDENT DOSSIER" in ws["AC4"].value
+    assert "CHARRED CIPHER KEY STRIP" in ws["B21"].value
+    assert "CUSTODIAL WAX SEAL" in ws["E18"].value
+
     # Cleanup
     if os.path.exists(output_path):
         os.remove(output_path)

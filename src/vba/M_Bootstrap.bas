@@ -61,8 +61,7 @@ Public Sub InitializeArchiveUI()
     
     If Not ActiveWindow Is Nothing Then
         ActiveWindow.DisplayHeadings = False
-        ActiveWindow.DisplayGridlines = True
-        ActiveWindow.GridlineColor = COLOR_HOSPITAL_GREEN
+        ActiveWindow.DisplayGridlines = False
         ActiveWindow.DisplayWorkbookTabs = False
         ActiveWindow.DisplayHorizontalScrollBar = False
         ActiveWindow.DisplayVerticalScrollBar = False
