@@ -7,13 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **True Square-Pixel Occult Altar Triptych (`W4:AN12`)**: Replaced non-square stretched sprites with handcrafted 1:1 true square pixel art sprites on square-width columns (`width = 3.5`):
+  1. *1928 Sanatorium Kerosene Candle* (`W4:AA12`): 5x9 pixel art featuring dripping bone wax, brass saucer with finger loop handle, and glowing phosphor green flame core.
+  2. *Occult Memento Mori Skull* (`AC4:AH12`): 6x9 pixel art with cranium dome, suture crack, deep eye socket void, glowing green phosphor pupils (`AE8`, `AF8`), maxilla, and grinning teeth.
+  3. *Halloween Jack-o'-Lantern Pumpkin* (`AJ4:AN12`): 5x9 pixel art with withered stem, triangular carved glowing eyes (`AK7`), jagged saw-tooth mouth, and vibrant pumpkin orange rind (`#D9681A` at `AL11`).
+  4. *Occult Altar Header & Evidence Dossier Card* (`W3:AN16`): Added an engraved brass altar plaque at `W3:AN3` and an authentic Arkham Police & Sanatorium Incident Evidence Box in `W13:AN16` utilizing the 220pt Row 13 height for readable forensic evidence cards.
+- **Arkham Coroner Autopsy Dossier (`B28:H48`)**: Replaced the 8:1 horizontally stretched smears below the cipher key with a richly detailed, typed 1928 coroner autopsy log and custodial directive bounded by double-red rules, dithered ash, and an official evidence plaque (`B50:H50`).
+- **50% Bayer Ordered Dithering**: Softened physical drop shadows on the yellow handover note (`V5:V17`, `L17:V17`) with a 2x2 Bayer checkerboard dither pattern and dog-eared corner chamfer.
+- **Charred Ash Crumbling Edge (`B26:H26`, `B49:H49`)**: Added dithered crumbling ash and dog-eared paper curl beneath the Charred Cipher Key Strip and Autopsy Dossier artifacts.
+- **Tactile 3D Action Button Bevels & Seamless Composite Borders**: Upgraded `[ SEAL ARCHIVE ]` (`C18:D18`) and `[ SPRAY REAGENT ]` (`K18:AN18`) with bone paper highlights (top/left) and carbon shadows (bottom/right), removing internal green dividing lines for seamless mechanical button feedback, and cleaned internal borders on the Custodial Wax Seal box (`E18:I18`).
+- **Concentric Radar Dither Anomaly (`K20:AN49`)**: Implemented ordered dithering gradient across pre-spray corrupted radar cells, transitioning from deep dried blood scab to decaying paper.
+
 ### Changed
 
-- **Handover Note Proportioned Memo Card (`K4:AA16`)**: Rebalanced Post-It note to 17 columns (`K4:AA16`, width 68) with 10.5pt font, vertical centering, and structured typographic dividers, completely eliminating excessive blank yellow void and giant billboard aesthetics.
+- **Compact Ledger Column Widths & Viewport Fit (`A1:AN50`)**: Tightened ledger columns A..I to 156 total units and set `zoomScale = 85` so the entire sheet, including the 30x30 radar and occult altar sprites, fits 100% inside the visible display without right-edge clipping.
+- **Handover Note Proportioned Memo Card (`K4:U16`)**: Rebalanced Post-It note to 11 columns (`K4:U16`) with structured typographic dividers and 9pt font, leaving columns `W..AN` open for the square-pixel altar triptych.
 - **Spray Reagent Full-Width Action Bar**: Expanded `[ SPRAY REAGENT ]` button (`K18:AN18`) and radar header (`K19:AN19`) to match the 30x30 radar grid geometry, updating click interception across `K18:AN18` in `Sheet1_Archive.cls`.
 
-### Fixed
-
+- **Pumpkin Sprite Containment & Vertical Symmetry (`AJ4:AN12`)**: Corrected `SPRITE_PUMPKIN` rows 10 and 11 from 6 columns to strict 5-column symmetric matrices (`"oEEEo"` and `".oOo."`), eliminating horizontal spill into margin column AO and centering the jack-o'-lantern on Column AL.
+- **Corrupted Radar Ghostly Watermark (`K20:AN49`)**: Rendered a faint, ghostly 30x30 horned demonic skull and cosmic eye silhouette beneath the glitch tokens in the pre-spray state using organic blood and decaying paper fills, matching the revealed occult anatomy.
+- **Text Overflow in Censored Cell `I14`**: Added `wrap_text=True` and `shrink_to_fit=True` to prevent text from leaking across column J into the yellow handover note.
 - **A18 Label Background & Text Truncation**: Styled A18 with Decaying Paper fill (`#C5BFA8`) and Hospital Green thin border; widened Column A to 20 and enabled 2-line word wrapping at 28pt height to eliminate text truncation behind cell B18.
 - **Letterhead Banner Paper Fill**: Added Bone Paper (`#D3CEB9`) background fill and hairline borders to title banners `A2:I2` and `A3:I3`, eliminating raw unstyled white patches.
 - **Row 18 Control Bar Completion**: Set `D18` button background fill and styled trailing cells `E18:I18` with Bone Paper fill and thin borders, closing off the bottom table perimeter.
