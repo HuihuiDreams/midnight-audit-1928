@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **16-Bit High-Density Micro-Pixel Art Sanctum (Option B: `K51:BC80`)**: Built a dedicated 16-bit fine micro-grid occult relic gallery on an unconstrained canvas below the radar (`Rows 51..80`, `Columns K..BC`) with uniform 12pt row heights and 2.2 column widths (~16px x 16px 1:1 square micro-pixels):
+  1. *16-Bit Sanatorium Kerosene Candle* (`K52:V79`, 12x28): Elaborate tallow dripping down a fluted candle body, brass saucer with sculpted finger loop, and glowing layered phosphor green/gold flame core.
+  2. *16-Bit Occult Horned Cranium* (`X52:AK79`, 14x28): Anatomical human skull with curved ram horns, zygomatic arches, nasal aperture void, dual glowing phosphor pupils (`AA63`, `AH63`), ivory teeth, and mental protuberance.
+  3. *16-Bit Halloween Jack-o'-Lantern* (`AM52:AZ79`, 14x28): Ribbed pumpkin rind with twisted woody vine stem, glowing triangular candlelight eyes (`AP62`, `AW62`), carved nose cavity, and multi-tier jagged saw-tooth grin blazing with internal candlefire.
+  4. *Occult Relic Plaques (`K51:BC51`, `K80:BC80`)*: Header and footer forensic catalog banners with solid Carbon Desk borders.
 - **True Square-Pixel Occult Altar Triptych (`W4:AN12`)**: Replaced non-square stretched sprites with handcrafted 1:1 true square pixel art sprites on square-width columns (`width = 3.5`):
   1. *1928 Sanatorium Kerosene Candle* (`W4:AA12`): 5x9 pixel art featuring dripping bone wax, brass saucer with finger loop handle, and glowing phosphor green flame core.
   2. *Occult Memento Mori Skull* (`AC4:AH12`): 6x9 pixel art with cranium dome, suture crack, deep eye socket void, glowing green phosphor pupils (`AE8`, `AF8`), maxilla, and grinning teeth.
@@ -22,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Annex Basement Radar De-Cluttering & Silhouette Clarity (`K20:AN49`)**: Removed text error noise (`#ROT!`, `#REF!`, `[VOID]`, etc.) from the entity face and skull interior cells so the pixel-art geometry is crisp and unobstructed. Retained glitch tokens exclusively on perimeter scanning margins, while rendering solid dried-blood ram horns and revealing the central Cosmic Eye / Abyss Core at `W34:X35`.
 - **Compact Ledger Column Widths & Viewport Fit (`A1:AN50`)**: Tightened ledger columns A..I to 156 total units and set `zoomScale = 85` so the entire sheet, including the 30x30 radar and occult altar sprites, fits 100% inside the visible display without right-edge clipping.
 - **Handover Note Proportioned Memo Card (`K4:U16`)**: Rebalanced Post-It note to 11 columns (`K4:U16`) with structured typographic dividers and 9pt font, leaving columns `W..AN` open for the square-pixel altar triptych.
 - **Spray Reagent Full-Width Action Bar**: Expanded `[ SPRAY REAGENT ]` button (`K18:AN18`) and radar header (`K19:AN19`) to match the 30x30 radar grid geometry, updating click interception across `K18:AN18` in `Sheet1_Archive.cls`.

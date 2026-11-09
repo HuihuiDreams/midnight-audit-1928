@@ -48,36 +48,133 @@ SPRITE_CANDLE = [
     "..W..",  # Row 6:  White-hot flame core
     "..w..",  # Row 7:  Charred candle wick
     ".CCC.",  # Row 8:  Pale bone candle wax shaft
-    ".cCCc",  # Row 9:  Melting wax drips
+    "cCCCc",  # Row 9:  Melting wax drips
     ".bBb.",  # Row 10: Brass candle saucer cup
-    "bBBBB",  # Row 11: Brass saucer tray & finger loop handle
+    "bBBBb",  # Row 11: Brass saucer tray & finger loop handle
     ".SSS.",  # Row 12: Cast desk shadow (terminates above Row 13 Abyss)
 ]
 
 # 6 columns wide x 9 rows tall (Columns AC..AH, Rows 4..12)
 SPRITE_SKULL = [
-    ".bbbb.",  # Row 4:  Cranial dome
+    ".bbbb.",  # Row 4:  Smooth cranial dome
     "bBBBBb",  # Row 5:  Upper cranium & suture line
     "bBDDBb",  # Row 6:  Forehead bloodstain
     "BBBBBB",  # Row 7:  Heavy brow ridge
     "bXEEXb",  # Row 8:  Eye sockets (abyss) with glowing phosphor pupils (E at AE8 & AF8)
     ".bXXb.",  # Row 9:  Nasal cavity void (XX) & cheekbones
     ".bBBb.",  # Row 10: Maxilla upper jaw
-    ".BCBC.",  # Row 11: Grinning skeletal teeth
+    ".bwwb.",  # Row 11: Grinning skeletal teeth with dark gap
     "..bb..",  # Row 12: Mandible chin
 ]
 
 # 5 columns wide x 9 rows tall (Columns AJ..AN, Rows 4..12)
 SPRITE_PUMPKIN = [
-    "..gG.",  # Row 4:  Crooked stem tip (hospital green & phosphor)
-    "..G..",  # Row 5:  Stem base
+    "...G.",  # Row 4:  Crooked stem tip (hospital green)
+    "..GG.",  # Row 5:  Stem base
     ".oOo.",  # Row 6:  Pumpkin crown (vibrant orange rind with crimson outline)
     "oEOEo",  # Row 7:  Triangular carved glowing eyes (E at AK7 & AM7)
     "o.E.o",  # Row 8:  Carved glowing nose
     "oEoEo",  # Row 9:  Carved saw-tooth mouth with pumpkin tooth
     "oEEEo",  # Row 10: Lower mouth glowing candle fire
-    ".oOo.",  # Row 11: Pumpkin lower belly
+    ".oOo.",  # Row 11: Pumpkin lower belly (AL11=O orange, AK11=o crimson outline)
     "..S..",  # Row 12: Cast desk shadow
+]
+
+# ==============================================================================
+# 16-Bit High-Density Micro-Pixel Art Sprites (Option B: True 16-bit Masterpieces)
+# 28 rows tall x 12 to 14 columns wide, rendered with 1:1 square micro-pixels
+# ==============================================================================
+SPRITE_16BIT_CANDLE = [
+    ".....f......",  # Row 52: Flame pinnacle tip
+    "....fFf.....",  # Row 53: Teardrop flame upper contour
+    "...fFYFf....",  # Row 54: Phosphor green & incandescent golden flame
+    "...fYYYf....",  # Row 55: White-hot incandescent fire core
+    "....fYf.....",  # Row 56: Lower flame teardrop taper
+    ".....W......",  # Row 57: Incandescent white flame root
+    ".....w......",  # Row 58: Charred black wick
+    "...CCCCC....",  # Row 59: Pale bone wax top shoulder
+    "..CCCCCCC...",  # Row 60: Melting wax crown
+    "..cCCCCCCc..",  # Row 61: Side dripping wax streams
+    "..cCCCCCCc..",  # Row 62: Cylindrical candle shaft
+    "..CCCCCCC...",  # Row 63: Smooth bone wax column
+    "..cCCCCCCc..",  # Row 64: Secondary wax drip globule
+    "..c.CCC.cc..",  # Row 65: Tapered dripping wax droplets
+    "....CCC.....",  # Row 66: Candle column base
+    "...bBBBb....",  # Row 67: Brass candle cup rim
+    "..bBBBBBb...",  # Row 68: Brass neck flare
+    "..bBBBBBb...",  # Row 69: Tapered brass saucer cup
+    ".bBBBBBBBb..",  # Row 70: Broad brass saucer basin
+    "bBBBBBBBBBh.",  # Row 71: Antique saucer pan with finger loop handle
+    "bBBBBBBBBBBh",  # Row 72: Finger loop handle curve
+    "bBBBBBBBBBBh",  # Row 73: Finger loop handle grip
+    ".bBBBBBBBBh.",  # Row 74: Loop handle lower connection
+    "..bBBBBBBb..",  # Row 75: Saucer tray bottom bevel
+    "...bBBBBb...",  # Row 76: Brass pedestal base
+    "....bBBb....",  # Row 77: Brass foot
+    "....SSSS....",  # Row 78: Deep cast shadow on desk
+    "...SSSSSS...",  # Row 79: Ambient contact shadow
+]
+
+SPRITE_16BIT_SKULL = [
+    "....bbbbbb....",  # Row 52: Cranial dome top highlight
+    "..bbBBBBBBbb..",  # Row 53: Smooth rounded cranium curvature
+    ".bBBBBBBBBBBb.",  # Row 54: Upper parietal bone dome
+    ".bBBBDDDBBBBb.",  # Row 55: Occult dried blood forehead fissure
+    "bBBBDDDDDBBBBb",  # Row 56: Widened ritual blood scarification
+    "bBBBBBDDBBBBBb",  # Row 57: Trickling dried blood suture
+    "bBBBBBBBBBBBBb",  # Row 58: Frontal bone plane
+    "bBBBBBBBBBBBBb",  # Row 59: Supraciliary arches
+    "BBBBBBBBBBBBBB",  # Row 60: Heavy menacing brow ridge
+    "BBBBBBBBBBBBBB",  # Row 61: Orbital cavity upper rims
+    "bXXXXb..bXXXXb",  # Row 62: Deep black ocular sockets
+    "bXEEEX..XEEEXb",  # Row 63: Glowing eerie phosphor green pupils
+    "bXEEEX..XEEEXb",  # Row 64: Glowing dual pupils staring outward
+    "bXXXXb..bXXXXb",  # Row 65: Lower orbital cavity shadow
+    ".bXXb....bXXb.",  # Row 66: Zygomatic arch (pinched cheekbones)
+    "..bb..XX..bb..",  # Row 67: Piriform aperture (nasal cavity apex)
+    "....bXXXXb....",  # Row 68: Inverted heart-shaped nasal void
+    "....bXXXXb....",  # Row 69: Nasal fossa floor
+    "....bBBBBb....",  # Row 70: Maxilla upper dental arch
+    "....bBBBBb....",  # Row 71: Alveolar process
+    "...bTTTTTTb...",  # Row 72: Ivory incisors & canines
+    "...bTwTwTwb...",  # Row 73: Individual skeletal tooth separations
+    "...bTwTwTwb...",  # Row 74: Grinning upper & lower teeth rows
+    "...bTTTTTTb...",  # Row 75: Lower dental arch
+    "....bBBBBb....",  # Row 76: Mandible chin bone
+    ".....bbbb.....",  # Row 77: Mental protuberance
+    "......bb......",  # Row 78: Chin apex
+    ".....SSSS.....",  # Row 79: Cast mandible shadow
+]
+
+SPRITE_16BIT_PUMPKIN = [
+    "......GG......",  # Row 52: Woody pumpkin stem tip
+    ".....gGGg.....",  # Row 53: Twisted stem vine sprout
+    "....gGGGG.....",  # Row 54: Curving organic stem stalk
+    "....GGGG......",  # Row 55: Thick woody stem base
+    "...ooOOOOoo...",  # Row 56: Pumpkin crown & top lobes
+    "..oOOOOOOOOo..",  # Row 57: Expanding ribbed pumpkin shoulders
+    ".oOOOOOOOOOOo.",  # Row 58: Full volumetric pumpkin rind
+    "oOOOOOOOOOOOOo",  # Row 59: Broad upper pumpkin belly
+    "oOOOOOOOOOOOOo",  # Row 60: Deep saturated orange fruit flesh
+    "oOXYXO..OXYXOo",  # Row 61: Carved triangular eye cavities
+    "oOYYYO..OYYYOo",  # Row 62: Blazing golden-yellow candlelight eyes
+    "oOXYXO..OXYXOo",  # Row 63: Triangular eye lower carved bevels
+    "oOOOOOOOOOOOOo",  # Row 64: Mid-pumpkin rind bridge
+    "oOOOO.XY.OOOOo",  # Row 65: Carved triangular nose apex
+    "oOOOO.YY.OOOOo",  # Row 66: Glowing carved nose interior
+    "oOOOOOOOOOOOOo",  # Row 67: Upper lip rind contour
+    "oO..OOOOOO..Oo",  # Row 68: Wide carved mouth corners
+    "oOXY..YY..YXOo",  # Row 69: Sinister jagged sawtooth grin
+    "oOYYYYYYYYYYOo",  # Row 70: Open gaping mouth blazing with candlefire
+    "oO..YYYYYY..Oo",  # Row 71: Lower sawtooth teeth silhouettes
+    ".oOO..YY..OOo.",  # Row 72: Lower lip carved bevel
+    "..oOOOOOOOOo..",  # Row 73: Lower pumpkin belly curve
+    "...oOOOOOOo...",  # Row 74: Tapered pumpkin bottom
+    "....oOOOOo....",  # Row 75: Lower lobe tuck
+    ".....oOOo.....",  # Row 76: Base contact point
+    "......oo......",  # Row 77: Pedestal outline
+    ".....SSSS.....",  # Row 78: Contact desk shadow
+    "....SSSSSS....",  # Row 79: Ambient drop shadow
 ]
 
 def render_pixel_sprite(ws, start_row: int, start_col: int, sprite_map: list, char_fill_map: dict):
@@ -142,6 +239,9 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
         "O": fill_pumpkin,
         "o": fill_red,
         "R": fill_red,
+        "Y": fill_note,
+        "T": fill_bone,
+        "h": fill_blood,
     }
 
     thin_border = Border(
@@ -165,11 +265,11 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
         bottom=Side(style='double', color=COLOR_WARNING_RED)
     )
 
-    # 0. Full-Bleed Desk Canvas Backdrop (Rows 1..60, Cols 1..52)
+    # 0. Full-Bleed Desk Canvas Backdrop (Rows 1..84, Cols 1..55)
     # Eliminates all raw modern Excel white background cells around and below the ledger
-    for r in range(1, 61):
+    for r in range(1, 85):
         ws.row_dimensions[r].height = 18
-        for c in range(1, 53):
+        for c in range(1, 56):
             ws.cell(row=r, column=c).fill = fill_carbon
 
     # Outer Parchment Folio Margin (A1:I19)
@@ -630,53 +730,104 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
 
     glitch_tokens = ["#ROT!", "#REF!", "#N/A", "??", "[VOID]", "#ERR!"]
     for r in range(20, 50):
-        ws.row_dimensions[r].height = 14
+        ws.row_dimensions[r].height = 12
         for c in range(11, 41):
             cell = ws.cell(row=r, column=c)
-            token = glitch_tokens[(r * 7 + c * 13) % len(glitch_tokens)]
-            cell.value = token
-
-            # Ghostly 30x30 eldritch horned skull & eye silhouette in corrupted radar watermark
             r_idx = r - 20
             c_idx = c - 11
-            dr = r_idx - 14
-            dc = c_idx - 14
-            dist_sq = dr * dr + dc * dc
 
-            is_horn = (r_idx < 10) and ((c_idx == r_idx or c_idx == (29 - r_idx)) or (abs(c_idx - 8) <= 1 and r_idx < 8) or (abs(c_idx - 21) <= 1 and r_idx < 8))
-            is_socket = (12 <= r_idx <= 17 and 10 <= c_idx <= 15)
+            # Precise Eldritch Horned Skull & Cosmic Eye Silhouette Geometry
+            dr = r_idx - 16
+            dc = c_idx - 14.5
+            dist_sq = (dc / 1.15) ** 2 + dr ** 2
+
+            # Horn geometry: curving majestic demonic horns rising from cranium to outer corners (including L21: r=1, c=1)
+            is_left_horn = (
+                (r_idx == 1 and (c_idx == 1 or 5 <= c_idx <= 6)) or
+                (r_idx == 2 and (c_idx == 2 or 4 <= c_idx <= 5)) or
+                (r_idx == 3 and (c_idx == 3 or 4 <= c_idx <= 5)) or
+                (r_idx == 4 and 4 <= c_idx <= 5) or
+                (r_idx == 5 and 5 <= c_idx <= 6) or
+                (r_idx == 6 and 5 <= c_idx <= 6) or
+                (r_idx == 7 and 6 <= c_idx <= 7) or
+                (r_idx == 8 and 6 <= c_idx <= 7) or
+                (r_idx == 9 and 7 <= c_idx <= 8) or
+                (r_idx == 10 and 7 <= c_idx <= 9)
+            )
+            is_right_horn = (
+                (r_idx == 1 and (c_idx == 28 or 23 <= c_idx <= 24)) or
+                (r_idx == 2 and (c_idx == 27 or 24 <= c_idx <= 25)) or
+                (r_idx == 3 and (c_idx == 26 or 24 <= c_idx <= 25)) or
+                (r_idx == 4 and 24 <= c_idx <= 25) or
+                (r_idx == 5 and 23 <= c_idx <= 24) or
+                (r_idx == 6 and 23 <= c_idx <= 24) or
+                (r_idx == 7 and 22 <= c_idx <= 23) or
+                (r_idx == 8 and 22 <= c_idx <= 23) or
+                (r_idx == 9 and 21 <= c_idx <= 22) or
+                (r_idx == 10 and 20 <= c_idx <= 22)
+            )
+
+            # Central Cosmic Pupil (matches canonical W34:X35 coords: r_idx 14..15, c_idx 12..13)
             is_pupil = (14 <= r_idx <= 15 and 12 <= c_idx <= 13)
-            is_mouth = (20 <= r_idx <= 22 and 10 <= c_idx <= 19)
-            is_outer_skull = (120 <= dist_sq <= 170)
+            # Glowing Phosphor Iris
+            is_iris = (13 <= r_idx <= 16 and 11 <= c_idx <= 14 and not is_pupil)
+            # Symmetrical Deep Eye Sockets (includes W32 brow: r_idx 12, c_idx 12)
+            is_left_socket = (12 <= r_idx <= 17 and 9 <= c_idx <= 14)
+            is_right_socket = (12 <= r_idx <= 17 and 15 <= c_idx <= 20)
+            is_socket = is_left_socket or is_right_socket
+            # Inverted triangle nasal cavity
+            is_nasal = (18 <= r_idx <= 19 and 14 <= c_idx <= 15)
+            # Gaping jaw and dripping void teeth
+            is_mouth_cavity = (21 <= r_idx <= 23 and 10 <= c_idx <= 19)
+            is_teeth = (r_idx in (21, 23) and 10 <= c_idx <= 19 and c_idx % 2 == 0)
+            is_blood_drip = (r_idx in (24, 25) and c_idx in (11, 14, 18))
+            is_jaw_outline = (20 <= r_idx <= 24 and (c_idx in (9, 20) or (r_idx == 24 and 9 <= c_idx <= 20)))
+
+            # Cranium dome and perimeter
+            is_cranium_bone = (r_idx <= 20 and dist_sq <= 110 and not is_socket)
+            is_skull_outline = (r_idx <= 20 and 110 < dist_sq <= 145)
+
+            # Face feature flag for uncluttered pixel art
+            is_face_feature = (is_pupil or is_iris or is_socket or is_nasal or is_mouth_cavity or is_teeth or is_blood_drip)
+
+            # Token overlay: radar telemetry and glitch code on outer field; clear on entity face
+            if is_face_feature:
+                cell.value = None
+            else:
+                token = glitch_tokens[(r * 7 + c * 13) % len(glitch_tokens)]
+                cell.value = token
+                cell.font = Font(name="Courier New", size=7, color=COLOR_HOSPITAL_GREEN)
 
             if is_pupil:
-                # Black cosmic pupil core
+                # Cosmic void pupil core (pure abyss black at W34:X35)
                 cell.fill = fill_abyss
-                cell.font = Font(name="Courier New", size=8, bold=True, color=COLOR_WARNING_RED)
+            elif is_iris:
+                # Eerie phosphor green iris
+                cell.fill = fill_spray
             elif is_socket:
-                # Faint glowing eye socket
+                # Deep blood-stained ocular socket cavity (W32 at r=12, c=12)
                 cell.fill = fill_blood
-                cell.font = Font(name="Courier New", size=8, bold=True, color=COLOR_PHOSPHOR_GREEN)
-            elif is_mouth or is_horn:
-                # Blood-stained mouth and curving occult horns
+            elif is_nasal or (is_mouth_cavity and not is_teeth):
+                # Deep abyssal void in nasal & mouth
+                cell.fill = fill_abyss
+            elif is_teeth:
+                # Ivory skull teeth
+                cell.fill = fill_bone
+            elif is_blood_drip:
+                # Crimson blood dripping from jaw
+                cell.fill = fill_red
+            elif is_left_horn or is_right_horn:
+                # Occult curving horns (solid dried blood)
                 cell.fill = fill_blood
-                cell.font = Font(name="Courier New", size=8, bold=True, color=COLOR_WARNING_RED)
-            elif is_outer_skull:
-                # 50% ordered Bayer dither along skull perimeter
-                cell.fill = fill_blood if (r + c) % 2 == 0 else fill_decay
-                cell.font = Font(name="Courier New", size=8, color=COLOR_CARBON)
-            elif dist_sq < 120:
-                # Cranium interior with organic shadow
-                if dist_sq <= 30:
-                    cell.fill = fill_blood if (r + c) % 2 == 0 else fill_decay
-                    cell.font = Font(name="Courier New", size=8, bold=True, color=COLOR_WARNING_RED)
-                else:
-                    cell.fill = fill_decay
-                    cell.font = Font(name="Courier New", size=8, color=COLOR_CARBON)
+            elif is_skull_outline or is_jaw_outline:
+                # High-contrast dried blood & carbon outline
+                cell.fill = fill_blood if (r + c) % 2 == 0 else fill_carbon
+            elif is_cranium_bone:
+                # Decaying ancient bone skull mass
+                cell.fill = fill_decay
             else:
-                # Outer radar coordinate field with 50% Bayer ordered dither
+                # Outer radar coordinate field with subtle 50% Bayer ordered dither
                 cell.fill = fill_decay if (r + c) % 2 == 0 else fill_bone
-                cell.font = Font(name="Courier New", size=8, color=COLOR_HOSPITAL_GREEN)
 
             cell.border = Border(
                 top=Side(style='medium', color=COLOR_CARBON) if r == 20 else Side(style='thin', color=COLOR_HOSPITAL_GREEN),
@@ -753,6 +904,67 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
             right=Side(style='medium', color=COLOR_WARNING_RED) if c == 8 else None,
         )
 
+    # 14. 16-Bit High-Density Occult Relic Sanctum (Rows 51..80, Columns K..BC)
+    ws.merge_cells("K51:BC51")
+    relic_16bit_header = ws["K51"]
+    relic_16bit_header.value = "  [ 🕯️ 1928 OCCULT ALTAR RELICS — 16-BIT HIGH-DENSITY MICROSCOPIC ENLARGEMENT ]"
+    relic_16bit_header.font = Font(name="Courier New", size=8.5, bold=True, color=COLOR_BONE_PAPER)
+    relic_16bit_header.alignment = Alignment(horizontal="center", vertical="center")
+    relic_16bit_header.fill = fill_blood
+    for c in range(11, 56):
+        cell = ws.cell(row=51, column=c)
+        cell.fill = fill_blood
+        cell.border = Border(
+            top=Side(style='medium', color=COLOR_WARNING_RED),
+            bottom=Side(style='double', color=COLOR_WARNING_RED),
+            left=Side(style='medium', color=COLOR_WARNING_RED) if c == 11 else None,
+            right=Side(style='medium', color=COLOR_WARNING_RED) if c == 55 else None,
+        )
+
+    # Set 16-bit square pixel row heights (Rows 52..79)
+    for r in range(52, 80):
+        ws.row_dimensions[r].height = 12
+
+    # Render 16-Bit Candle at K52:V79 (cols 11..22, 12 cols wide)
+    render_pixel_sprite(ws, start_row=52, start_col=11, sprite_map=SPRITE_16BIT_CANDLE, char_fill_map=char_fill_map)
+
+    # Spacer Column W (col 23)
+    for r in range(52, 80):
+        ws.cell(row=r, column=23).fill = fill_carbon
+
+    # Render 16-Bit Skull at X52:AK79 (cols 24..37, 14 cols wide)
+    render_pixel_sprite(ws, start_row=52, start_col=24, sprite_map=SPRITE_16BIT_SKULL, char_fill_map=char_fill_map)
+
+    # Spacer Column AL (col 38)
+    for r in range(52, 80):
+        ws.cell(row=r, column=38).fill = fill_carbon
+
+    # Render 16-Bit Pumpkin at AM52:AZ79 (cols 39..52, 14 cols wide)
+    render_pixel_sprite(ws, start_row=52, start_col=39, sprite_map=SPRITE_16BIT_PUMPKIN, char_fill_map=char_fill_map)
+
+    # Perimeter desk margin columns BA..BC (cols 53..55)
+    for r in range(52, 80):
+        for c in range(53, 56):
+            ws.cell(row=r, column=c).fill = fill_carbon
+
+    # Bottom border plaque on Row 80
+    ws.row_dimensions[80].height = 16
+    ws.merge_cells("K80:BC80")
+    footer_16bit = ws["K80"]
+    footer_16bit.value = "  [ CUSTODIAL SEAL ARCHIVE: 16-BIT FORENSIC ATLAS | RESOLUTION: 44x28 MICRO-PIXEL MATRIX ]"
+    footer_16bit.font = Font(name="Courier New", size=7.5, italic=True, color=COLOR_HOSPITAL_GREEN)
+    footer_16bit.alignment = Alignment(horizontal="center", vertical="center")
+    footer_16bit.fill = fill_carbon
+    for c in range(11, 56):
+        cell = ws.cell(row=80, column=c)
+        cell.fill = fill_carbon
+        cell.border = Border(
+            top=Side(style='thin', color=COLOR_DRIED_BLOOD),
+            bottom=Side(style='double', color=COLOR_WARNING_RED),
+            left=Side(style='medium', color=COLOR_WARNING_RED) if c == 11 else None,
+            right=Side(style='medium', color=COLOR_WARNING_RED) if c == 55 else None,
+        )
+
     # Column widths
     col_widths = {
         1: 16,  # A: Record ID / Override Label
@@ -769,13 +981,9 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     for col_idx, width in col_widths.items():
         ws.column_dimensions[get_column_letter(col_idx)].width = width
 
-    # Radar & right wing columns K to AN (11 to 40) square aspect ratio
-    for col_idx in range(11, 41):
-        ws.column_dimensions[get_column_letter(col_idx)].width = 3.5
-
-    # Right desk margin columns AO to AZ (41 to 52)
-    for col_idx in range(41, 53):
-        ws.column_dimensions[get_column_letter(col_idx)].width = 3.5
+    # Radar, right wing, and 16-bit gallery columns K to BC (11 to 55) square aspect ratio (fine micro-grid)
+    for col_idx in range(11, 56):
+        ws.column_dimensions[get_column_letter(col_idx)].width = 2.2
 
     wb.save(output_path)
     return wb

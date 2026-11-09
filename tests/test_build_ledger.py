@@ -126,6 +126,23 @@ def test_build_ledger_generates_file():
     assert ws["W32"].fill.start_color.rgb in ["002E0F0D", "FF2E0F0D", "2E0F0D"]
     assert ws["L21"].fill.start_color.rgb in ["002E0F0D", "FF2E0F0D", "2E0F0D"]
 
+    # 6. Verify 16-Bit High-Density Micro-Pixel Art Sanctum (Option B: Rows 51..80, Columns K..BC)
+    assert "16-BIT HIGH-DENSITY" in ws["K51"].value
+    assert ws["K51"].fill.start_color.rgb in ["002E0F0D", "FF2E0F0D", "2E0F0D"]
+    assert "16-BIT FORENSIC ATLAS" in ws["K80"].value
+    assert ws["K80"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
+    assert ws.row_dimensions[52].height == 12
+    # Verify fine-grid column width across K..BC
+    assert ws.column_dimensions["K"].width == 2.2
+    assert ws.column_dimensions["BC"].width == 2.2
+    # 16-bit candle flame core at P55 (col 16 is P)
+    assert ws["P55"].fill.start_color.rgb in ["00E5D982", "FFE5D982", "E5D982"]
+    # 16-bit skull glowing phosphor pupil at AA63 (col 27 is AA)
+    assert ws["AA63"].fill.start_color.rgb in ["003B533E", "FF3B533E", "3B533E"]
+    # 16-bit pumpkin candlelight eye at AP62 (col 42 is AP) and orange rind at AR62 (col 44 is AR)
+    assert ws["AP62"].fill.start_color.rgb in ["00E5D982", "FFE5D982", "E5D982"]
+    assert ws["AR62"].fill.start_color.rgb in ["00D9681A", "FFD9681A", "D9681A"]
+
     # Cleanup
     if os.path.exists(output_path):
         os.remove(output_path)
