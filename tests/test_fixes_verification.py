@@ -943,3 +943,41 @@ def test_halloween_horror_enhancements():
     assert "CancelAmbientWhisper" in wb
 
 
+def test_agent_guidelines_and_changelog_integrity():
+    """Verify AGENTS.md exists with required universal guidelines, no conversation IDs, and is tracked in CHANGELOG.md."""
+    repo_root = os.path.dirname(os.path.dirname(__file__))
+    agents_path = os.path.join(repo_root, "AGENTS.md")
+    assert os.path.isfile(agents_path), "AGENTS.md must exist in repo root"
+
+    with open(agents_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Must be platform-agnostic: no ephemeral conversation IDs or Antigravity URL schemes
+    assert "conversation://" not in content
+    assert "a146e671" not in content
+
+    # Must contain holistic UI design and boundary constraints
+    assert "UI 整体设计" in content or "Holistic UI Design" in content
+    assert "A1:AN50" in content
+
+    # Must contain lore adherence and ban narrative drift
+    assert "不能偏离最初的故事设定" in content or "Strict Grounding in the Original Lore" in content
+
+    # Must contain Karpathy Guidelines
+    assert "Karpathy" in content
+    assert "Think Before Coding" in content
+    assert "Simplicity First" in content
+    assert "Surgical Changes" in content
+    assert "Goal-Driven Execution" in content
+
+    # Must contain TDD and CHANGELOG protocols
+    assert "Test-Driven Development" in content or "测试驱动开发" in content
+    assert "CHANGELOG" in content
+
+    # Verify CHANGELOG.md tracks AGENTS.md
+    changelog_path = os.path.join(repo_root, "CHANGELOG.md")
+    with open(changelog_path, "r", encoding="utf-8") as f:
+        changelog = f.read()
+    assert "AGENTS.md" in changelog
+
+

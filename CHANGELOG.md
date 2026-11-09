@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Universal Agent Working Guidelines (`AGENTS.md`)**: Established standardized repository development and collaboration guidelines for all AI agents and human contributors:
+  - Architectural retrospective and design principles: strict adherence to the original Miskatonic University 1928 story lore and rejection of narrative drift (e.g., coroner autopsy reports or unrelated clip-art).
+  - Holistic UI design principles: strict `A1:AN50` canvas boundary alignment, zero irregular protruding blocks, natural absorption of the 220pt Row 13 Abyss, and dedicated 30x30 1:1 micro-pixel canvas (`K20:AN49`).
+  - Strict compliance with Karpathy Guidelines (Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution).
+  - Test-Driven Development (TDD) protocol requiring test synchronization and 100% pytest pass rate.
+  - Mandatory changelog and specification synchronization procedures.
 - **16-Bit High-Density Micro-Pixel Art Sanctum (Option B: `K51:BC80`)**: Built a dedicated 16-bit fine micro-grid occult relic gallery on an unconstrained canvas below the radar (`Rows 51..80`, `Columns K..BC`) with uniform 12pt row heights and 2.2 column widths (~16px x 16px 1:1 square micro-pixels):
   1. *16-Bit Sanatorium Kerosene Candle* (`K52:V79`, 12x28): Elaborate tallow dripping down a fluted candle body, brass saucer with sculpted finger loop, and glowing layered phosphor green/gold flame core.
   2. *16-Bit Occult Horned Cranium* (`X52:AK79`, 14x28): Anatomical human skull with curved ram horns, zygomatic arches, nasal aperture void, dual glowing phosphor pupils (`AA63`, `AH63`), ivory teeth, and mental protuberance.
