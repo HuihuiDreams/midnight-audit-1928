@@ -18,8 +18,6 @@ def isolate_game_state(monkeypatch, tmp_path):
     test_state_file = str(tmp_path / "game_state.json")
     monkeypatch.setenv("GAME_STATE_FILE", test_state_file)
     monkeypatch.setattr(puzzle_state_mod, "GAME_STATE_FILE", test_state_file)
-    monkeypatch.setattr("src.backend.server.GAME_STATE_FILE", test_state_file, raising=False)
-    monkeypatch.setattr("src.backend.mcp_server.GAME_STATE_FILE", test_state_file, raising=False)
     monkeypatch.setattr("tests.test_edge_cases.GAME_STATE_FILE", test_state_file, raising=False)
     monkeypatch.setattr("tests.test_server.GAME_STATE_FILE", test_state_file, raising=False)
     monkeypatch.setattr("tests.test_mcp_server.GAME_STATE_FILE", test_state_file, raising=False)

@@ -38,7 +38,7 @@ pip install -r requirements.txt
 python3 -m src.backend.server
 # (or: python3 src/backend/server.py)
 ```
-*(The daemon will run on `http://127.0.0.1:8000`)*
+*(The daemon will run on `http://127.0.0.1:8000` by default; custom port can be set via `SERVER_PORT`)*
 
 ### Step 2: Generate or Open the Ledger
 ```bash

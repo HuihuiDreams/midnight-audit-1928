@@ -6,21 +6,33 @@ Row 13 Abyss (220pt height), yellow handover notes, and 30x30 corrupted radar gr
 """
 
 import os
+import sys
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
+from src.backend.puzzle_state import PALETTE
+
 TEMPLATE_FILENAME = "Midnight_Audit_1928_Template.xlsx"
 
-# Palette definitions
-COLOR_BONE_PAPER = "D3CEB9"
-COLOR_DECAYING_PAPER = "C5BFA8"
-COLOR_CARBON = "181614"
-COLOR_HOSPITAL_GREEN = "454F48"
-COLOR_DRIED_BLOOD = "2E0F0D"
+# Palette definitions derived from single source of truth (openpyxl hex format without '#')
+HEX_PALETTE = {k: v.lstrip("#") for k, v in PALETTE.items()}
+
+COLOR_BONE_PAPER = HEX_PALETTE["BONE_PAPER"]
+COLOR_DECAYING_PAPER = HEX_PALETTE["DECAYING_PAPER"]
+COLOR_CARBON = HEX_PALETTE["CARBON"]
+COLOR_HOSPITAL_GREEN = HEX_PALETTE["HOSPITAL_GREEN"]
+COLOR_DRIED_BLOOD = HEX_PALETTE["DRIED_BLOOD"]
+COLOR_YELLOW_NOTE = HEX_PALETTE["YELLOW_NOTE"]
+COLOR_WARNING_RED = HEX_PALETTE["WARNING_RED"]
+COLOR_PHOSPHOR_GREEN = HEX_PALETTE["PHOSPHOR_GREEN"]
+COLOR_COLD_ASH = HEX_PALETTE["COLD_ASH"]
 COLOR_ABYSS = "000000"
-COLOR_YELLOW_NOTE = "E5D982"
-COLOR_WARNING_RED = "8A1C14"
 
 def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     wb = Workbook()
@@ -198,7 +210,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     spray_btn = ws["K18"]
     spray_btn.value = "[ SPRAY REAGENT ]"
     spray_btn.font = Font(name="Courier New", size=10, bold=True, color=COLOR_BONE_PAPER)
-    spray_btn.fill = PatternFill(fill_type="solid", start_color="3B533E", end_color="3B533E")
+    spray_btn.fill = PatternFill(fill_type="solid", start_color=COLOR_PHOSPHOR_GREEN, end_color=COLOR_PHOSPHOR_GREEN)
     spray_btn.alignment = Alignment(horizontal="center", vertical="center")
     for c in range(11, 15):
         ws.cell(row=18, column=c).border = thin_border

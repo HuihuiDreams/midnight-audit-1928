@@ -88,7 +88,6 @@ PALETTE = {
     "CARBON": "#181614",
     "HOSPITAL_GREEN": "#454F48",
     "DRIED_BLOOD": "#2E0F0D",
-    "ABYSS_BLACK": "#000000",
     "YELLOW_NOTE": "#E5D982",
     "WARNING_RED": "#8A1C14",
     "PHOSPHOR_GREEN": "#3B533E",
@@ -449,6 +448,14 @@ class PuzzleEngine:
         }
 
     def judge_ritual(self, phrase: str) -> Dict[str, Any]:
+        if self.archive_sealed:
+            return {
+                "accepted": False,
+                "banished": False,
+                "current_phase": self.phase_number,
+                "message": "The archive is sealed. The void books are closed."
+            }
+
         phrase_clean = re.sub(r"\s+", " ", str(phrase).strip().upper())
         # Spec-compliant ritual sealing: requires MIDNIGHT_SETTLEMENT phase and exact phrase
         if self.current_phase == PhaseEnum.MIDNIGHT_SETTLEMENT and phrase_clean == "SEAL THE DEEP VAULT":

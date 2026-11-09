@@ -97,13 +97,18 @@ def test_banish_endpoint():
     client.post("/api/event", json={"event_type": "cell_change", "cell": "B18", "value": "S"}) # hijack
     client.post("/api/event", json={"event_type": "cell_change", "cell": "B18", "value": "SEAL THE DEEP VAULT"})
 
+    # Test banish event without phrase in Phase 4 - must be rejected
+    res_event_empty = client.post("/api/event", json={"event_type": "banish"})
+    assert res_event_empty.status_code == 200
+    assert res_event_empty.json()["banished"] is False
+
     res = client.post("/api/banish", json={"phrase": "SEAL THE DEEP VAULT"})
     assert res.status_code == 200
     data = res.json()
     assert data["banished"] is True
     assert "ARCHIVE SEALED" in data["stamp"]
 
-    # Test banish event without phrase in Phase 4
-    res_event = client.post("/api/event", json={"event_type": "banish"})
-    assert res_event.status_code == 200
-    assert res_event.json()["banished"] is True
+    # Post-seal repeat banish must also be rejected
+    res_after = client.post("/api/banish", json={"phrase": "SEAL THE DEEP VAULT"})
+    assert res_after.status_code == 200
+    assert res_after.json()["banished"] is False

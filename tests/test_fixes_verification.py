@@ -90,29 +90,39 @@ def test_issue2_exact_banish_phrase_matching():
         assert res["banished"] is False, f"Phrase '{p}' should have been rejected"
 
     # Exact match (with case and whitespace normalization) must succeed
-    assert engine.judge_ritual("SEAL THE DEEP VAULT")["banished"] is True
-    assert engine.judge_ritual("seal the deep vault")["banished"] is True
-    assert engine.judge_ritual("   SEAL   THE   DEEP   VAULT   ")["banished"] is True
+    for phrase in ["SEAL THE DEEP VAULT", "seal the deep vault", "   SEAL   THE   DEEP   VAULT   "]:
+        engine.archive_sealed = False
+        assert engine.judge_ritual(phrase)["banished"] is True
+
+    # Once sealed, subsequent ritual attempts must be rejected
+    sealed_res = engine.judge_ritual("SEAL THE DEEP VAULT")
+    assert sealed_res["banished"] is False
+    assert sealed_res["accepted"] is False
+    assert "archive is sealed" in sealed_res["message"].lower()
 
 def test_issue3_direct_script_execution():
     """Verify python3 src/backend/server.py and mcp_server.py execute without ModuleNotFoundError."""
     python_bin = sys.executable
     project_root = os.path.dirname(os.path.dirname(__file__))
 
-    # Test server.py
+    # Test server.py using ephemeral port to prevent port 8000 conflicts
+    env = os.environ.copy()
+    env["SERVER_PORT"] = "0"
     proc_srv = subprocess.Popen(
         [python_bin, "src/backend/server.py"],
         cwd=project_root,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        stderr=subprocess.PIPE,
+        env=env
     )
-    import time
-    time.sleep(0.8)
+    # Read the initial startup log from stderr to confirm import and boot without sleeping
+    first_line = proc_srv.stderr.readline()
     proc_srv.terminate()
     out_srv, err_srv = proc_srv.communicate()
-    assert b"ModuleNotFoundError" not in err_srv
+    combined_err = first_line + err_srv
+    assert b"ModuleNotFoundError" not in combined_err
     assert b"ModuleNotFoundError" not in out_srv
-    assert b"Uvicorn running" in err_srv or b"Started server process" in err_srv
+    assert b"Started server process" in combined_err or b"Uvicorn running" in combined_err
 
     # Test mcp_server.py
     proc_mcp = subprocess.Popen(
@@ -736,4 +746,165 @@ def test_s2_inspect_ledger_row_references():
     # inspect_ledger with 'ROW 7'
     res_r7 = call_tool("inspect_ledger", {"target_range": "ROW 7"})
     assert "Row 7:" in res_r7["content"][0]["text"]
+
+def test_issue1_no_repeated_victory_after_archive_sealed():
+    """Verify that once archive is sealed, judge_ritual cannot be replayed to trigger victory."""
+    engine = PuzzleEngine()
+    engine.current_phase = PhaseEnum.MIDNIGHT_SETTLEMENT
+    
+    # First ritual seals archive
+    res1 = engine.judge_ritual("SEAL THE DEEP VAULT")
+    assert res1["banished"] is True
+    assert res1["accepted"] is True
+    assert engine.archive_sealed is True
+    assert any(a["effect"] == "THUNDER_STROBE" for a in res1.get("actions", []))
+
+    # Second ritual must be blocked and not re-trigger victory
+    res2 = engine.judge_ritual("SEAL THE DEEP VAULT")
+    assert res2["banished"] is False
+    assert res2["accepted"] is False
+    assert "sealed" in res2["message"].lower()
+    assert len(res2.get("actions", [])) == 0
+
+    # Also cell changes must be blocked
+    res_cell = engine.handle_cell_change("B18", "SEAL THE DEEP VAULT")
+    assert res_cell["accepted"] is False
+    assert "sealed" in res_cell["message"].lower()
+
+def test_issue2_empty_banish_event_rejected():
+    """Verify that empty / omitted phrase in /api/event banish is strictly rejected in Phase 4."""
+    # Reset engine to phase 4
+    engine = PuzzleEngine()
+    engine.current_phase = PhaseEnum.MIDNIGHT_SETTLEMENT
+    engine.save_state()
+
+    # Empty phrase via /api/event
+    res_empty = client.post("/api/event", json={"event_type": "banish", "value": ""})
+    assert res_empty.status_code == 200
+    assert res_empty.json()["banished"] is False
+
+    # Missing value field
+    res_none = client.post("/api/event", json={"event_type": "banish"})
+    assert res_none.status_code == 200
+    assert res_none.json()["banished"] is False
+
+    # Exact phrase works
+    res_exact = client.post("/api/event", json={"event_type": "banish", "value": "SEAL THE DEEP VAULT"})
+    assert res_exact.status_code == 200
+    assert res_exact.json()["banished"] is True
+
+def test_issue4_offline_vba_whitespace_normalization():
+    """Verify VBA offline engine normalizes multiple spaces, tabs, and newlines in override code."""
+    bas_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src", "vba", "M_DaemonBridge.bas")
+    with open(bas_path, "r", encoding="utf-8") as f:
+        bas = f.read()
+
+    assert 'cleanCode = Replace(Replace(Replace(cellVal, vbTab, " "), vbCr, " "), vbLf, " ")' in bas
+    assert 'cleanCode = Trim(UCase(cleanCode))' in bas
+    assert 'Do While InStr(cleanCode, "  ") > 0' in bas
+    assert 'cleanCode = Replace(cleanCode, "  ", " ")' in bas
+
+    # Algorithmic simulation verifying behavioral parity between VBA string loop and Python regex
+    def vba_clean_code(cell_val: str) -> str:
+        s = cell_val.replace("\t", " ").replace("\r", " ").replace("\n", " ")
+        s = s.strip().upper()
+        while "  " in s:
+            s = s.replace("  ", " ")
+        return s
+
+    test_inputs = [
+        "SEAL THE DEEP VAULT",
+        "  SEAL   THE   DEEP   VAULT  ",
+        "SEAL\tTHE\r\nDEEP  VAULT",
+        "seal   the\t\tdeep\n\nvault",
+        "   ",
+        "",
+        "SEAL  THE DEEP",
+    ]
+    for inp in test_inputs:
+        import re
+        py_norm = re.sub(r"\s+", " ", str(inp).strip().upper())
+        vba_norm = vba_clean_code(inp)
+        assert py_norm == vba_norm, f"Mismatch for input {inp!r}: py='{py_norm}', vba='{vba_norm}'"
+        assert (py_norm == "SEAL THE DEEP VAULT") == (vba_norm == "SEAL THE DEEP VAULT")
+
+def test_issue5_build_ledger_single_palette_source():
+    """Verify build_ledger imports PALETTE directly from puzzle_state and uses COLOR_PHOSPHOR_GREEN."""
+    from scripts.build_ledger import build_ledger_workbook, COLOR_PHOSPHOR_GREEN, COLOR_COLD_ASH
+    from src.backend.puzzle_state import PALETTE
+
+    assert COLOR_PHOSPHOR_GREEN == PALETTE["PHOSPHOR_GREEN"].lstrip("#")
+    assert COLOR_COLD_ASH == PALETTE["COLD_ASH"].lstrip("#")
+
+    ledger_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "scripts", "build_ledger.py")
+    with open(ledger_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    assert "from src.backend.puzzle_state import PALETTE" in content
+    assert '"3B533E"' not in content
+
+def test_issue6_no_dead_configs():
+    """Verify PALETTE has no unused ABYSS_BLACK and conftest has no dead GAME_STATE_FILE patch for server."""
+    from src.backend.puzzle_state import PALETTE
+    import src.backend.server as server_mod
+
+    assert "ABYSS_BLACK" not in PALETTE
+    assert not hasattr(server_mod, "GAME_STATE_FILE")
+
+    conftest_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests", "conftest.py")
+    with open(conftest_path, "r", encoding="utf-8") as f:
+        conftest = f.read()
+    assert "src.backend.server.GAME_STATE_FILE" not in conftest
+    assert "src.backend.mcp_server.GAME_STATE_FILE" not in conftest
+
+def test_issue7_mouth_rendering_and_spec_drift():
+    """Verify VBA RenderPixelFace renders mouth, coordinates match Python radar 1:1, and spec documents 2s blink interval."""
+    fx_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src", "vba", "M_HorrorFX.bas")
+    with open(fx_path, "r", encoding="utf-8") as f:
+        fx = f.read()
+
+    # VBA 1-based mouth range (r=21..23, c=11..20)
+    assert "r >= 21 And r <= 23 And c >= 11 And c <= 20" in fx
+    assert "cell.Interior.Color = COLOR_DRIED_BLOOD" in fx
+    assert "dc = c - 15" in fx
+    assert "r <= 10" in fx
+
+    # Algorithmic verification: offline VBA pixel matrix must match online get_pixel_radar 100% across all 900 cells
+    from src.backend.puzzle_state import PALETTE
+    engine = PuzzleEngine()
+    py_radar = engine.get_pixel_radar()["grid"]
+
+    vba_grid = [["" for _ in range(30)] for _ in range(30)]
+    for r in range(1, 31):
+        for c in range(1, 31):
+            dr = r - 15
+            dc = c - 15
+            dist_sq = dr * dr + dc * dc
+            if (r == 15 or r == 16) and (c == 13 or c == 14):
+                color = PALETTE["DRIED_BLOOD"]
+            elif 14 <= r <= 17 and 12 <= c <= 15:
+                color = PALETTE["PHOSPHOR_GREEN"]
+            elif 13 <= r <= 18 and 11 <= c <= 16:
+                color = PALETTE["CARBON"]
+            elif 21 <= r <= 23 and 11 <= c <= 20:
+                color = PALETTE["DRIED_BLOOD"]
+            elif 120 <= dist_sq <= 170:
+                color = PALETTE["CARBON"]
+            elif dist_sq < 120:
+                color = PALETTE["DECAYING_PAPER"]
+            else:
+                color = PALETTE["BONE_PAPER"]
+            if r <= 10 and (c == r or c == (31 - r) or (abs(c - 9) <= 1 and r <= 8) or (abs(c - 22) <= 1 and r <= 8)):
+                color = PALETTE["CARBON"]
+            vba_grid[r - 1][c - 1] = color
+
+    for r in range(30):
+        for c in range(30):
+            assert py_radar[r][c] == vba_grid[r][c], f"Pixel mismatch at r={r}, c={c}: {py_radar[r][c]} != {vba_grid[r][c]}"
+
+    spec_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".kiro", "specs", "puzzle_engine_spec.md")
+    with open(spec_path, "r", encoding="utf-8") as f:
+        spec = f.read()
+
+    assert "every 2 seconds" in spec
+    assert "every 1.5 seconds" not in spec
 

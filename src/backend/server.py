@@ -68,8 +68,6 @@ def handle_event(req: EventRequest):
             res = engine.handle_reagent_spray()
         elif event == "banish":
             phrase = str(req.value or "").strip()
-            if not phrase and engine.current_phase == PhaseEnum.MIDNIGHT_SETTLEMENT:
-                phrase = "SEAL THE DEEP VAULT"
             res = engine.judge_ritual(phrase)
         else:
             res = {
@@ -123,4 +121,5 @@ def reset_game():
         return {"reset": True, "phase": 1}
 
 if __name__ == "__main__":
-    uvicorn.run("src.backend.server:app", host="127.0.0.1", port=8000, reload=False)
+    port = int(os.environ.get("SERVER_PORT", "8000"))
+    uvicorn.run("src.backend.server:app", host="127.0.0.1", port=port, reload=False)

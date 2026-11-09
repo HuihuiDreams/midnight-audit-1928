@@ -202,7 +202,7 @@ Public Sub RenderPixelFace(ByVal ws As Worksheet)
             
             Dim dr As Long, dc As Long, distSq As Long
             dr = r - 15
-            dc = c - 14
+            dc = c - 15
             distSq = dr * dr + dc * dc
             
             If (r = 15 Or r = 16) And (c = 13 Or c = 14) Then
@@ -214,6 +214,9 @@ Public Sub RenderPixelFace(ByVal ws As Worksheet)
             ElseIf r >= 13 And r <= 18 And c >= 11 And c <= 16 Then
                 ' Eye socket
                 cell.Interior.Color = COLOR_CARBON
+            ElseIf r >= 21 And r <= 23 And c >= 11 And c <= 20 Then
+                ' Eldritch Mouth (matches online get_pixel_radar r=20..22, c=10..19)
+                cell.Interior.Color = COLOR_DRIED_BLOOD
             ElseIf distSq <= 170 And distSq >= 120 Then
                 ' Outer skull boundary
                 cell.Interior.Color = COLOR_CARBON
@@ -225,7 +228,7 @@ Public Sub RenderPixelFace(ByVal ws As Worksheet)
             End If
             
             ' Horns curving upwards
-            If r < 10 And (c = r Or c = (31 - r) Or (Abs(c - 9) <= 1 And r < 8) Or (Abs(c - 22) <= 1 And r < 8)) Then
+            If r <= 10 And (c = r Or c = (31 - r) Or (Abs(c - 9) <= 1 And r <= 8) Or (Abs(c - 22) <= 1 And r <= 8)) Then
                 cell.Interior.Color = COLOR_CARBON
             End If
         Next c

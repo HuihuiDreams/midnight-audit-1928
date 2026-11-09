@@ -58,8 +58,8 @@
     - Outline / Shadows: `#181614` (Carbon)
     - Pupil / Void: `#2E0F0D` (Dried Blood)
     - Iris: `#3B533E` (Phosphor Green)
-  - Eye center cells (`W34:X35`) start a background timer blinking between `#3B533E` and `#2E0F0D` every 1.5 seconds.
-  - Subtitle pops up: *"SOMETHING LURKS IN THE DEEP VAULT"*.
+  - Eye center cells (`W34:X35`) start a background timer blinking between `#3B533E` and `#2E0F0D` every 2 seconds.
+  - Subtitle: *"SOMETHING LURKS IN THE DEEP VAULT"* (optional aesthetic note; floorplan visual manifestation serves as primary feedback).
   - System advances to Phase 3.
 
 ### Phase 3: Hijacked Typing & Cipher (The Possession)

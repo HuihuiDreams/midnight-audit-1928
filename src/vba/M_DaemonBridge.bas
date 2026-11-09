@@ -697,7 +697,11 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
             Exit Sub
         Else
             Dim cleanCode As String
-            cleanCode = Trim(UCase(cellVal))
+            cleanCode = Replace(Replace(Replace(cellVal, vbTab, " "), vbCr, " "), vbLf, " ")
+            cleanCode = Trim(UCase(cleanCode))
+            Do While InStr(cleanCode, "  ") > 0
+                cleanCode = Replace(cleanCode, "  ", " ")
+            Loop
             If cleanCode = "SEAL THE DEEP VAULT" Then
                 gLocalPhase = 4
                 ws.Range("C18:D18").Interior.Color = COLOR_WARNING_RED
