@@ -37,154 +37,41 @@ COLOR_ABYSS = "000000"
 COLOR_PUMPKIN_ORANGE = "D9681A"
 
 # ==============================================================================
+# 30x30 16-Bit Pixel Art Matrix (Scheme B: All Hallows' Candlelit Sanctum)
+# Rendered inside Primary Visible Viewport onto Square-Pixel Radar (K20:AN49)
 # ==============================================================================
-# ASCII Pixel Art Sprite Matrices (5 to 6 columns wide)
-# Rendered inside Primary Visible Viewport onto Square-Pixel Grid (W4:AN12)
-# ==============================================================================
-# 5 columns wide x 9 rows tall (Columns W..AA, Rows 4..12)
-SPRITE_CANDLE = [
-    "..f..",  # Row 4:  Flame tip (warning red)
-    ".fFf.",  # Row 5:  Flame body with glowing phosphor core
-    "..W..",  # Row 6:  White-hot flame core
-    "..w..",  # Row 7:  Charred candle wick
-    ".CCC.",  # Row 8:  Pale bone candle wax shaft
-    "cCCCc",  # Row 9:  Melting wax drips
-    ".bBb.",  # Row 10: Brass candle saucer cup
-    "bBBBb",  # Row 11: Brass saucer tray & finger loop handle
-    ".SSS.",  # Row 12: Cast desk shadow (terminates above Row 13 Abyss)
+RADAR_16BIT_SANCTUM = [
+    "#####DDDDDDDD####DDDDDDDD#####",  # 00 (Row 20): Gothic Crypt Arch Header
+    "#D..#D#...#DD....DD#...#D#..D#",  # 01 (Row 21): Sweeping Horn tips (L21 at r=1,c=1 is D)
+    "#...,.#D#.#DD....DD#.#D#.,...#",  # 02 (Row 22): Sweeping outer & inner demon horns
+    "#.....,.#D#DD,,,,DD#D#.,.....#",  # 03 (Row 23): Horn curve & skull crown highlight
+    "#......,.#DDD....DDD#.,......#",  # 04 (Row 24): Cranial dome top
+    "#.......#DD..DDDD..DD#.......#",  # 05 (Row 25): Forehead blood scarification
+    "#......,#D...DRRD...D#,......#",  # 06 (Row 26): Frontal bone & ritual blood mark
+    "#.....,#D....DRRD....D#,.....#",  # 07 (Row 27): Upper brow
+    "#DDDDD#D..............D#DDDDD#",  # 08 (Row 28): Dark crypt alcove arches left & right
+    "#DXXXD#D..............D#DXXXD#",  # 09 (Row 29): Deep shadow alcoves for candle & pumpkin
+    "#DXYXD#D,,,........,,,D#DXXXD#",  # 10 (Row 30): Left flame tip (Y at N30) | Heavy brow ridge
+    "#DYOYD#DDDDD,,..,,DDDDD#DXGXD#",  # 11 (Row 31): Candle flame (YOY) | Brow | Pumpkin stem (G at AK31)
+    "#DYYYD#DDDDDDD..DDDDDDD#DGGGD#",  # 12 (Row 32): White-hot flame | Socket brow (W32 is D) | Stem base
+    "#DXXXD#DDDDPPPPDDPPPPDD#ROOOR#",  # 13 (Row 33): Candle wick | Phosphor Iris | Pumpkin crown
+    "#D...D#DDDDPXXPDDPXXPDD#OYOYO#",  # 14 (Row 34): Ivory candle wax | W34:X35 (XX) | 2 Pumpkin Eyes (AJ34, AL34)
+    "#D.,..#DDDDPXXPDDPXXPDD#OYOYO#",  # 15 (Row 35): Melting wax drip | W34:X35 (XX) | Pumpkin Eyes
+    "#D...D#DDDDPPPPDDPPPPDD#OOOOO#",  # 16 (Row 36): Candle wax shaft | Lower Iris | Pumpkin bridge (AK36 is O)
+    "#D.,..#DDDDDDDXXDDDDDDD#OOYOO#",  # 17 (Row 37): Candle wax shaft | Nasal apex | Carved nose (Y)
+    "#D...D.,#DDDDXXXXDDDD#,#OOOOO#",  # 18 (Row 38): Candle shaft | Nasal cavity | Upper lip
+    "#DGGGD..,#DDDXXXXDDD#,.#OYOYO#",  # 19 (Row 39): Brass candle cup | Maxilla | Jagged grin
+    "#GGGGGG..#D........D#..#OYYYO#",  # 20 (Row 40): Brass saucer tray | Upper jaw | Blazing mouth
+    "##GGGG#..#D.X.XX.X.D#..#ROOOR#",  # 21 (Row 41): Saucer handle | Skull teeth | Lower pumpkin
+    "#DXXXXD..#DXXXXXXXXD#..#DXXXD#",  # 22 (Row 42): Candle shadow | Void mouth | Pumpkin shadow
+    "#DDDDDD..#D.X.XX.X.D#..#DDDDD#",  # 23 (Row 43): Plinth top | Lower teeth | Plinth top
+    "#########,#DDDDDDDD#,#########",  # 24 (Row 44): Stone Altar Ledge & mandible
+    "#####DDDDDDD#R..R#DDDDDDD#####",  # 25 (Row 45): Blood drips & stone altar plinth
+    "#G,,#.......#R..R#.......#,,G#",  # 26 (Row 46): Crypt base pillars
+    "#,,,#........#RR#........#,,,#",  # 27 (Row 47): Pooled blood
+    "#G,,#....................#,,G#",  # 28 (Row 48): Crypt floor
+    "#####GGGGGGGGGGGGGGGGGGGG#####",  # 29 (Row 49): Crypt south wall
 ]
-
-# 6 columns wide x 9 rows tall (Columns AC..AH, Rows 4..12)
-SPRITE_SKULL = [
-    ".bbbb.",  # Row 4:  Smooth cranial dome
-    "bBBBBb",  # Row 5:  Upper cranium & suture line
-    "bBDDBb",  # Row 6:  Forehead bloodstain
-    "BBBBBB",  # Row 7:  Heavy brow ridge
-    "bXEEXb",  # Row 8:  Eye sockets (abyss) with glowing phosphor pupils (E at AE8 & AF8)
-    ".bXXb.",  # Row 9:  Nasal cavity void (XX) & cheekbones
-    ".bBBb.",  # Row 10: Maxilla upper jaw
-    ".bwwb.",  # Row 11: Grinning skeletal teeth with dark gap
-    "..bb..",  # Row 12: Mandible chin
-]
-
-# 5 columns wide x 9 rows tall (Columns AJ..AN, Rows 4..12)
-SPRITE_PUMPKIN = [
-    "...G.",  # Row 4:  Crooked stem tip (hospital green)
-    "..GG.",  # Row 5:  Stem base
-    ".oOo.",  # Row 6:  Pumpkin crown (vibrant orange rind with crimson outline)
-    "oEOEo",  # Row 7:  Triangular carved glowing eyes (E at AK7 & AM7)
-    "o.E.o",  # Row 8:  Carved glowing nose
-    "oEoEo",  # Row 9:  Carved saw-tooth mouth with pumpkin tooth
-    "oEEEo",  # Row 10: Lower mouth glowing candle fire
-    ".oOo.",  # Row 11: Pumpkin lower belly (AL11=O orange, AK11=o crimson outline)
-    "..S..",  # Row 12: Cast desk shadow
-]
-
-# ==============================================================================
-# 16-Bit High-Density Micro-Pixel Art Sprites (Option B: True 16-bit Masterpieces)
-# 28 rows tall x 12 to 14 columns wide, rendered with 1:1 square micro-pixels
-# ==============================================================================
-SPRITE_16BIT_CANDLE = [
-    ".....f......",  # Row 52: Flame pinnacle tip
-    "....fFf.....",  # Row 53: Teardrop flame upper contour
-    "...fFYFf....",  # Row 54: Phosphor green & incandescent golden flame
-    "...fYYYf....",  # Row 55: White-hot incandescent fire core
-    "....fYf.....",  # Row 56: Lower flame teardrop taper
-    ".....W......",  # Row 57: Incandescent white flame root
-    ".....w......",  # Row 58: Charred black wick
-    "...CCCCC....",  # Row 59: Pale bone wax top shoulder
-    "..CCCCCCC...",  # Row 60: Melting wax crown
-    "..cCCCCCCc..",  # Row 61: Side dripping wax streams
-    "..cCCCCCCc..",  # Row 62: Cylindrical candle shaft
-    "..CCCCCCC...",  # Row 63: Smooth bone wax column
-    "..cCCCCCCc..",  # Row 64: Secondary wax drip globule
-    "..c.CCC.cc..",  # Row 65: Tapered dripping wax droplets
-    "....CCC.....",  # Row 66: Candle column base
-    "...bBBBb....",  # Row 67: Brass candle cup rim
-    "..bBBBBBb...",  # Row 68: Brass neck flare
-    "..bBBBBBb...",  # Row 69: Tapered brass saucer cup
-    ".bBBBBBBBb..",  # Row 70: Broad brass saucer basin
-    "bBBBBBBBBBh.",  # Row 71: Antique saucer pan with finger loop handle
-    "bBBBBBBBBBBh",  # Row 72: Finger loop handle curve
-    "bBBBBBBBBBBh",  # Row 73: Finger loop handle grip
-    ".bBBBBBBBBh.",  # Row 74: Loop handle lower connection
-    "..bBBBBBBb..",  # Row 75: Saucer tray bottom bevel
-    "...bBBBBb...",  # Row 76: Brass pedestal base
-    "....bBBb....",  # Row 77: Brass foot
-    "....SSSS....",  # Row 78: Deep cast shadow on desk
-    "...SSSSSS...",  # Row 79: Ambient contact shadow
-]
-
-SPRITE_16BIT_SKULL = [
-    "....bbbbbb....",  # Row 52: Cranial dome top highlight
-    "..bbBBBBBBbb..",  # Row 53: Smooth rounded cranium curvature
-    ".bBBBBBBBBBBb.",  # Row 54: Upper parietal bone dome
-    ".bBBBDDDBBBBb.",  # Row 55: Occult dried blood forehead fissure
-    "bBBBDDDDDBBBBb",  # Row 56: Widened ritual blood scarification
-    "bBBBBBDDBBBBBb",  # Row 57: Trickling dried blood suture
-    "bBBBBBBBBBBBBb",  # Row 58: Frontal bone plane
-    "bBBBBBBBBBBBBb",  # Row 59: Supraciliary arches
-    "BBBBBBBBBBBBBB",  # Row 60: Heavy menacing brow ridge
-    "BBBBBBBBBBBBBB",  # Row 61: Orbital cavity upper rims
-    "bXXXXb..bXXXXb",  # Row 62: Deep black ocular sockets
-    "bXEEEX..XEEEXb",  # Row 63: Glowing eerie phosphor green pupils
-    "bXEEEX..XEEEXb",  # Row 64: Glowing dual pupils staring outward
-    "bXXXXb..bXXXXb",  # Row 65: Lower orbital cavity shadow
-    ".bXXb....bXXb.",  # Row 66: Zygomatic arch (pinched cheekbones)
-    "..bb..XX..bb..",  # Row 67: Piriform aperture (nasal cavity apex)
-    "....bXXXXb....",  # Row 68: Inverted heart-shaped nasal void
-    "....bXXXXb....",  # Row 69: Nasal fossa floor
-    "....bBBBBb....",  # Row 70: Maxilla upper dental arch
-    "....bBBBBb....",  # Row 71: Alveolar process
-    "...bTTTTTTb...",  # Row 72: Ivory incisors & canines
-    "...bTwTwTwb...",  # Row 73: Individual skeletal tooth separations
-    "...bTwTwTwb...",  # Row 74: Grinning upper & lower teeth rows
-    "...bTTTTTTb...",  # Row 75: Lower dental arch
-    "....bBBBBb....",  # Row 76: Mandible chin bone
-    ".....bbbb.....",  # Row 77: Mental protuberance
-    "......bb......",  # Row 78: Chin apex
-    ".....SSSS.....",  # Row 79: Cast mandible shadow
-]
-
-SPRITE_16BIT_PUMPKIN = [
-    "......GG......",  # Row 52: Woody pumpkin stem tip
-    ".....gGGg.....",  # Row 53: Twisted stem vine sprout
-    "....gGGGG.....",  # Row 54: Curving organic stem stalk
-    "....GGGG......",  # Row 55: Thick woody stem base
-    "...ooOOOOoo...",  # Row 56: Pumpkin crown & top lobes
-    "..oOOOOOOOOo..",  # Row 57: Expanding ribbed pumpkin shoulders
-    ".oOOOOOOOOOOo.",  # Row 58: Full volumetric pumpkin rind
-    "oOOOOOOOOOOOOo",  # Row 59: Broad upper pumpkin belly
-    "oOOOOOOOOOOOOo",  # Row 60: Deep saturated orange fruit flesh
-    "oOXYXO..OXYXOo",  # Row 61: Carved triangular eye cavities
-    "oOYYYO..OYYYOo",  # Row 62: Blazing golden-yellow candlelight eyes
-    "oOXYXO..OXYXOo",  # Row 63: Triangular eye lower carved bevels
-    "oOOOOOOOOOOOOo",  # Row 64: Mid-pumpkin rind bridge
-    "oOOOO.XY.OOOOo",  # Row 65: Carved triangular nose apex
-    "oOOOO.YY.OOOOo",  # Row 66: Glowing carved nose interior
-    "oOOOOOOOOOOOOo",  # Row 67: Upper lip rind contour
-    "oO..OOOOOO..Oo",  # Row 68: Wide carved mouth corners
-    "oOXY..YY..YXOo",  # Row 69: Sinister jagged sawtooth grin
-    "oOYYYYYYYYYYOo",  # Row 70: Open gaping mouth blazing with candlefire
-    "oO..YYYYYY..Oo",  # Row 71: Lower sawtooth teeth silhouettes
-    ".oOO..YY..OOo.",  # Row 72: Lower lip carved bevel
-    "..oOOOOOOOOo..",  # Row 73: Lower pumpkin belly curve
-    "...oOOOOOOo...",  # Row 74: Tapered pumpkin bottom
-    "....oOOOOo....",  # Row 75: Lower lobe tuck
-    ".....oOOo.....",  # Row 76: Base contact point
-    "......oo......",  # Row 77: Pedestal outline
-    ".....SSSS.....",  # Row 78: Contact desk shadow
-    "....SSSSSS....",  # Row 79: Ambient drop shadow
-]
-
-def render_pixel_sprite(ws, start_row: int, start_col: int, sprite_map: list, char_fill_map: dict):
-    """Renders a pixel art sprite matrix onto Excel cells with seamless borderless tiles."""
-    for r_idx, line in enumerate(sprite_map):
-        for c_idx, char in enumerate(line):
-            if char in char_fill_map:
-                cell = ws.cell(row=start_row + r_idx, column=start_col + c_idx)
-                cell.fill = char_fill_map[char]
-                cell.border = None
 
 def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     wb = Workbook()
@@ -195,18 +82,25 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     ws.views.sheetView[0].zoomScale = 85
     ws.sheet_view.zoomScale = 85
 
+    # Retro Horror Typography Hierarchy (1928 New England Gothic & Archival Typewriter)
+    FONT_DISPLAY = "Copperplate"          # Engraved stone/brass plaques, titles, stamps & buttons
+    FONT_SERIF = "Baskerville"            # 1928 New England book-plate headers & formal labels
+    FONT_TYPEWRITER = "American Typewriter"  # Authentic uneven ribbon typewriter for desk memos & notes
+    FONT_MONO = "Courier New"             # Strict monospace for ledger numbers, Row 13 Abyss & ROT-3 cipher
+    FONT_HANDWRITTEN = "Bradley Hand"     # Organic hasty handwriting for Ward's handover note
+
     # Styling helpers
-    font_stamp = Font(name="Courier New", size=9, bold=True, color=COLOR_WARNING_RED)
-    font_title = Font(name="Courier New", size=15, bold=True, color=COLOR_BONE_PAPER)
-    font_subtitle = Font(name="Courier New", size=9.5, italic=True, color=COLOR_CARBON)
-    font_header = Font(name="Courier New", size=11, bold=True, color=COLOR_CARBON)
-    font_body = Font(name="Courier New", size=10, bold=False, color=COLOR_CARBON)
-    font_flagged = Font(name="Courier New", size=10, bold=True, color=COLOR_WARNING_RED)
-    font_hidden = Font(name="Courier New", size=14, bold=True, color=COLOR_ABYSS)
-    font_censored = Font(name="Courier New", size=10, bold=False, color=COLOR_ABYSS)
-    font_note = Font(name="Courier New", size=10, bold=False, color=COLOR_CARBON)
-    font_seal = Font(name="Courier New", size=9, bold=True, color=COLOR_WARNING_RED)
-    font_desk_footer = Font(name="Courier New", size=9, italic=True, color=COLOR_HOSPITAL_GREEN)
+    font_stamp = Font(name=FONT_DISPLAY, size=9.5, bold=True, color=COLOR_WARNING_RED)
+    font_title = Font(name=FONT_DISPLAY, size=14, bold=True, color=COLOR_BONE_PAPER)
+    font_subtitle = Font(name=FONT_SERIF, size=10, italic=True, color=COLOR_CARBON)
+    font_header = Font(name=FONT_DISPLAY, size=9.5, bold=True, color=COLOR_CARBON)
+    font_body = Font(name=FONT_MONO, size=10, bold=False, color=COLOR_CARBON)
+    font_flagged = Font(name=FONT_MONO, size=10, bold=True, color=COLOR_WARNING_RED)
+    font_hidden = Font(name=FONT_MONO, size=14, bold=True, color=COLOR_ABYSS)
+    font_censored = Font(name=FONT_MONO, size=10, bold=False, color=COLOR_ABYSS)
+    font_note = Font(name=FONT_HANDWRITTEN, size=9.5, bold=True, color=COLOR_CARBON)
+    font_seal = Font(name=FONT_DISPLAY, size=9, bold=True, color=COLOR_WARNING_RED)
+    font_desk_footer = Font(name=FONT_SERIF, size=9.5, italic=True, color=COLOR_HOSPITAL_GREEN)
 
     fill_bone = PatternFill(fill_type="solid", start_color=COLOR_BONE_PAPER, end_color=COLOR_BONE_PAPER)
     fill_decay = PatternFill(fill_type="solid", start_color=COLOR_DECAYING_PAPER, end_color=COLOR_DECAYING_PAPER)
@@ -218,31 +112,6 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     fill_spray = PatternFill(fill_type="solid", start_color=COLOR_PHOSPHOR_GREEN, end_color=COLOR_PHOSPHOR_GREEN)
     fill_red = PatternFill(fill_type="solid", start_color=COLOR_WARNING_RED, end_color=COLOR_WARNING_RED)
     fill_pumpkin = PatternFill(fill_type="solid", start_color=COLOR_PUMPKIN_ORANGE, end_color=COLOR_PUMPKIN_ORANGE)
-
-    char_fill_map = {
-        ".": fill_carbon,
-        "F": fill_spray,
-        "f": fill_red,
-        "w": fill_abyss,
-        "W": fill_bone,
-        "C": fill_bone,
-        "c": fill_decay,
-        "D": fill_blood,
-        "d": fill_red,
-        "B": fill_decay,
-        "b": fill_bone,
-        "S": fill_abyss,
-        "E": fill_spray,
-        "X": fill_abyss,
-        "G": fill_hospital,
-        "g": fill_spray,
-        "O": fill_pumpkin,
-        "o": fill_red,
-        "R": fill_red,
-        "Y": fill_note,
-        "T": fill_bone,
-        "h": fill_blood,
-    }
 
     thin_border = Border(
         left=Side(style='thin', color=COLOR_HOSPITAL_GREEN),
@@ -265,11 +134,11 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
         bottom=Side(style='double', color=COLOR_WARNING_RED)
     )
 
-    # 0. Full-Bleed Desk Canvas Backdrop (Rows 1..84, Cols 1..55)
+    # 0. Full-Bleed Desk Canvas Backdrop (Rows 1..52, Cols 1..42)
     # Eliminates all raw modern Excel white background cells around and below the ledger
-    for r in range(1, 85):
+    for r in range(1, 53):
         ws.row_dimensions[r].height = 18
-        for c in range(1, 56):
+        for c in range(1, 43):
             ws.cell(row=r, column=c).fill = fill_carbon
 
     # Outer Parchment Folio Margin (A1:I19)
@@ -281,7 +150,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     ws.row_dimensions[1].height = 20
     ws.merge_cells("A1:F1")
     ws["A1"] = "  FORM MU-1928-VIII  |  RESTRICTED CUSTODIAL LEDGER  |  ARKHAM, MASS."
-    ws["A1"].font = Font(name="Courier New", size=9, bold=True, color=COLOR_CARBON)
+    ws["A1"].font = Font(name=FONT_DISPLAY, size=9, bold=True, color=COLOR_CARBON)
     ws["A1"].alignment = Alignment(horizontal="left", vertical="center")
 
     ws.merge_cells("G1:I1")
@@ -366,7 +235,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     ]
 
     for i, row_data in enumerate(records, start=6):
-        ws.row_dimensions[i].height = 22
+        ws.row_dimensions[i].height = 25
         is_even_row = (i % 2 == 1)
         row_fill = fill_decay if is_even_row else fill_bone
         for j, val in enumerate(row_data, start=1):
@@ -398,7 +267,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
             # Format currency, numbers & status
             if j == 1:
                 cell.alignment = Alignment(horizontal="center", vertical="center")
-                cell.font = Font(name="Courier New", size=10, bold=True, color=COLOR_CARBON)
+                cell.font = Font(name=FONT_MONO, size=10, bold=True, color=COLOR_CARBON)
             elif j in (5, 6):
                 cell.alignment = Alignment(horizontal="center", vertical="center")
             elif j == 7:  # Overdue Days
@@ -454,21 +323,21 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     ws.row_dimensions[17].height = 12
     ws.merge_cells("A17:I17")
     ws["A17"] = "  ─── CUSTODIAL VAULT CONTAINMENT PROTOCOL (SEALING CIPHER REQUIRED BELOW) ───"
-    ws["A17"].font = Font(name="Courier New", size=8.5, italic=True, color=COLOR_HOSPITAL_GREEN)
+    ws["A17"].font = Font(name=FONT_SERIF, size=9, italic=True, color=COLOR_HOSPITAL_GREEN)
     ws["A17"].alignment = Alignment(horizontal="left", vertical="center")
     for c in range(1, 10):
         ws.cell(row=17, column=c).fill = fill_decay
         ws.cell(row=17, column=c).border = thin_border
 
     # 7. Row 18: Emergency Vault Override Input & Wax Seal Stamp
-    ws.row_dimensions[18].height = 30
-    ws["A18"] = "EMERGENCY OVERRIDE CODE (PHASE 3):"
-    ws["A18"].font = font_header
+    ws.row_dimensions[18].height = 34
+    ws["A18"] = "EMERGENCY OVERRIDE\nCODE (PHASE 3):"
+    ws["A18"].font = Font(name=FONT_DISPLAY, size=8.5, bold=True, color=COLOR_CARBON)
     ws["A18"].fill = fill_decay
     ws["A18"].border = thin_border
-    ws["A18"].alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+    ws["A18"].alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-    ws["B18"].font = Font(name="Courier New", size=11, bold=True, color=COLOR_CARBON)
+    ws["B18"].font = Font(name=FONT_MONO, size=11, bold=True, color=COLOR_CARBON)
     ws["B18"].fill = fill_bone
     ws["B18"].border = Border(
         left=Side(style='double', color=COLOR_WARNING_RED),
@@ -482,7 +351,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     ws.merge_cells("C18:D18")
     seal_btn = ws["C18"]
     seal_btn.value = "[ SEAL ARCHIVE ]"
-    seal_btn.font = Font(name="Courier New", size=10, bold=True, color=COLOR_DECAYING_PAPER)
+    seal_btn.font = Font(name=FONT_DISPLAY, size=10, bold=True, color=COLOR_DECAYING_PAPER)
     seal_btn.fill = fill_hospital
     seal_btn.alignment = Alignment(horizontal="center", vertical="center")
     for c in range(3, 5):
@@ -526,8 +395,8 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
             right=Side(style='medium', color=COLOR_CARBON) if c == 9 else None
         )
 
-    # 8. Desk Artifact Below Ledger (B21:H26) — Torn 1928 Western Union / Arkham Sanatorium Field Note
-    ws.merge_cells("B21:H25")
+    # 8. Desk Artifact Below Ledger (B21:H28) — Torn 1928 Field Note / Charred ROT-3 Strip
+    ws.merge_cells("B21:H28")
     telegram_cell = ws["B21"]
     telegram_cell.value = (
         "╔═══ [ POCKET FIELD ARTIFACT — CHARRED CIPHER KEY STRIP ] ═══════════════════╗\n"
@@ -537,22 +406,22 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
         "║  \"When the floorboards groan, shift three steps back from the abyss...\"    ║\n"
         "╚════════════════════════════════════════════════════════════════════════════╝"
     )
-    telegram_cell.font = Font(name="Courier New", size=9.5, bold=False, color=COLOR_BONE_PAPER)
+    telegram_cell.font = Font(name=FONT_MONO, size=9, bold=False, color=COLOR_BONE_PAPER)
     telegram_cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
-    for r in range(21, 26):
+    for r in range(21, 29):
         for c in range(2, 9):
             tc = ws.cell(row=r, column=c)
             tc.fill = fill_blood
             tc.border = Border(
                 top=Side(style='double', color=COLOR_WARNING_RED) if r == 21 else None,
-                bottom=Side(style='double', color=COLOR_WARNING_RED) if r == 25 else None,
+                bottom=Side(style='double', color=COLOR_WARNING_RED) if r == 28 else None,
                 left=Side(style='medium', color=COLOR_WARNING_RED) if c == 2 else None,
                 right=Side(style='medium', color=COLOR_WARNING_RED) if c == 8 else None
             )
 
-    # Charred crumbling ash ordered dither on Row 26 (cols 2..8)
+    # Charred crumbling ash ordered dither on Row 29 (cols 2..8)
     for c in range(2, 9):
-        ash_cell = ws.cell(row=26, column=c)
+        ash_cell = ws.cell(row=29, column=c)
         if c in (2, 8):
             ash_cell.fill = fill_carbon
         else:
@@ -561,7 +430,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     # 9. Right Wing Top Header (K2:AN3) — Sub-Basement Blueprint Telemetry Banner
     ws.merge_cells("K2:AN2")
     ws["K2"] = "  MISKATONIC ANNEX — SUB-BASEMENT STRUCTURAL TELEMETRY & DOSSIER WING"
-    ws["K2"].font = Font(name="Courier New", size=12, bold=True, color=COLOR_BONE_PAPER)
+    ws["K2"].font = Font(name=FONT_DISPLAY, size=12, bold=True, color=COLOR_BONE_PAPER)
     ws["K2"].alignment = Alignment(horizontal="left", vertical="center")
     for c in range(11, 41):
         cell = ws.cell(row=2, column=c)
@@ -573,133 +442,95 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
             right=Side(style='medium', color=COLOR_WARNING_RED) if c == 40 else None
         )
 
-    # 10. Yellow Handover Note (K4:U16) + Cast Drop Shadow (V) & Occult Altar Triptych (W3:AN16)
-    ws.merge_cells("K4:U16")
-    note_cell = ws["K4"]
-    note_cell.value = (
-        "[📎 MISKATONIC ANNEX ARCHIVE — NIGHT MEMO]\n"
-        "═══════════════════════════════════════════════\n"
-        "--- NIGHT AUDITOR HANDOVER NOTE ---\n"
-        "Date: Oct 31, 1928 (All Hallows' Eve)\n"
-        "Shift: 11:00 PM - 07:00 AM | Station: Desk 04\n"
-        "═══════════════════════════════════════════════\n\n"
-        "RULE 1: Delinquent Borrowing Verification\n"
-        "Verify all delinquent borrowings. Any record\n"
-        "overdue > 100 days must have its late penalty\n"
-        "calculated in Column H ($0.05 per overdue day)\n"
-        "to lift the red flag.\n\n"
-        "RULE 2: Basement Floorplan Surveillance\n"
-        "If Annex Basement floorplan radar displays\n"
-        "spatial anomalies (#ROT!), spray chemical\n"
-        "reagent to expose it: [CLICK: SPRAY REAGENT]\n\n"
-        "RULE 3: Sealing & Vault Breach Protocol\n"
-        "In case of structural breach, transcribe the\n"
-        "4-word sealing code into Cell B18. Note:\n"
-        "the cipher strip on the desk is ROT-3:\n"
-        "  CIPHER: 'VHDO WKH GHHS YDXOW' (ROT-3)\n\n"
-        "───────────────────────────────────────────────\n"
-        "🩸 WARNING: Never alter or inspect Row 13.\n"
-        "- Former Auditor Ward (Missing since Oct 30)"
-    )
-    note_cell.font = font_note
-    note_cell.fill = fill_note
-    note_cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
-
-    for r in range(4, 17):
-        for c in range(11, 22):
-            cell = ws.cell(row=r, column=c)
-            cell.fill = fill_note
-            cell.border = Border(
-                top=Side(style='double', color=COLOR_DRIED_BLOOD) if r == 4 else None,
-                bottom=Side(style='medium', color=COLOR_CARBON) if r == 16 else None,
-                left=Side(style='medium', color=COLOR_CARBON) if c == 11 else None,
-                right=Side(style='medium', color=COLOR_CARBON) if c == 21 else None,
-            )
-
-    # Physical Drop-Shadow with 50% Bayer ordered dithering (Column V & Row 17)
-    for r in range(5, 18):
-        cell = ws.cell(row=r, column=22)
-        cell.fill = fill_blood if (r + 22) % 2 == 0 else fill_carbon
-    for c in range(12, 23):
-        cell = ws.cell(row=17, column=c)
-        cell.fill = fill_blood if (17 + c) % 2 == 0 else fill_carbon
-    # Chamfered dog-eared corner on outer shadow edge (Row 17, Col 22)
-    ws.cell(row=17, column=22).fill = fill_carbon
-
-    # 10b. Right Wing Occult Altar Triptych (W3:AN16) — True 1:1 Square Pixel Art
-    # Top plaque for 1928 Halloween Occult Relic Shelf (Row 3, Cols 23..40)
-    ws.merge_cells("W3:AN3")
-    altar_header = ws["W3"]
-    altar_header.value = "  [ 🕯️ 1928 OCCULT ALTAR: KEROSENE CANDLE  |  💀 MEMENTO MORI  |  🎃 JACK-O'-LANTERN ]"
-    altar_header.font = Font(name="Courier New", size=8.5, bold=True, color=COLOR_BONE_PAPER)
+    # 9b. Right Wing Sub-Banner (K3:AN3)
+    ws.merge_cells("K3:AN3")
+    altar_header = ws["K3"]
+    altar_header.value = "  [ 🕯️ 1928 OCCULT ALTAR & SPECIAL COLLECTIONS — HANDOVER & REAGENT PROTOCOL ]"
+    altar_header.font = Font(name=FONT_DISPLAY, size=9, bold=True, color=COLOR_BONE_PAPER)
     altar_header.alignment = Alignment(horizontal="center", vertical="center")
     altar_header.fill = fill_blood
-    for c in range(23, 41):
+    for c in range(11, 41):
         cell = ws.cell(row=3, column=c)
         cell.fill = fill_blood
         cell.border = Border(
             top=Side(style='medium', color=COLOR_WARNING_RED),
             bottom=Side(style='double', color=COLOR_WARNING_RED),
-            left=Side(style='medium', color=COLOR_WARNING_RED) if c == 23 else None,
+            left=Side(style='medium', color=COLOR_WARNING_RED) if c == 11 else None,
             right=Side(style='medium', color=COLOR_WARNING_RED) if c == 40 else None,
         )
 
-    # Render all 3 pixel-art sprites side-by-side onto square columns W..AN (Rows 4..12)
-    # Sprite 1: 1928 Dripping Kerosene Candle (W4:AA12, cols 23..27)
-    render_pixel_sprite(ws, start_row=4, start_col=23, sprite_map=SPRITE_CANDLE, char_fill_map=char_fill_map)
-
-    # Spacing divider column AB (col 28)
-    for r in range(4, 13):
-        ws.cell(row=r, column=28).fill = fill_carbon
-
-    # Sprite 2: Occult Memento Mori Skull (AC4:AH12, cols 29..34)
-    render_pixel_sprite(ws, start_row=4, start_col=29, sprite_map=SPRITE_SKULL, char_fill_map=char_fill_map)
-
-    # Spacing divider column AI (col 35)
-    for r in range(4, 13):
-        ws.cell(row=r, column=35).fill = fill_carbon
-
-    # Sprite 3: Halloween Jack-o'-Lantern Pumpkin (AJ4:AN12, cols 36..40)
-    render_pixel_sprite(ws, start_row=4, start_col=36, sprite_map=SPRITE_PUMPKIN, char_fill_map=char_fill_map)
-
-    # 10c. Right Wing Dossier Card: Arkham Police & Sanatorium Incident Evidence Box (W13:AN16)
-    ws.merge_cells("W13:AN16")
-    dossier_cell = ws["W13"]
-    dossier_cell.value = (
-        "╔══ [ 🕯️ ARKHAM POLICE & SANATORIUM — INCIDENT EVIDENCE ] ══╗\n"
-        "║ EVIDENCE VAULT CASE #1928-XI: MIDNIGHT AUDIT DISAVOWED    ║\n"
-        "║ CONFISCATED RELICS PINNED TO OCCULT ALTAR (ROWS 4-12):    ║\n"
-        "║   • 1928 SANATORIUM KEROSENE LAMP (DRIPPING BONE WAX)     ║\n"
-        "║   • OCCULT MEMENTO MORI SKULL (GLOWING PHOSPHOR OCULAR)   ║\n"
-        "║   • ALL HALLOWS' JACK-O'-LANTERN (CARVED CORNER CUTS)     ║\n"
-        "║                                                           ║\n"
-        "║ FORENSIC DIRECTIVE: PRIOR TO EMERGENCY VAULT SEAL (B18),  ║\n"
-        "║ DEPRESS [ SPRAY REAGENT ] TO EXPOSE BASEMENT TELEMETRY.   ║\n"
-        "╚═══════════════════════════════════════════════════════════╝"
+    # 10. Full-Width Yellow Handover Note (K4:AN12, 30 columns wide x 9 rows tall)
+    ws.merge_cells("K4:AN12")
+    note_cell = ws["K4"]
+    note_cell.value = (
+        "  [📎 MISKATONIC ANNEX ARCHIVE — NIGHT AUDITOR HANDOVER NOTE]\n"
+        "  Date: Oct 31, 1928 (All Hallows' Eve)  |  Station: Desk 04\n"
+        "  ─────────────────────────────────────────────────────────\n"
+        "  • RULE 1 (Delinquent Audit): Verify overdue borrowings (>100d).\n"
+        "    Enter late fee ($0.05/day) in Column H to clear red flag.\n"
+        "  • RULE 2 (Basement Surveillance): If radar (K20:AN49) displays\n"
+        "    spatial anomalies (#ROT!), spray reagent: [ SPRAY REAGENT ].\n"
+        "  • RULE 3 (Vault Sealing): Decode desk ROT-3 strip into Cell B18:\n"
+        "    'VHDO WKH GHHS YDXOW' -> click [ SEAL ARCHIVE ] button.\n"
+        "  ─────────────────────────────────────────────────────────\n"
+        "  🩸 WARNING: Never alter or inspect Row 13.\n"
+        "     — Former Auditor Ward (Missing since Oct 30, 11:59 PM)"
     )
-    dossier_cell.font = Font(name="Courier New", size=8.5, bold=False, color=COLOR_BONE_PAPER)
-    dossier_cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    note_cell.font = font_note
+    note_cell.fill = fill_note
+    note_cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+
+    for r in range(4, 13):
+        for c in range(11, 41):
+            cell = ws.cell(row=r, column=c)
+            cell.fill = fill_note
+            cell.border = Border(
+                top=Side(style='double', color=COLOR_DRIED_BLOOD) if r == 4 else None,
+                bottom=Side(style='medium', color=COLOR_CARBON) if r == 12 else None,
+                left=Side(style='medium', color=COLOR_CARBON) if c == 11 else None,
+                right=Side(style='medium', color=COLOR_CARBON) if c == 40 else None,
+            )
+
+    # 10c. Full-Width Special Collections Night Protocol Card (K13:AN16 — 30 cols wide x 277pt tall)
+    ws.merge_cells("K13:AN16")
+    dossier_cell = ws["K13"]
+    dossier_cell.value = (
+        "  🕯️ [ MISKATONIC SPECIAL COLLECTIONS — NIGHT PROTOCOL & REAGENT APPARATUS ]\n"
+        "  ARCHIVE DIRECTIVE #1928-X  |  AUTHORITY: DR. H. ARMITAGE  |  STATION: SUB-VAULT 13\n"
+        "  ─────────────────────────────────────────────────────────────────────────────────────────\n"
+        "  I. OVERDUE CUSTODY LOCK (BORROWER: WHATELEY, WILBUR / RECORD ARK-007)\n"
+        "     • Tome: Necronomicon (John Dee Translation, Restricted Vault Folio)\n"
+        "     • Status: 140 Days Delinquent — Calculate & enter $7.00 penalty in Cell H7.\n\n"
+        "  II. SANATORIUM KEROSENE LAMP & IBN-GHAZI REAGENT ATOMIZER\n"
+        "     • Brass reagent atomizer pressurized with glowing phosphor developer mist.\n"
+        "     • Depress [ SPRAY REAGENT ] below to expose the unseen entity in Grid K20:AN49.\n\n"
+        "  III. MIDNIGHT VAULT SEALING (MANDATORY PRIOR TO 12:00 AM STROKE)\n"
+        "     • Decode missing Auditor Ward's charred ROT-3 strip ('VHDO WKH GHHS YDXOW').\n"
+        "     • Enter the 4-word banishment phrase into Cell B18 and click [ SEAL ARCHIVE ]."
+    )
+    dossier_cell.font = Font(name=FONT_TYPEWRITER, size=9.5, bold=False, color=COLOR_BONE_PAPER)
+    dossier_cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
     dossier_cell.fill = fill_blood
     for r in range(13, 17):
-        for c in range(23, 41):
+        for c in range(11, 41):
             cell = ws.cell(row=r, column=c)
             cell.fill = fill_blood
             cell.border = Border(
                 top=Side(style='double', color=COLOR_WARNING_RED) if r == 13 else None,
                 bottom=Side(style='double', color=COLOR_WARNING_RED) if r == 16 else None,
-                left=Side(style='medium', color=COLOR_WARNING_RED) if c == 23 else None,
+                left=Side(style='medium', color=COLOR_WARNING_RED) if c == 11 else None,
                 right=Side(style='medium', color=COLOR_WARNING_RED) if c == 40 else None,
             )
 
-    # Row 17 buffer under dossier
-    for c in range(23, 41):
+    # Row 17 buffer under protocol card (K17:AN17)
+    for c in range(11, 41):
         ws.cell(row=17, column=c).fill = fill_carbon
 
     # 11. Phase 2 Button: [ SPRAY REAGENT ] (K18:AN18)
     ws.merge_cells("K18:AN18")
     spray_btn = ws["K18"]
     spray_btn.value = "[ SPRAY REAGENT ]"
-    spray_btn.font = Font(name="Courier New", size=10.5, bold=True, color=COLOR_BONE_PAPER)
+    spray_btn.font = Font(name=FONT_DISPLAY, size=11, bold=True, color=COLOR_BONE_PAPER)
     spray_btn.fill = fill_spray
     spray_btn.alignment = Alignment(horizontal="center", vertical="center")
     for c in range(11, 41):
@@ -716,7 +547,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     ws.merge_cells("K19:AN19")
     radar_title = ws["K19"]
     radar_title.value = "ANNEX BASEMENT PLAN RADAR (30x30) — CORRUPTED"
-    radar_title.font = Font(name="Courier New", size=11, bold=True, color=COLOR_WARNING_RED)
+    radar_title.font = Font(name=FONT_DISPLAY, size=11, bold=True, color=COLOR_WARNING_RED)
     radar_title.alignment = Alignment(horizontal="center", vertical="center")
     for c in range(11, 41):
         rc = ws.cell(row=19, column=c)
@@ -729,105 +560,40 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
         )
 
     glitch_tokens = ["#ROT!", "#REF!", "#N/A", "??", "[VOID]", "#ERR!"]
+    char_to_fill = {
+        "#": fill_carbon,
+        "G": fill_hospital,
+        "D": fill_blood,
+        "X": fill_abyss,
+        "Y": fill_note,
+        "R": fill_red,
+        "P": fill_spray,
+        "O": fill_pumpkin,
+        ",": fill_decay,
+    }
+
     for r in range(20, 50):
         ws.row_dimensions[r].height = 12
+        r_idx = r - 20
+        row_str = RADAR_16BIT_SANCTUM[r_idx]
         for c in range(11, 41):
             cell = ws.cell(row=r, column=c)
-            r_idx = r - 20
             c_idx = c - 11
+            char = row_str[c_idx]
 
-            # Precise Eldritch Horned Skull & Cosmic Eye Silhouette Geometry
-            dr = r_idx - 16
-            dc = c_idx - 14.5
-            dist_sq = (dc / 1.15) ** 2 + dr ** 2
+            if char == ".":
+                if 1 <= c_idx <= 5 and 14 <= r_idx <= 18:
+                    cell.fill = fill_bone
+                else:
+                    cell.fill = fill_decay if (r + c) % 2 == 0 else fill_bone
+            else:
+                cell.fill = char_to_fill.get(char, fill_carbon)
 
-            # Horn geometry: curving majestic demonic horns rising from cranium to outer corners (including L21: r=1, c=1)
-            is_left_horn = (
-                (r_idx == 1 and (c_idx == 1 or 5 <= c_idx <= 6)) or
-                (r_idx == 2 and (c_idx == 2 or 4 <= c_idx <= 5)) or
-                (r_idx == 3 and (c_idx == 3 or 4 <= c_idx <= 5)) or
-                (r_idx == 4 and 4 <= c_idx <= 5) or
-                (r_idx == 5 and 5 <= c_idx <= 6) or
-                (r_idx == 6 and 5 <= c_idx <= 6) or
-                (r_idx == 7 and 6 <= c_idx <= 7) or
-                (r_idx == 8 and 6 <= c_idx <= 7) or
-                (r_idx == 9 and 7 <= c_idx <= 8) or
-                (r_idx == 10 and 7 <= c_idx <= 9)
-            )
-            is_right_horn = (
-                (r_idx == 1 and (c_idx == 28 or 23 <= c_idx <= 24)) or
-                (r_idx == 2 and (c_idx == 27 or 24 <= c_idx <= 25)) or
-                (r_idx == 3 and (c_idx == 26 or 24 <= c_idx <= 25)) or
-                (r_idx == 4 and 24 <= c_idx <= 25) or
-                (r_idx == 5 and 23 <= c_idx <= 24) or
-                (r_idx == 6 and 23 <= c_idx <= 24) or
-                (r_idx == 7 and 22 <= c_idx <= 23) or
-                (r_idx == 8 and 22 <= c_idx <= 23) or
-                (r_idx == 9 and 21 <= c_idx <= 22) or
-                (r_idx == 10 and 20 <= c_idx <= 22)
-            )
-
-            # Central Cosmic Pupil (matches canonical W34:X35 coords: r_idx 14..15, c_idx 12..13)
-            is_pupil = (14 <= r_idx <= 15 and 12 <= c_idx <= 13)
-            # Glowing Phosphor Iris
-            is_iris = (13 <= r_idx <= 16 and 11 <= c_idx <= 14 and not is_pupil)
-            # Symmetrical Deep Eye Sockets (includes W32 brow: r_idx 12, c_idx 12)
-            is_left_socket = (12 <= r_idx <= 17 and 9 <= c_idx <= 14)
-            is_right_socket = (12 <= r_idx <= 17 and 15 <= c_idx <= 20)
-            is_socket = is_left_socket or is_right_socket
-            # Inverted triangle nasal cavity
-            is_nasal = (18 <= r_idx <= 19 and 14 <= c_idx <= 15)
-            # Gaping jaw and dripping void teeth
-            is_mouth_cavity = (21 <= r_idx <= 23 and 10 <= c_idx <= 19)
-            is_teeth = (r_idx in (21, 23) and 10 <= c_idx <= 19 and c_idx % 2 == 0)
-            is_blood_drip = (r_idx in (24, 25) and c_idx in (11, 14, 18))
-            is_jaw_outline = (20 <= r_idx <= 24 and (c_idx in (9, 20) or (r_idx == 24 and 9 <= c_idx <= 20)))
-
-            # Cranium dome and perimeter
-            is_cranium_bone = (r_idx <= 20 and dist_sq <= 110 and not is_socket)
-            is_skull_outline = (r_idx <= 20 and 110 < dist_sq <= 145)
-
-            # Face feature flag for uncluttered pixel art
-            is_face_feature = (is_pupil or is_iris or is_socket or is_nasal or is_mouth_cavity or is_teeth or is_blood_drip)
-
-            # Token overlay: radar telemetry and glitch code on outer field; clear on entity face
-            if is_face_feature:
+            if c_idx in (0, 29) or (r_idx >= 26 and c_idx in range(5, 12)):
+                cell.value = glitch_tokens[(r * 7 + c * 13) % len(glitch_tokens)]
+                cell.font = Font(name=FONT_MONO, size=7, color=COLOR_HOSPITAL_GREEN)
+            else:
                 cell.value = None
-            else:
-                token = glitch_tokens[(r * 7 + c * 13) % len(glitch_tokens)]
-                cell.value = token
-                cell.font = Font(name="Courier New", size=7, color=COLOR_HOSPITAL_GREEN)
-
-            if is_pupil:
-                # Cosmic void pupil core (pure abyss black at W34:X35)
-                cell.fill = fill_abyss
-            elif is_iris:
-                # Eerie phosphor green iris
-                cell.fill = fill_spray
-            elif is_socket:
-                # Deep blood-stained ocular socket cavity (W32 at r=12, c=12)
-                cell.fill = fill_blood
-            elif is_nasal or (is_mouth_cavity and not is_teeth):
-                # Deep abyssal void in nasal & mouth
-                cell.fill = fill_abyss
-            elif is_teeth:
-                # Ivory skull teeth
-                cell.fill = fill_bone
-            elif is_blood_drip:
-                # Crimson blood dripping from jaw
-                cell.fill = fill_red
-            elif is_left_horn or is_right_horn:
-                # Occult curving horns (solid dried blood)
-                cell.fill = fill_blood
-            elif is_skull_outline or is_jaw_outline:
-                # High-contrast dried blood & carbon outline
-                cell.fill = fill_blood if (r + c) % 2 == 0 else fill_carbon
-            elif is_cranium_bone:
-                # Decaying ancient bone skull mass
-                cell.fill = fill_decay
-            else:
-                # Outer radar coordinate field with subtle 50% Bayer ordered dither
-                cell.fill = fill_decay if (r + c) % 2 == 0 else fill_bone
 
             cell.border = Border(
                 top=Side(style='medium', color=COLOR_CARBON) if r == 20 else Side(style='thin', color=COLOR_HOSPITAL_GREEN),
@@ -837,42 +603,38 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
             )
             cell.alignment = Alignment(horizontal="center", vertical="center")
 
-    # 13. Lower Left Desk Canvas Artifacts (Columns B..H / Rows 28..50)
-    # Typed 1928 Archival Incident Dossier & Autopsy Log (replaces stretched wide pixel sprites)
-    ws.merge_cells("B28:H48")
-    autopsy_cell = ws["B28"]
-    autopsy_cell.value = (
-        "╔════ [ ARKHAM POLICE & SANATORIUM — INCIDENT DOSSIER & AUTOPSY LOG ] ════╗\n"
-        "║ CASE FILE #1928-10-31 | CLASSIFICATION: CUSTODIAL CORPSE DISPOSITION    ║\n"
-        "║ SUBJECT: NIGHT AUDITOR WARD (DECEASED / RETRIEVED FROM ANNEX SUB-VAULT)  ║\n"
-        "╠═════════════════════════════════════════════════════════════════════════╣\n"
-        "║ CORONER AUTOPSY OBSERVATIONS (DR. M. PEASLEE, ARKHAM CORONER):          ║\n"
-        "║   1. Rigor mortis absent; tissues necrotic with black viscous ichor.    ║\n"
-        "║   2. Epigastric cavity punctured; floorboard splinters embedded deep.   ║\n"
-        "║   3. Cranial sutures fractured along non-Euclidean logarithmic spirals. ║\n"
-        "║   4. Retinal tissue bioluminescent with phosphor green fungal spore.    ║\n"
-        "║                                                                         ║\n"
-        "║ PROPERTY RECOVERED FROM DECEASED'S AUDIT STATION:                       ║\n"
-        "║   [x] Charred ROT-3 cipher strip ('VHDO WKH GHHS YDXOW' -> shift back 3)║\n"
-        "║   [x] Annex sub-basement telemetry blueprint (spatial anomaly at K20)   ║\n"
-        "║   [x] Chemical reagent bottle (Formaldehyde / Phosphor green solution)  ║\n"
-        "║                                                                         ║\n"
-        "║ CUSTODIAL DIRECTIVE FOR REPLACEMENT AUDITOR:                            ║\n"
-        "║   • DO NOT TOUCH OR INSPECT ROW 13. HE SLEEPS BENEATH THE FLOORBOARDS.  ║\n"
-        "║   • CALCULATE OVERDUE PENALTY FOR RECORD ARK-007 (WILBUR WHATELEY).     ║\n"
-        "║   • SPRAY REAGENT ON RADAR GRID (K20:AN49) TO UNCOVER VAULT ANOMALIES.  ║\n"
-        "║   • TRANSCRIBE SEALING CODE TO B18 AND ENGAGE [ SEAL ARCHIVE ] CUSTODY. ║\n"
-        "╚═════════════════════════════════════════════════════════════════════════╝"
+    # 13. Lower Left Desk Canvas Artifacts (Columns B..H / Rows 30..50)
+    # Dr. Henry Armitage's Restricted Archival Memorandum
+    ws.merge_cells("B30:H48")
+    armitage_cell = ws["B30"]
+    armitage_cell.value = (
+        "  📜 [ MISKATONIC UNIVERSITY LIBRARY — RESTRICTED ARCHIVAL MEMORANDUM ]\n"
+        "  MEMORANDUM #1928-10-31  |  FROM: DR. HENRY ARMITAGE, CHIEF LIBRARIAN\n"
+        "  TO: NIGHT SHIFT AUDITOR (DESK 04)  |  SUBJECT: SUB-VAULT 13 ANOMALIES\n"
+        "  ─────────────────────────────────────────────────────────────────────────────────────────\n"
+        "  ARCHIVAL INCIDENT LOG (ALL HALLOWS' EVE — OCTOBER 31, 1928):\n"
+        "    1. Following Wilbur Whateley's nocturnal trespass, the campus watchdogs have\n"
+        "       barked incessantly at the reinforced floorboards beneath Row 13.\n"
+        "    2. Night Auditor Ward vanished from Desk 04 at 11:59 PM last evening, leaving\n"
+        "       only a charred ROT-3 cipher strip and an unsealed delinquency ledger.\n"
+        "    3. A pungent odour of ozonized tar and formaldehyde seeps through the sub-basement\n"
+        "       stone joints; the timber beams exhibit non-Euclidean structural warping.\n\n"
+        "  CUSTODIAL INSTRUCTIONS FOR TONIGHT'S SHIFT:\n"
+        "    [x] Step 1: Audit Row 7 (Whateley, W. — 140 days overdue @ $0.05/day -> $7.00 in H7).\n"
+        "    [x] Step 2: Discharge Ibn-Ghazi reagent ([ SPRAY REAGENT ]) over the 30x30\n"
+        "                sub-basement floorplan (K20:AN49) to expose the entity's eye.\n"
+        "    [x] Step 3: Shift 'VHDO WKH GHHS YDXOW' three letters back -> enter in Cell B18.\n"
+        "    [x] Step 4: Depress [ SEAL ARCHIVE ] (C18:D18) prior to the stroke of midnight."
     )
-    autopsy_cell.font = Font(name="Courier New", size=8.5, bold=False, color=COLOR_BONE_PAPER)
-    autopsy_cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
-    autopsy_cell.fill = fill_blood
-    for r in range(28, 49):
+    armitage_cell.font = Font(name=FONT_TYPEWRITER, size=9, bold=False, color=COLOR_BONE_PAPER)
+    armitage_cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+    armitage_cell.fill = fill_blood
+    for r in range(30, 49):
         for c in range(2, 9):
             tc = ws.cell(row=r, column=c)
             tc.fill = fill_blood
             tc.border = Border(
-                top=Side(style='double', color=COLOR_WARNING_RED) if r == 28 else None,
+                top=Side(style='double', color=COLOR_WARNING_RED) if r == 30 else None,
                 bottom=Side(style='double', color=COLOR_WARNING_RED) if r == 48 else None,
                 left=Side(style='medium', color=COLOR_WARNING_RED) if c == 2 else None,
                 right=Side(style='medium', color=COLOR_WARNING_RED) if c == 8 else None,
@@ -890,84 +652,40 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     ws.row_dimensions[50].height = 20
     ws.merge_cells("B50:H50")
     relic_label = ws["B50"]
-    relic_label.value = "[ 📁 ARKHAM SANATORIUM AUTOPSY DOSSIER  |  CONFIDENTIAL EVIDENCE FILE #1928-XI ]"
-    relic_label.font = Font(name="Courier New", size=8.5, bold=True, color=COLOR_BONE_PAPER)
+    relic_label.value = "  📜 ARCHIVAL FOLIO #1928-31B  |  DR. H. ARMITAGE RESTRICTED DIRECTIVE  |  VAULT SEAL REQUIRED"
+    relic_label.font = Font(name=FONT_DISPLAY, size=9, bold=True, color=COLOR_BONE_PAPER)
     relic_label.alignment = Alignment(horizontal="center", vertical="center")
     relic_label.fill = fill_blood
     for c in range(2, 9):
         cell = ws.cell(row=50, column=c)
         cell.fill = fill_blood
         cell.border = Border(
-            top=Side(style='thin', color=COLOR_WARNING_RED),
+            top=Side(style='double', color=COLOR_WARNING_RED),
             bottom=Side(style='double', color=COLOR_WARNING_RED),
             left=Side(style='medium', color=COLOR_WARNING_RED) if c == 2 else None,
             right=Side(style='medium', color=COLOR_WARNING_RED) if c == 8 else None,
         )
 
-    # 14. 16-Bit High-Density Occult Relic Sanctum (Rows 51..80, Columns K..BC)
-    ws.merge_cells("K51:BC51")
-    relic_16bit_header = ws["K51"]
-    relic_16bit_header.value = "  [ 🕯️ 1928 OCCULT ALTAR RELICS — 16-BIT HIGH-DENSITY MICROSCOPIC ENLARGEMENT ]"
-    relic_16bit_header.font = Font(name="Courier New", size=8.5, bold=True, color=COLOR_BONE_PAPER)
-    relic_16bit_header.alignment = Alignment(horizontal="center", vertical="center")
-    relic_16bit_header.fill = fill_blood
-    for c in range(11, 56):
-        cell = ws.cell(row=51, column=c)
+    # Flush Right Wing Plaque (K50:AN50)
+    ws.merge_cells("K50:AN50")
+    k50_cell = ws["K50"]
+    k50_cell.value = "🕯️ ANNEX SUB-VAULT 13 SANCTUM | EPICENTER W34:X35"
+    k50_cell.font = Font(name=FONT_DISPLAY, size=8, bold=True, color=COLOR_BONE_PAPER)
+    k50_cell.alignment = Alignment(horizontal="center", vertical="center")
+    k50_cell.fill = fill_blood
+    for c in range(11, 41):
+        cell = ws.cell(row=50, column=c)
         cell.fill = fill_blood
         cell.border = Border(
-            top=Side(style='medium', color=COLOR_WARNING_RED),
+            top=Side(style='double', color=COLOR_WARNING_RED),
             bottom=Side(style='double', color=COLOR_WARNING_RED),
             left=Side(style='medium', color=COLOR_WARNING_RED) if c == 11 else None,
-            right=Side(style='medium', color=COLOR_WARNING_RED) if c == 55 else None,
-        )
-
-    # Set 16-bit square pixel row heights (Rows 52..79)
-    for r in range(52, 80):
-        ws.row_dimensions[r].height = 12
-
-    # Render 16-Bit Candle at K52:V79 (cols 11..22, 12 cols wide)
-    render_pixel_sprite(ws, start_row=52, start_col=11, sprite_map=SPRITE_16BIT_CANDLE, char_fill_map=char_fill_map)
-
-    # Spacer Column W (col 23)
-    for r in range(52, 80):
-        ws.cell(row=r, column=23).fill = fill_carbon
-
-    # Render 16-Bit Skull at X52:AK79 (cols 24..37, 14 cols wide)
-    render_pixel_sprite(ws, start_row=52, start_col=24, sprite_map=SPRITE_16BIT_SKULL, char_fill_map=char_fill_map)
-
-    # Spacer Column AL (col 38)
-    for r in range(52, 80):
-        ws.cell(row=r, column=38).fill = fill_carbon
-
-    # Render 16-Bit Pumpkin at AM52:AZ79 (cols 39..52, 14 cols wide)
-    render_pixel_sprite(ws, start_row=52, start_col=39, sprite_map=SPRITE_16BIT_PUMPKIN, char_fill_map=char_fill_map)
-
-    # Perimeter desk margin columns BA..BC (cols 53..55)
-    for r in range(52, 80):
-        for c in range(53, 56):
-            ws.cell(row=r, column=c).fill = fill_carbon
-
-    # Bottom border plaque on Row 80
-    ws.row_dimensions[80].height = 16
-    ws.merge_cells("K80:BC80")
-    footer_16bit = ws["K80"]
-    footer_16bit.value = "  [ CUSTODIAL SEAL ARCHIVE: 16-BIT FORENSIC ATLAS | RESOLUTION: 44x28 MICRO-PIXEL MATRIX ]"
-    footer_16bit.font = Font(name="Courier New", size=7.5, italic=True, color=COLOR_HOSPITAL_GREEN)
-    footer_16bit.alignment = Alignment(horizontal="center", vertical="center")
-    footer_16bit.fill = fill_carbon
-    for c in range(11, 56):
-        cell = ws.cell(row=80, column=c)
-        cell.fill = fill_carbon
-        cell.border = Border(
-            top=Side(style='thin', color=COLOR_DRIED_BLOOD),
-            bottom=Side(style='double', color=COLOR_WARNING_RED),
-            left=Side(style='medium', color=COLOR_WARNING_RED) if c == 11 else None,
-            right=Side(style='medium', color=COLOR_WARNING_RED) if c == 55 else None,
+            right=Side(style='medium', color=COLOR_WARNING_RED) if c == 40 else None,
         )
 
     # Column widths
     col_widths = {
-        1: 16,  # A: Record ID / Override Label
+        1: 21,  # A: Record ID / Override Label (generous width for EMERGENCY OVERRIDE)
         2: 18,  # B: Borrower Name
         3: 21,  # C: Department
         4: 25,  # D: Tome Title
@@ -981,8 +699,8 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     for col_idx, width in col_widths.items():
         ws.column_dimensions[get_column_letter(col_idx)].width = width
 
-    # Radar, right wing, and 16-bit gallery columns K to BC (11 to 55) square aspect ratio (fine micro-grid)
-    for col_idx in range(11, 56):
+    # Radar & right wing columns K to AP (11 to 42) square aspect ratio (fine micro-grid)
+    for col_idx in range(11, 43):
         ws.column_dimensions[get_column_letter(col_idx)].width = 2.2
 
     wb.save(output_path)

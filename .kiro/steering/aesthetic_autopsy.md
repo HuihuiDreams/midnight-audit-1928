@@ -24,11 +24,12 @@ The spreadsheet is not an office productivity tool — it is a decaying historic
 
 ## 3. Typography & Cell Styling
 
-1. **Font Family**: `Courier New` exclusively across all cells, headers, and dialogue boxes.
-   - Headers: `Courier New`, 11pt, Bold, Upper Case.
-   - Body Data: `Courier New`, 10pt, Regular.
-   - Warning Notes: `Courier New`, 9pt, Italic.
-   - Row 13 Abyss: `Courier New`, 14pt, Bold.
+1. **1928 Retro Horror Typography Hierarchy**:
+   - **Engraved Mastheads, Stamps, Table Headers & Plaques (`Copperplate`)**: `Copperplate`, 8.5pt–14pt, Bold, Upper Case (used for archive mastheads `A2`, `K2`, `K3`, `K19`, table headers `Row 5`, emergency override label `A18`, action buttons `C18`, `K18`, wax seals `G1`, `E18`, and Row 50 plaques `B50`, `K50`).
+   - **Archival Subtitles & Bound Folio Edges (`Baskerville`)**: `Baskerville`, 9.5pt–10pt, Bold / Italic (used for 1928 book-plate subtitles `A3`, protocol strip `A17`, and desk folio binding `A19`).
+   - **Frantic Handwritten Handover Note (`Bradley Hand`)**: `Bradley Hand`, 9.5pt, Bold (used for former auditor Ward's organic ink-pen handwritten Yellow Handover Note `K4:AN12`).
+   - **Diegetic Typed Memos (`American Typewriter`)**: `American Typewriter`, 9pt–9.5pt, Regular (used for Special Collections Protocol Card `K13:AN16` and Dr. Armitage's Memorandum `B30:H48`).
+   - **Tabular Ledger Data, Row 13 Abyss & Cipher Strip (`Courier New`)**: `Courier New`, 9pt–14pt (strict monospace for borrower rows `A6:I12`, Row 13 Abyss `A13` at 14pt Bold, censored rows `A14:I16`, ROT-3 cipher strip `B21:H28`, and radar telemetry tokens).
 2. **Alignment & Formatting**:
    - Dates: `YYYY-MM-DD` (e.g., `1928-10-14`).
    - Monetary Amounts: `$#,##0.00` mechanical ledger format.

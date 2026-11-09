@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Yellow Handover Note Full 30-Column Layout & Handwritten Typography (`K4:AN12`, `Bradley Hand`)**:
+  - Expanded Ward's sticky note across all 30 columns (`K4:AN12`, spanning Rows 4..12 at ~221pt height), eliminating the artificial column AN/Row 12 drop-shadow gaps that cramped the text.
+  - Tailored line lengths (<50 chars) and switched font to `Bradley Hand` (bold, 9.5pt), providing an authentic organic ink-pen handwriting aesthetic (replacing plain/flat sans fonts) and ensuring 100% of the header, Rules 1-3, and Ward's bottom warning (`🩸 WARNING: Never alter or inspect Row 13. — Former Auditor Ward (Missing since Oct 30, 11:59 PM)`) are fully visible without truncation.
+- **Charred Cipher Key Strip Full Box Display (`B21:H28`)**:
+  - Expanded the charred ROT-3 cipher strip from `B21:H25` (60pt) to `B21:H28` (8 rows × 12pt = 96pt), giving all 6 lines of `Courier New` monospace cipher text and the bottom box border `╚════════════════════════════════════════════════════════════════════════════╝` comfortable breathing room with zero clipping.
+  - Shifted the charred ash dither to Row 29 and re-anchored Dr. Henry Armitage's Archival Memorandum to `B30:H48` (19 rows = 228pt), preserving symmetrical alignment with Row 50 plaques (`B50:H50` and `K50:AN50`).
+- **Emergency Override Label Clean Wrapping (`A18`) & Column A Width**:
+  - Widened Column A from 16 to 19 and updated `A18` to `"EMERGENCY OVERRIDE\nCODE (PHASE 3):"` in `Copperplate` bold (8.5pt), completely eliminating text truncation against cell `B18`.
+- **Radar Bottom Plaque Geometry & Text Display (`K50:AN50`)**:
+  - Refined the footer plaque under the 30x30 micro-pixel canvas to `"🕯️ ANNEX SUB-VAULT 13 SANCTUM | EPICENTER W34:X35"` (49 characters) at 8pt `Copperplate` bold centered, completely eliminating text truncation across the 390pt cell width while maintaining strict symmetry with the left-wing directive plaque (`B50:H50`).
+- **Holistic Layout Convergence & Boundary Enforcement (`A1:AN50`)**:
+  - Grounded the layout strictly in 1928 Miskatonic University lore and enforced the global `A1:AN50` canvas boundary, embedding the 30x30 16-bit candlelit sanctum pixel art directly within `K20:AN49` and removing non-canon exterior blocks (`Rows 51..80` and `Columns AO..BC`).
+- **1928 Archival Plaque & Table Header Typography (`Copperplate`)**:
+  - Upgraded table column headers (`A5:I5`) and classification banner (`A1`) to `Copperplate` bold (9.5pt), reinforcing the vintage 1928 bank/library ledger aesthetic.
 - **Universal Agent Working Guidelines (`AGENTS.md`)**: Established standardized repository development and collaboration guidelines for all AI agents and human contributors:
   - Architectural retrospective and design principles: strict adherence to the original Miskatonic University 1928 story lore and rejection of narrative drift (e.g., coroner autopsy reports or unrelated clip-art).
   - Holistic UI design principles: strict `A1:AN50` canvas boundary alignment, zero irregular protruding blocks, natural absorption of the 220pt Row 13 Abyss, and dedicated 30x30 1:1 micro-pixel canvas (`K20:AN49`).
