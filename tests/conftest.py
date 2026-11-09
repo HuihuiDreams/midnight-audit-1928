@@ -7,34 +7,20 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from src.backend.puzzle_state import GAME_STATE_FILE
-
-def _remove_game_state_file():
-    if os.path.exists(GAME_STATE_FILE):
-        try:
-            os.remove(GAME_STATE_FILE)
-        except OSError:
-            pass
+import src.backend.puzzle_state as puzzle_state_mod
 
 @pytest.fixture(autouse=True)
-def clean_game_state():
-    """Autouse fixture to clean up game_state.json before and after every test."""
-    _remove_game_state_file()
-    try:
-        yield
-    finally:
-        _remove_game_state_file()
-
-@pytest.fixture(autouse=True, scope="session")
-def clean_game_state_session():
-    """Ensure game_state.json is cleaned up before and after the entire test session."""
-    _remove_game_state_file()
-    try:
-        yield
-    finally:
-        _remove_game_state_file()
-
-def pytest_sessionfinish(session, exitstatus):
-    """Guaranteed hook invoked at the end of the test session."""
-    _remove_game_state_file()
-
+def isolate_game_state(monkeypatch, tmp_path):
+    """
+    Autouse fixture to isolate test game state to a temporary directory.
+    Guarantees that real game_state.json files in the project root are never modified or deleted by tests.
+    """
+    test_state_file = str(tmp_path / "game_state.json")
+    monkeypatch.setenv("GAME_STATE_FILE", test_state_file)
+    monkeypatch.setattr(puzzle_state_mod, "GAME_STATE_FILE", test_state_file)
+    monkeypatch.setattr("src.backend.server.GAME_STATE_FILE", test_state_file, raising=False)
+    monkeypatch.setattr("src.backend.mcp_server.GAME_STATE_FILE", test_state_file, raising=False)
+    monkeypatch.setattr("tests.test_edge_cases.GAME_STATE_FILE", test_state_file, raising=False)
+    monkeypatch.setattr("tests.test_server.GAME_STATE_FILE", test_state_file, raising=False)
+    monkeypatch.setattr("tests.test_mcp_server.GAME_STATE_FILE", test_state_file, raising=False)
+    yield test_state_file

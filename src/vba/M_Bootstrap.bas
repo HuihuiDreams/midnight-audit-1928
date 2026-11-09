@@ -74,7 +74,7 @@ End Sub
 ''' <summary>
 ''' Emergency Escape Hatch: Restores standard Excel toolbars, headings, and formula bar.
 ''' </summary>
-Public Sub EmergencyReset()
+Public Sub EmergencyReset(Optional ByVal silent As Boolean = False)
     On Error Resume Next
     
     Application.DisplayFormulaBar = True
@@ -94,7 +94,9 @@ Public Sub EmergencyReset()
     Application.OnKey "^+R"
     Application.OnKey "^+r"
     
-    MsgBox "Standard Excel interface restored.", vbInformation, "The Midnight Audit - Emergency Reset"
+    If Not silent Then
+        MsgBox "Standard Excel interface restored.", vbInformation, "The Midnight Audit - Emergency Reset"
+    End If
     On Error GoTo 0
 End Sub
 
@@ -103,9 +105,23 @@ End Sub
 ''' </summary>
 Public Sub PlatformSleep(ByVal dwMilliseconds As Long)
     #If Mac Then
-        Dim endTime As Double
-        endTime = Timer + (dwMilliseconds / 1000#)
-        Do While Timer < endTime
+        Dim durationSec As Double
+        durationSec = dwMilliseconds / 1000#
+        Dim startT As Double
+        startT = Timer
+        
+        Do
+            Dim currentT As Double
+            currentT = Timer
+            Dim elapsed As Double
+            If currentT >= startT Then
+                elapsed = currentT - startT
+            Else
+                ' Midnight crossover (Timer resets to 0 at midnight 00:00:00)
+                elapsed = (86400# - startT) + currentT
+            End If
+            
+            If elapsed >= durationSec Then Exit Do
             DoEvents
         Loop
     #Else

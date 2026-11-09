@@ -19,6 +19,7 @@ Private mPrevSelectedCensored As Boolean
 Private Sub Worksheet_Change(ByVal Target As Range)
     On Error Resume Next
     If Target Is Nothing Then Exit Sub
+    If gArchiveSealed Then Exit Sub
     
     ' Check for Late Fee input in H7
     If Not Intersect(Target, Me.Range("H7")) Is Nothing Then
@@ -42,6 +43,7 @@ End Sub
 Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     On Error Resume Next
     If Target Is Nothing Then Exit Sub
+    If gArchiveSealed Then Exit Sub
     
     ' Check for Click on [ SPRAY REAGENT ] Button (K18:N18)
     If Not Intersect(Target, Me.Range("K18:N18")) Is Nothing Then
@@ -51,7 +53,11 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     
     ' Check for Click on [ SEAL ARCHIVE ] Button (C18:D18)
     If Not Intersect(Target, Me.Range("C18:D18")) Is Nothing Then
-        TriggerBanishMacro
+        If gLocalPhase >= 4 Then
+            If Not gArchiveSealed Then
+                TriggerBanishMacro
+            End If
+        End If
         Exit Sub
     End If
     

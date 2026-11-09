@@ -35,7 +35,8 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 # Start the Local Daemon Bridge
-python3 src/backend/server.py
+python3 -m src.backend.server
+# (or: python3 src/backend/server.py)
 ```
 *(The daemon will run on `http://127.0.0.1:8000`)*
 
@@ -44,7 +45,23 @@ python3 src/backend/server.py
 # Generate the initial Morbid Archive template
 python3 scripts/build_ledger.py
 ```
-Open `Midnight_Audit_1928_Template.xlsm` (or `.xlsx` if importing VBA) in Microsoft Excel.
+
+#### Importing VBA Modules into Excel (One-time Setup)
+The generator builds the layout and data as `Midnight_Audit_1928_Template.xlsx`. To enable the full interactive horror simulation:
+1. Open `Midnight_Audit_1928_Template.xlsx` in Microsoft Excel.
+2. Open the Visual Basic Editor: press **`Alt + F11`** on Windows or **`Opt + F11`** on macOS (or *Tools > Macro > Visual Basic Editor*).
+3. **Import Standard Modules (`.bas`)**:
+   - In the menu, select **File > Import File...** (or right-click the VBA project tree).
+   - Import the three `.bas` modules located in `src/vba/`:
+     - `src/vba/M_Bootstrap.bas`
+     - `src/vba/M_DaemonBridge.bas`
+     - `src/vba/M_HorrorFX.bas`
+4. **Wire Document Class Modules (`.cls`)**:
+   - ⚠️ *Important*: `Sheet1_Archive.cls` and `ThisWorkbook.cls` are Excel document class modules. Importing them via *File > Import File* creates detached class modules that will not intercept worksheet/workbook events.
+   - Open `src/vba/Sheet1_Archive.cls` in a text editor, copy its code, double-click **`Sheet1 (Audit_Ledger_1928)`** in the VBA Project window, and paste the code into the sheet's code pane.
+   - Open `src/vba/ThisWorkbook.cls` in a text editor, copy its code, double-click **`ThisWorkbook`** in the VBA Project window, and paste the code into the workbook's code pane.
+5. **Save as `.xlsm`**:
+   - Go to **File > Save As...**, choose file format **Excel Macro-Enabled Workbook (.xlsm)**, and name it `Midnight_Audit_1928_Template.xlsm`.
 
 ### Step 3: Excel Security & Macro Settings
 1. When prompted by Excel, click **"Enable Content"** or **"Enable Macros"**.

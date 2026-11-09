@@ -139,30 +139,53 @@ Public Sub SpreadBloodScab(ByVal Target As Range)
     maxSpread = 2
     If baseRow - maxSpread < 1 Then maxSpread = baseRow - 1
     If baseCol - maxSpread < 1 Then maxSpread = baseCol - 1
-    If maxSpread < 1 Then maxSpread = 1
+    If maxSpread < 0 Then maxSpread = 0
     
-    Dim r As Long
-    For r = 1 To maxSpread
-        Dim spreadRange As Range
-        Set spreadRange = baseCell.Offset(-r, -r).Resize(r * 2 + 1, r * 2 + 1)
-        spreadRange.Interior.Color = COLOR_DRIED_BLOOD
+    Dim fullRange As Range
+    Set fullRange = baseCell.Offset(-maxSpread, -maxSpread).Resize(maxSpread * 2 + 1, maxSpread * 2 + 1)
+    
+    Dim numR As Long, numC As Long
+    numR = fullRange.Rows.Count
+    numC = fullRange.Columns.Count
+    
+    Dim origColors() As Long
+    ReDim origColors(1 To numR, 1 To numC)
+    
+    Dim i As Long, j As Long
+    For i = 1 To numR
+        For j = 1 To numC
+            origColors(i, j) = fullRange.Cells(i, j).Interior.Color
+        Next j
+    Next i
+    
+    If maxSpread >= 1 Then
+        Dim r As Long
+        For r = 1 To maxSpread
+            Dim spreadRange As Range
+            Set spreadRange = baseCell.Offset(-r, -r).Resize(r * 2 + 1, r * 2 + 1)
+            spreadRange.Interior.Color = COLOR_DRIED_BLOOD
+            DoEvents
+            PlatformSleep 30
+        Next r
+    Else
+        baseCell.Interior.Color = COLOR_DRIED_BLOOD
         DoEvents
         PlatformSleep 30
-    Next r
-    
-    ' Restore after brief hesitation
-    PlatformSleep 150
-    baseCell.Offset(-maxSpread, -maxSpread).Resize(maxSpread * 2 + 1, maxSpread * 2 + 1).Interior.Color = COLOR_BONE_PAPER
-    
-    ' Restore Table Header styling if affected
-    If baseRow - maxSpread <= 5 And baseRow + maxSpread >= 5 Then
-        baseCell.Worksheet.Range("A5:I5").Interior.Color = COLOR_DECAYING_PAPER
     End If
+    
+    ' Restore exact original colors of each affected cell after brief hesitation
+    PlatformSleep 150
+    For i = 1 To numR
+        For j = 1 To numC
+            fullRange.Cells(i, j).Interior.Color = origColors(i, j)
+        Next j
+    Next i
     On Error GoTo 0
 End Sub
 
 ''' <summary>
 ''' Renders the 30x30 entity pixel face onto the floorplan area K20:AN49.
+''' Aligns central pupil center with blinking eye coordinates W34:X35.
 ''' </summary>
 Public Sub RenderPixelFace(ByVal ws As Worksheet)
     On Error Resume Next
@@ -172,30 +195,37 @@ Public Sub RenderPixelFace(ByVal ws As Worksheet)
     ' Pre-clear floorplan
     ws.Range("K20:AN49").Value = Empty
     
-    ' Render concentric eldritch skull & central glowing eye
+    ' Render concentric eldritch skull & central glowing eye (W34:X35 is r=15..16, c=13..14)
     For r = 1 To 30
         For c = 1 To 30
             Set cell = ws.Cells(19 + r, 10 + c)
             
             Dim dr As Long, dc As Long, distSq As Long
             dr = r - 15
-            dc = c - 15
+            dc = c - 14
             distSq = dr * dr + dc * dc
             
-            If distSq <= 140 And distSq >= 90 Then
-                cell.Interior.Color = COLOR_CARBON
-            ElseIf distSq < 90 And distSq >= 35 Then
-                cell.Interior.Color = COLOR_DECAYING_PAPER
-            ElseIf distSq < 35 And distSq >= 12 Then
-                cell.Interior.Color = COLOR_PHOSPHOR_GREEN
-            ElseIf distSq < 12 Then
+            If (r = 15 Or r = 16) And (c = 13 Or c = 14) Then
+                ' Central pupil: exactly W34:X35
                 cell.Interior.Color = COLOR_DRIED_BLOOD
+            ElseIf r >= 14 And r <= 17 And c >= 12 And c <= 15 Then
+                ' Glowing Iris
+                cell.Interior.Color = COLOR_PHOSPHOR_GREEN
+            ElseIf r >= 13 And r <= 18 And c >= 11 And c <= 16 Then
+                ' Eye socket
+                cell.Interior.Color = COLOR_CARBON
+            ElseIf distSq <= 170 And distSq >= 120 Then
+                ' Outer skull boundary
+                cell.Interior.Color = COLOR_CARBON
+            ElseIf distSq < 120 Then
+                ' Decaying bone tissue
+                cell.Interior.Color = COLOR_DECAYING_PAPER
             Else
                 cell.Interior.Color = COLOR_BONE_PAPER
             End If
             
-            ' Horns
-            If r < 10 And (c = r Or c = (31 - r)) Then
+            ' Horns curving upwards
+            If r < 10 And (c = r Or c = (31 - r) Or (Abs(c - 9) <= 1 And r < 8) Or (Abs(c - 22) <= 1 And r < 8)) Then
                 cell.Interior.Color = COLOR_CARBON
             End If
         Next c
@@ -225,6 +255,12 @@ Public Sub ToggleEyeBlink()
     If ws Is Nothing Then Set ws = ActiveSheet
     If ws Is Nothing Then Exit Sub
     
+    ' Guard: only run in Phase 2 or 3, and only when archive is not sealed
+    If gArchiveSealed Or (gLocalPhase <> 2 And gLocalPhase <> 3) Then
+        StopEyeBlink
+        Exit Sub
+    End If
+    
     Dim eyeRange As Range
     Set eyeRange = ws.Range("W34:X35")
     
@@ -235,7 +271,7 @@ Public Sub ToggleEyeBlink()
         eyeRange.Interior.Color = COLOR_PHOSPHOR_GREEN
     End If
     
-    ' Schedule next blink in 1.5 seconds if still in Phase 2/3
+    ' Schedule next blink in 2 seconds if still in Phase 2 or 3
     mNextBlinkTime = Now + TimeValue("00:00:02")
     Application.OnTime mNextBlinkTime, "ToggleEyeBlink"
     On Error GoTo 0

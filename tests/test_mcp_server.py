@@ -65,6 +65,11 @@ def test_call_judge_ritual():
     res_fail = call_tool("judge_ritual", {"phrase": "PLEASE GO AWAY"})
     assert "MISMATCHED DEBIT" in res_fail["content"][0]["text"]
 
+    import src.backend.mcp_server as mcp
+    from src.backend.puzzle_state import PhaseEnum
+    mcp.engine.current_phase = PhaseEnum.MIDNIGHT_SETTLEMENT
+    mcp.engine.save_state()
+
     res_success = call_tool("judge_ritual", {"phrase": "SEAL THE DEEP VAULT"})
     assert "ARCHIVE SEALED" in res_success["content"][0]["text"]
 
@@ -93,6 +98,10 @@ def test_json_rpc_tools_list():
     assert len(resp["result"]["tools"]) == 3
 
 def test_json_rpc_tools_call():
+    import src.backend.mcp_server as mcp
+    from src.backend.puzzle_state import PhaseEnum
+    mcp.engine.current_phase = PhaseEnum.MIDNIGHT_SETTLEMENT
+
     req = {
         "jsonrpc": "2.0",
         "id": 3,

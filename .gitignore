@@ -36,6 +36,7 @@ htmlcov/
 
 # Runtime State
 game_state.json
+*.lock
 
 # OS
 .DS_Store

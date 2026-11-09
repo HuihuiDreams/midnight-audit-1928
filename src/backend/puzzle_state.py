@@ -1,14 +1,86 @@
 import os
+import sys
 import json
 import tempfile
 from enum import Enum
 import re
+import contextlib
+import threading
 from typing import Dict, Any, List, Optional
 
-GAME_STATE_FILE = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    "game_state.json"
+try:
+    import fcntl
+    HAS_FCNTL = True
+except ImportError:
+    HAS_FCNTL = False
+
+try:
+    import msvcrt
+    HAS_MSVCRT = True
+except ImportError:
+    HAS_MSVCRT = False
+
+_THREAD_LOCK = threading.RLock()
+_LOCK_STATE = threading.local()
+
+GAME_STATE_FILE = os.environ.get(
+    "GAME_STATE_FILE",
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        "game_state.json"
+    )
 )
+
+@contextlib.contextmanager
+def file_lock(lock_path: Optional[str] = None):
+    """
+    Cross-process (fcntl/msvcrt) and re-entrant thread-safe lock for state file operations.
+    """
+    actual_state_file = lock_path or os.environ.get("GAME_STATE_FILE", GAME_STATE_FILE)
+    target = os.path.abspath(actual_state_file) + ".lock"
+    with _THREAD_LOCK:
+        if not hasattr(_LOCK_STATE, "held_locks"):
+            _LOCK_STATE.held_locks = {}
+
+        if target in _LOCK_STATE.held_locks:
+            _LOCK_STATE.held_locks[target]["depth"] += 1
+            try:
+                yield
+            finally:
+                _LOCK_STATE.held_locks[target]["depth"] -= 1
+            return
+
+        lock_dir = os.path.dirname(target)
+        lock_fd = None
+        try:
+            if lock_dir and not os.path.exists(lock_dir):
+                os.makedirs(lock_dir, exist_ok=True)
+            lock_fd = os.open(target, os.O_RDWR | os.O_CREAT, 0o666)
+        except OSError:
+            lock_fd = None
+
+        if lock_fd is None:
+            yield
+            return
+
+        try:
+            if HAS_FCNTL:
+                fcntl.flock(lock_fd, fcntl.LOCK_EX)
+            elif HAS_MSVCRT:
+                os.lseek(lock_fd, 0, os.SEEK_SET)
+                msvcrt.locking(lock_fd, msvcrt.LK_LOCK, 1)
+            _LOCK_STATE.held_locks[target] = {"fd": lock_fd, "depth": 1}
+            try:
+                yield
+            finally:
+                _LOCK_STATE.held_locks.pop(target, None)
+                if HAS_FCNTL:
+                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                elif HAS_MSVCRT:
+                    os.lseek(lock_fd, 0, os.SEEK_SET)
+                    msvcrt.locking(lock_fd, msvcrt.LK_UNLCK, 1)
+        finally:
+            os.close(lock_fd)
 
 PALETTE = {
     "BONE_PAPER": "#D3CEB9",
@@ -28,6 +100,13 @@ class PhaseEnum(str, Enum):
     THE_UNSEEN_INTRUDER = "THE_UNSEEN_INTRUDER"
     HIJACKED_CIPHER = "HIJACKED_CIPHER"
     MIDNIGHT_SETTLEMENT = "MIDNIGHT_SETTLEMENT"
+
+PHASE_MAP = {
+    PhaseEnum.THE_AUDIT_DISCREPANCY: 1,
+    PhaseEnum.THE_UNSEEN_INTRUDER: 2,
+    PhaseEnum.HIJACKED_CIPHER: 3,
+    PhaseEnum.MIDNIGHT_SETTLEMENT: 4,
+}
 
 class PuzzleEngine:
     def __init__(self, load_existing: bool = False):
@@ -53,14 +132,7 @@ class PuzzleEngine:
 
     @property
     def phase_number(self) -> int:
-        if self.current_phase == PhaseEnum.THE_AUDIT_DISCREPANCY:
-            return 1
-        elif self.current_phase == PhaseEnum.THE_UNSEEN_INTRUDER:
-            return 2
-        elif self.current_phase == PhaseEnum.HIJACKED_CIPHER:
-            return 3
-        else:
-            return 4
+        return PHASE_MAP.get(self.current_phase, 1)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -92,28 +164,37 @@ class PuzzleEngine:
 
     def save_state(self, filepath: Optional[str] = None) -> None:
         target_path = filepath or GAME_STATE_FILE
-        try:
-            dir_name = os.path.dirname(target_path)
-            if dir_name and not os.path.exists(dir_name):
-                os.makedirs(dir_name, exist_ok=True)
-            with tempfile.NamedTemporaryFile("w", dir=dir_name, delete=False) as tf:
-                json.dump(self.to_dict(), tf, indent=2)
-                temp_name = tf.name
-            os.replace(temp_name, target_path)
-        except Exception:
-            pass
+        with file_lock(target_path):
+            temp_name = None
+            try:
+                dir_name = os.path.dirname(target_path)
+                if dir_name and not os.path.exists(dir_name):
+                    os.makedirs(dir_name, exist_ok=True)
+                with tempfile.NamedTemporaryFile("w", dir=dir_name or None, delete=False) as tf:
+                    json.dump(self.to_dict(), tf, indent=2)
+                    temp_name = tf.name
+                os.replace(temp_name, target_path)
+            except Exception as e:
+                sys.stderr.write(f"Error saving game state to {target_path}: {e}\n")
+                if temp_name and os.path.exists(temp_name):
+                    try:
+                        os.remove(temp_name)
+                    except OSError:
+                        pass
 
     def load_state(self, filepath: Optional[str] = None) -> bool:
         target_path = filepath or GAME_STATE_FILE
-        if not os.path.exists(target_path):
-            return False
-        try:
-            with open(target_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            self.from_dict(data)
-            return True
-        except Exception:
-            return False
+        with file_lock(target_path):
+            if not os.path.exists(target_path):
+                return False
+            try:
+                with open(target_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                self.from_dict(data)
+                return True
+            except Exception as e:
+                sys.stderr.write(f"Error loading game state from {target_path}: {e}\n")
+                return False
 
     def get_state(self) -> Dict[str, Any]:
         return {
@@ -127,6 +208,13 @@ class PuzzleEngine:
         }
 
     def handle_cell_change(self, cell: str, value: Any) -> Dict[str, Any]:
+        if self.archive_sealed:
+            return {
+                "accepted": False,
+                "current_phase": self.phase_number,
+                "message": "The archive is sealed. The void books are closed."
+            }
+
         cell = str(cell).strip().upper()
         str_val = str(value).strip()
 
@@ -174,7 +262,7 @@ class PuzzleEngine:
                         res = {
                             "accepted": False,
                             "current_phase": self.phase_number,
-                            "message": f"Incorrect fee calculation. Expected 140 days * $0.05 ($7.00), got {str_val}.",
+                            "message": "Incorrect fee calculation. Expected 140 days * $0.05 ($7.00).",
                             "actions": [
                                 {
                                     "command": "TRIGGER_FX",
@@ -338,15 +426,15 @@ class PuzzleEngine:
                     grid[r][c] = PALETTE["DRIED_BLOOD"]
 
                 # Eye socket (CARBON)
-                if 12 <= r <= 17 and 11 <= c <= 18:
+                if 12 <= r <= 17 and 10 <= c <= 15:
                     grid[r][c] = PALETTE["CARBON"]
 
                 # Iris (PHOSPHOR_GREEN)
-                if 13 <= r <= 16 and 12 <= c <= 17:
+                if 13 <= r <= 16 and 11 <= c <= 14:
                     grid[r][c] = PALETTE["PHOSPHOR_GREEN"]
 
-                # Pupil (DRIED_BLOOD / VOID)
-                if 14 <= r <= 15 and 13 <= c <= 16:
+                # Pupil (DRIED_BLOOD / VOID) - exactly W34:X35 (r=14..15, c=12..13)
+                if 14 <= r <= 15 and 12 <= c <= 13:
                     grid[r][c] = PALETTE["DRIED_BLOOD"]
 
         blinking_cells = ["W34", "X34", "W35", "X35"]
@@ -362,13 +450,13 @@ class PuzzleEngine:
 
     def judge_ritual(self, phrase: str) -> Dict[str, Any]:
         phrase_clean = re.sub(r"\s+", " ", str(phrase).strip().upper())
-        valid_phrases = ["SEAL THE DEEP VAULT", "BANISH WILBUR", "BANISH", "MEMENTO MORI", "PH'NGLUI MGLW'NAFH"]
-
-        if phrase_clean in valid_phrases or "SEAL" in phrase_clean or (not phrase_clean and self.current_phase == PhaseEnum.MIDNIGHT_SETTLEMENT):
+        # Spec-compliant ritual sealing: requires MIDNIGHT_SETTLEMENT phase and exact phrase
+        if self.current_phase == PhaseEnum.MIDNIGHT_SETTLEMENT and phrase_clean == "SEAL THE DEEP VAULT":
             self.archive_sealed = True
-            self.current_phase = PhaseEnum.MIDNIGHT_SETTLEMENT
             res = {
+                "accepted": True,
                 "banished": True,
+                "current_phase": self.phase_number,
                 "stamp": "[ ARCHIVE SEALED - OCTOBER 14, 1928 - 00:01 AM ]",
                 "message": "THE ENTRY IS BALANCED. CLOCK OUT AND NEVER RETURN.",
                 "actions": [
@@ -391,7 +479,9 @@ class PuzzleEngine:
             return res
         else:
             res = {
+                "accepted": False,
                 "banished": False,
+                "current_phase": self.phase_number,
                 "message": "MISMATCHED DEBIT. YOUR RITUAL VOID ACCRUES BLOOD DEBT.",
                 "actions": [
                     {
@@ -404,15 +494,24 @@ class PuzzleEngine:
             return res
 
     def queue_haunt(self, haunt_type: str, target_cell: Optional[str] = None, message: Optional[str] = None):
-        self.pending_effects.append({
-            "type": haunt_type,
-            "target_cell": target_cell,
-            "message": message
-        })
-        self.save_state()
+        if target_cell:
+            cell_clean = target_cell.strip().upper()
+            if not re.match(r"^[A-Z]{1,3}\d{1,5}(?::[A-Z]{1,3}\d{1,5})?$", cell_clean):
+                raise ValueError("Invalid target cell coordinate.")
+            target_cell = cell_clean
+        with file_lock():
+            self.load_state()
+            self.pending_effects.append({
+                "type": haunt_type,
+                "target_cell": target_cell,
+                "message": message
+            })
+            self.save_state()
 
     def pop_pending_effects(self) -> List[Dict[str, Any]]:
-        effects = list(self.pending_effects)
-        self.pending_effects.clear()
-        self.save_state()
-        return effects
+        with file_lock():
+            self.load_state()
+            effects = list(self.pending_effects)
+            self.pending_effects.clear()
+            self.save_state()
+            return effects
