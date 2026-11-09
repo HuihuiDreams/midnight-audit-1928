@@ -30,8 +30,11 @@ def test_build_ledger_generates_file():
     assert ws["G7"].value == 140
     assert ws["H7"].value is None
 
-    # Verify Handover note exists
+    # Verify Handover note exists & Halloween enhancements
     assert "NIGHT AUDITOR HANDOVER NOTE" in ws["K4"].value
+    assert "[📎 MISKATONIC ANNEX ARCHIVE — NIGHT MEMO]" in ws["K4"].value
+    assert "Date: Oct 31, 1928 (All Hallows' Eve)" in ws["K4"].value
+    assert "HALLOWEEN MIDNIGHT CUSTODIAL AUDIT" in ws["A3"].value
     assert "RULE 1" in ws["K4"].value
     assert "RULE 2" in ws["K4"].value
     assert "RULE 3" in ws["K4"].value

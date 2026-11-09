@@ -57,7 +57,7 @@ Public Sub InitializeArchiveUI()
     Application.Caption = "The Midnight Audit (1928) - Miskatonic University Annex"
     Application.DisplayFormulaBar = False
     Application.DisplayStatusBar = True
-    Application.StatusBar = "OCTOBER 14, 1928 - 11:47 PM | ANNEX ARCHIVE DELINQUENCY LEDGER"
+    Application.StatusBar = "OCTOBER 31, 1928 - 11:47 PM | ALL HALLOWS' EVE | ANNEX ARCHIVE DELINQUENCY LEDGER"
     
     If Not ActiveWindow Is Nothing Then
         ActiveWindow.DisplayHeadings = False
@@ -93,6 +93,10 @@ Public Sub EmergencyReset(Optional ByVal silent As Boolean = False)
     ' Clear shortcut bindings
     Application.OnKey "^+R"
     Application.OnKey "^+r"
+    
+    ' Cancel timers
+    StopEyeBlink
+    CancelAmbientWhisper
     
     If Not silent Then
         MsgBox "Standard Excel interface restored.", vbInformation, "The Midnight Audit - Emergency Reset"

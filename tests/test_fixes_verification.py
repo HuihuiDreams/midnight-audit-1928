@@ -908,3 +908,39 @@ def test_issue7_mouth_rendering_and_spec_drift():
     assert "every 2 seconds" in spec
     assert "every 1.5 seconds" not in spec
 
+def test_halloween_horror_enhancements():
+    """Verify Halloween horror enhancements: timeline, statusbar whispers, and abyss absorption."""
+    # 1. Backend stamp
+    engine = PuzzleEngine()
+    engine.current_phase = PhaseEnum.MIDNIGHT_SETTLEMENT
+    res = engine.judge_ritual("SEAL THE DEEP VAULT")
+    assert res["stamp"] == "[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]"
+
+    # 2. VBA Bootstrap
+    vba_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src", "vba")
+    with open(os.path.join(vba_dir, "M_Bootstrap.bas"), "r", encoding="utf-8") as f:
+        bootstrap = f.read()
+    assert "OCTOBER 31, 1928 - 11:47 PM | ALL HALLOWS' EVE" in bootstrap
+
+    # 3. VBA Horror FX
+    with open(os.path.join(vba_dir, "M_HorrorFX.bas"), "r", encoding="utf-8") as f:
+        horror_fx = f.read()
+    assert "Public Sub FlashAbyssAbsorption(ByVal ws As Worksheet)" in horror_fx
+    assert "Public Sub TriggerAmbientWhisper()" in horror_fx
+    assert "Public Sub ResetStatusBar()" in horror_fx
+    assert "Public Sub CancelAmbientWhisper()" in horror_fx
+    assert "OCTOBER 31, 1928 - 00:01 AM | ARCHIVE SEALED" in horror_fx
+
+    # 4. VBA Sheet1 Hooks
+    with open(os.path.join(vba_dir, "Sheet1_Archive.cls"), "r", encoding="utf-8") as f:
+        sheet = f.read()
+    assert "FlashAbyssAbsorption Me" in sheet
+    assert "TriggerAmbientWhisper" in sheet
+
+    # 5. Workbook BeforeClose cancellation
+    wb_path = os.path.join(vba_dir, "ThisWorkbook.cls")
+    with open(wb_path, "r", encoding="utf-8") as f:
+        wb = f.read()
+    assert "CancelAmbientWhisper" in wb
+
+

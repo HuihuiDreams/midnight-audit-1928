@@ -24,6 +24,7 @@ End Sub
 Private Sub Workbook_BeforeClose(Cancel As Boolean)
     On Error Resume Next
     StopEyeBlink
+    CancelAmbientWhisper
     EmergencyReset True
     On Error GoTo 0
 End Sub

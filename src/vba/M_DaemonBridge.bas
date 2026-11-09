@@ -250,7 +250,7 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                         StopEyeBlink
                         ws.Range("B10:H12").Interior.Color = COLOR_COLD_ASH
                         ws.Range("B10:H12").Font.Color = COLOR_WARNING_RED
-                        ws.Range("B10").Value = "[ ARCHIVE SEALED - OCTOBER 14, 1928 - 00:01 AM ]"
+                        ws.Range("B10").Value = "[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]"
                         ws.Range("B11").Value = "ALL BALANCES CANCELLED BY ORDER OF ARMITAGE"
                         ws.Range("B12").Value = "REST NOW, AUDITOR. THE VOID BOOKS ARE CLOSED."
                         MsgBox "ARCHIVE SEALED. The entity has been banished into the floorboards.", vbInformation, "Audit Terminated"
@@ -726,7 +726,7 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
         ' Apply Final Cold Ash Stamp
         ws.Range("B10:H12").Interior.Color = COLOR_COLD_ASH
         ws.Range("B10:H12").Font.Color = COLOR_WARNING_RED
-        ws.Range("B10").Value = "[ ARCHIVE SEALED - OCTOBER 14, 1928 - 00:01 AM ]"
+        ws.Range("B10").Value = "[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]"
         ws.Range("B11").Value = "ALL BALANCES CANCELLED BY ORDER OF ARMITAGE"
         ws.Range("B12").Value = "REST NOW, AUDITOR. THE VOID BOOKS ARE CLOSED."
 

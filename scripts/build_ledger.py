@@ -76,7 +76,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     ws["A2"].alignment = Alignment(horizontal="left", vertical="center")
 
     ws.merge_cells("A3:I3")
-    ws["A3"] = "FISCAL PERIOD: OCTOBER 1928 | STATION: NIGHT AUDITOR DESK | ALL BALANCES SUBJECT TO CUSTODIAL SEAL"
+    ws["A3"] = "FISCAL PERIOD: OCTOBER 1928 | HALLOWEEN MIDNIGHT CUSTODIAL AUDIT | ALL BALANCES SUBJECT TO CUSTODIAL SEAL"
     ws["A3"].font = font_subtitle
     ws["A3"].alignment = Alignment(horizontal="left", vertical="center")
 
@@ -188,8 +188,9 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     ws.merge_cells("K4:N16")
     note_cell = ws["K4"]
     note_cell.value = (
+        "[📎 MISKATONIC ANNEX ARCHIVE — NIGHT MEMO]\n"
         "--- NIGHT AUDITOR HANDOVER NOTE ---\n"
-        "Date: Oct 14, 1928 | Shift: 11:00 PM - 07:00 AM\n\n"
+        "Date: Oct 31, 1928 (All Hallows' Eve) | Shift: 11:00 PM - 07:00 AM\n\n"
         "RULE 1: Verify all delinquent borrowings. Any record overdue by > 100 days must have its late penalty calculated in Column H ($0.05 per overdue day) to lift the red flag.\n\n"
         "RULE 2: If the Annex Basement floorplan radar displays spatial anomalies (#ROT!), spray the chemical reagent [CLICK: SPRAY REAGENT] to expose the intruder.\n\n"
         "RULE 3: In case of structural breach, transcribe the 4-word sealing code into Cell B18. Note: the cipher strip on the desk is shifted by 3 letters:\n"

@@ -78,7 +78,7 @@ Processes the final banishing ritual command or code phrase.
 ```json
 {
   "banished": true,
-  "stamp": "[ ARCHIVE SEALED - OCTOBER 14, 1928 - 00:01 AM ]",
+  "stamp": "[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]",
   "actions": [
     {
       "command": "TRIGGER_FX",

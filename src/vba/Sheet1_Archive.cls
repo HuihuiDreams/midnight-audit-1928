@@ -15,6 +15,7 @@ Option Explicit
 ' ==============================================================================
 
 Private mPrevSelectedCensored As Boolean
+Private mSelectionCounter As Long
 
 Private Sub Worksheet_Change(ByVal Target As Range)
     On Error Resume Next
@@ -64,6 +65,7 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     ' Intersecting Row 13 Abyss
     If Not Intersect(Target, Me.Range("A13:I13")) Is Nothing Then
         ThudBeep
+        FlashAbyssAbsorption Me
     End If
     
     ' Intersecting Censored Rows 14-16: Invert colors to read redacted borrower slips
@@ -82,6 +84,13 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
             Me.Range("A14:I16").Font.Color = COLOR_ABYSS
         End If
         mPrevSelectedCensored = False
+    End If
+    
+    ' Ambient horror whisper sampling (every 12 selections)
+    mSelectionCounter = mSelectionCounter + 1
+    If mSelectionCounter >= 12 Then
+        mSelectionCounter = 0
+        TriggerAmbientWhisper
     End If
     
     On Error GoTo 0

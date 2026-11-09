@@ -464,7 +464,7 @@ class PuzzleEngine:
                 "accepted": True,
                 "banished": True,
                 "current_phase": self.phase_number,
-                "stamp": "[ ARCHIVE SEALED - OCTOBER 14, 1928 - 00:01 AM ]",
+                "stamp": "[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]",
                 "message": "THE ENTRY IS BALANCED. CLOCK OUT AND NEVER RETURN.",
                 "actions": [
                     {

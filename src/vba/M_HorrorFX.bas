@@ -8,6 +8,8 @@ Option Explicit
 
 Private mEyeBlinkState As Boolean
 Private mNextBlinkTime As Double
+Private mWhisperIndex As Long
+Private mNextResetTime As Double
 
 ''' <summary>
 ''' Low-frequency taboo thud: rattles physical speaker hardware at 37Hz on Windows.
@@ -285,6 +287,93 @@ Public Sub StopEyeBlink()
     If mNextBlinkTime <> 0 Then
         Application.OnTime mNextBlinkTime, "ToggleEyeBlink", , False
         mNextBlinkTime = 0
+    End If
+    On Error GoTo 0
+End Sub
+
+''' <summary>
+''' Abyss Torchlight Absorption: Briefly glimmers deep blood-black when selected,
+''' simulating flashlight illumination swallowed by the floorboard void.
+''' </summary>
+Public Sub FlashAbyssAbsorption(ByVal ws As Worksheet)
+    On Error Resume Next
+    If ws Is Nothing Then Exit Sub
+    
+    Dim abyssRange As Range
+    Set abyssRange = ws.Range("A13:I13")
+    
+    Dim origFontColor As Long
+    origFontColor = abyssRange.Cells(1, 1).Font.Color
+    
+    Application.EnableEvents = False
+    
+    ' Flash to deep dried blood shadow
+    abyssRange.Interior.Color = COLOR_DRIED_BLOOD
+    If origFontColor = COLOR_ABYSS Then
+        abyssRange.Font.Color = COLOR_HOSPITAL_GREEN
+    End If
+    DoEvents
+    PlatformSleep 80
+    
+    ' Swallow back to absolute void
+    abyssRange.Interior.Color = COLOR_ABYSS
+    abyssRange.Font.Color = origFontColor
+    DoEvents
+    
+    Application.EnableEvents = True
+    On Error GoTo 0
+End Sub
+
+''' <summary>
+''' Ambient Horror Whisper: Dispatches subtle, non-intrusive sensory cues to the status bar.
+''' </summary>
+Public Sub TriggerAmbientWhisper()
+    On Error Resume Next
+    If gArchiveSealed Then Exit Sub
+    
+    Dim whispers(0 To 3) As String
+    whispers(0) = "OCTOBER 31, 1928 - 11:49 PM | [HEARD: SCRATCHING BENEATH TILES...]"
+    whispers(1) = "OCTOBER 31, 1928 - 11:51 PM | [ROOM TEMP DROPPING: UNNATURAL DRAFT]"
+    whispers(2) = "OCTOBER 31, 1928 - 11:53 PM | [PRESSURE DROPPING: SMELL OF FORMALDEHYDE]"
+    whispers(3) = "OCTOBER 31, 1928 - 11:55 PM | [WARNING: RADAR VOID FLUCTUATING]"
+    
+    Application.StatusBar = whispers(mWhisperIndex Mod 4)
+    mWhisperIndex = mWhisperIndex + 1
+    
+    ' Cancel any previously scheduled reset to avoid stacking timers
+    If mNextResetTime <> 0 Then
+        Application.OnTime mNextResetTime, "ResetStatusBar", , False
+        mNextResetTime = 0
+    End If
+    
+    ' Schedule restoration in 2 seconds
+    mNextResetTime = Now + TimeValue("00:00:02")
+    Application.OnTime mNextResetTime, "ResetStatusBar"
+    On Error GoTo 0
+End Sub
+
+''' <summary>
+''' Restores default 1928 status bar baseline.
+''' </summary>
+Public Sub ResetStatusBar()
+    On Error Resume Next
+    mNextResetTime = 0
+    If gArchiveSealed Then
+        Application.StatusBar = "OCTOBER 31, 1928 - 00:01 AM | ARCHIVE SEALED | REST NOW, AUDITOR"
+    Else
+        Application.StatusBar = "OCTOBER 31, 1928 - 11:47 PM | ALL HALLOWS' EVE | ANNEX ARCHIVE DELINQUENCY LEDGER"
+    End If
+    On Error GoTo 0
+End Sub
+
+''' <summary>
+''' Cancels any pending status bar reset timer to prevent ghost workbook re-opening on close.
+''' </summary>
+Public Sub CancelAmbientWhisper()
+    On Error Resume Next
+    If mNextResetTime <> 0 Then
+        Application.OnTime mNextResetTime, "ResetStatusBar", , False
+        mNextResetTime = 0
     End If
     On Error GoTo 0
 End Sub
