@@ -16,22 +16,39 @@ def test_security_headers_present():
     assert resp.headers.get("referrer-policy") == "no-referrer"
 
 def test_origin_header_cross_origin_protection():
-    """Verify cross-origin browser requests with external Origin are rejected with 403."""
-    # Untrusted external origin
-    resp = client.post(
-        "/api/reset",
-        headers={"Origin": "https://evil-attacker-site.com"}
-    )
-    assert resp.status_code == 403
-    assert "Cross-origin requests from untrusted origins are forbidden" in resp.json()["detail"]
+    """Verify cross-origin browser requests with external Origin (including substring lookalikes) are rejected with 403."""
+    # Untrusted external origins, including lookalikes
+    untrusted_origins = [
+        "https://evil-attacker-site.com",
+        "http://localhost.evil.com",
+        "http://127.0.0.1.attacker.net",
+        "http://evil-localhost.com:8000"
+    ]
+    for evil in untrusted_origins:
+        resp = client.post(
+            "/api/reset",
+            headers={"Origin": evil}
+        )
+        assert resp.status_code == 403
+        assert "Cross-origin requests from untrusted origins are forbidden" in resp.json()["detail"]
 
     # Trusted local origins are accepted
-    for allowed_origin in ["http://localhost:3000", "http://127.0.0.1:8000"]:
+    for allowed_origin in ["http://localhost:3000", "http://127.0.0.1:8000", "http://[::1]:8000"]:
         resp = client.get(
             "/api/status",
             headers={"Origin": allowed_origin}
         )
         assert resp.status_code == 200
+
+def test_event_request_value_size_bounding():
+    """Verify EventRequest.value rejects oversized strings and payloads."""
+    # Oversized string > 2000 chars rejected with 422 Unprocessable Entity
+    resp = client.post("/api/event", json={"event_type": "cell_change", "cell": "H7", "value": "A" * 2001})
+    assert resp.status_code == 422
+
+    # Normal values accepted
+    resp = client.post("/api/event", json={"event_type": "cell_change", "cell": "H7", "value": "7.00"})
+    assert resp.status_code == 200
 
 def test_haunt_type_validation_and_queue_bounding(tmp_path):
     """Verify queue_haunt validates haunt types and caps pending queue size."""
@@ -67,12 +84,13 @@ def test_lockfile_permissions(tmp_path):
         assert mode == 0o600
 
 def test_vba_bridge_security_hardening():
-    """Verify VBA code includes pre-unlinking, cell address validation, and formula escaping."""
+    """Verify VBA code includes pre-unlinking, unique tmpFile, cell address validation, and formula neutralization helper."""
     bas_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src", "vba", "M_DaemonBridge.bas")
     with open(bas_path, "r", encoding="utf-8") as f:
         bas = f.read()
 
-    # Pre-unlink before Open tmpFile on Mac
+    # Unique random temporary filename on Mac to mitigate sticky /tmp symlink attacks
+    assert 'tmpFile = "/tmp/ma_payload_' in bas
     assert 'Kill tmpFile\n        On Error GoTo FallbackHandler\n        Dim fNum As Integer' in bas
 
     # Cell address validation in SET_VALUE and HIJACK_TYPE
@@ -80,6 +98,8 @@ def test_vba_bridge_security_hardening():
     assert "If Not IsValidCellAddress(hjCell) Then hjCell = \"B18\"" in bas
     assert "If Not IsValidCellAddress(fxCell) Then" in bas
 
-    # Formula neutralization in SET_VALUE and HIJACK_TYPE
-    assert "fCharSv = Left$(Trim$(svVal), 1)" in bas
-    assert "fCharHj = Left$(Trim$(hjText), 1)" in bas
+    # Centralized formula neutralization helper function used in SET_VALUE, HIJACK_TYPE, ExecuteHauntAction
+    assert "Public Function NeutralizeFormulaPrefix(ByVal s As String) As String" in bas
+    assert "svVal = NeutralizeFormulaPrefix(svVal)" in bas
+    assert "hjText = NeutralizeFormulaPrefix(hjText)" in bas
+    assert "msgToWrite = NeutralizeFormulaPrefix(msgToWrite)" in bas

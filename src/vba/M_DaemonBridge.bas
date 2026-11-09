@@ -29,9 +29,9 @@ Public Sub PostEvent(ByVal eventType As String, Optional ByVal cellCoord As Stri
     jsonPayload = "{""event_type"":""" & eventType & """,""cell"":""" & cellCoord & """,""value"":""" & safeVal & """,""button"":""" & buttonName & """}"
 
     #If Mac Then
-        ' Mac safe curl transport via temporary file to prevent shell/AppleScript escaping bugs
+        ' Mac safe curl transport via unique temporary file to mitigate /tmp symlink attacks
         Dim tmpFile As String
-        tmpFile = "/tmp/ma_payload.json"
+        tmpFile = "/tmp/ma_payload_" & Format(Now, "hhnnss") & "_" & Int(Rnd * 100000) & ".json"
         On Error Resume Next
         Kill tmpFile
         On Error GoTo FallbackHandler
@@ -209,11 +209,7 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                         svCell = Trim$(ExtractJsonField(actionChunk, "cell"))
                         svVal = ExtractJsonField(actionChunk, "value")
                         If IsValidCellAddress(svCell) Then
-                            Dim fCharSv As String
-                            fCharSv = Left$(Trim$(svVal), 1)
-                            If fCharSv = "=" Or fCharSv = "+" Or fCharSv = "-" Or fCharSv = "@" Then
-                                svVal = "'" & svVal
-                            End If
+                            svVal = NeutralizeFormulaPrefix(svVal)
                             ws.Range(svCell).NumberFormat = "@"
                             ws.Range(svCell).Value = svVal
                             ws.Range(svCell).Font.Color = COLOR_WARNING_RED
@@ -241,11 +237,7 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                         If Not IsValidCellAddress(hjCell) Then hjCell = "B18"
                         hjText = ExtractJsonField(actionChunk, "text")
                         If Len(hjText) = 0 Then hjText = "YOUR SALARY CANNOT SAVE YOU"
-                        Dim fCharHj As String
-                        fCharHj = Left$(Trim$(hjText), 1)
-                        If fCharHj = "=" Or fCharHj = "+" Or fCharHj = "-" Or fCharHj = "@" Then
-                            hjText = "'" & hjText
-                        End If
+                        hjText = NeutralizeFormulaPrefix(hjText)
                         ws.Range(hjCell).NumberFormat = "@"
                         ws.Range(hjCell).Value = hjText
                         ws.Range(hjCell).Font.Color = COLOR_DRIED_BLOOD
@@ -295,6 +287,24 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
 End Sub
 
 ''' <summary>
+''' Neutralizes Excel formula injection prefixes (=, +, -, @), including leading whitespace.
+''' </summary>
+Public Function NeutralizeFormulaPrefix(ByVal s As String) As String
+    On Error Resume Next
+    Dim trimmed As String
+    trimmed = Trim$(s)
+    If Len(trimmed) > 0 Then
+        Dim fChar As String
+        fChar = Left$(trimmed, 1)
+        If fChar = "=" Or fChar = "+" Or fChar = "-" Or fChar = "@" Then
+            NeutralizeFormulaPrefix = "'" & s
+            Exit Function
+        End If
+    End If
+    NeutralizeFormulaPrefix = s
+End Function
+
+''' <summary>
 ''' Dispatches a specific haunt effect across the 6 Kiro MCP haunt types:
 ''' cell_text, flicker_lamp, thunder_invert, ink_spread, whisper, screen_tremor.
 ''' </summary>
@@ -307,11 +317,7 @@ Private Sub ExecuteHauntAction(ByVal ws As Worksheet, ByVal hType As String, ByV
             If Len(msgToWrite) = 0 Then msgToWrite = "THE AUDIT WATCHES"
 
             ' Neutralize formula injection (=, +, -, @)
-            Dim fChar As String
-            fChar = Left$(msgToWrite, 1)
-            If fChar = "=" Or fChar = "+" Or fChar = "-" Or fChar = "@" Or Left$(Trim$(msgToWrite), 1) = "=" Or Left$(Trim$(msgToWrite), 1) = "+" Or Left$(Trim$(msgToWrite), 1) = "-" Or Left$(Trim$(msgToWrite), 1) = "@" Then
-                msgToWrite = "'" & msgToWrite
-            End If
+            msgToWrite = NeutralizeFormulaPrefix(msgToWrite)
 
             Dim targetAddress As String
             targetAddress = Trim$(hCell)

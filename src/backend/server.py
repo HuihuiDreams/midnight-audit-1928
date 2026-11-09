@@ -7,10 +7,11 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+from urllib.parse import urlparse
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, Any
 import uvicorn
 
@@ -26,8 +27,8 @@ class SecurityHeadersAndOriginMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         origin = request.headers.get("origin")
         if origin:
-            allowed = ["http://localhost", "http://127.0.0.1", "https://localhost", "https://127.0.0.1"]
-            if not any(origin.startswith(a) for a in allowed):
+            host = (urlparse(origin).hostname or "").lower()
+            if host not in {"localhost", "127.0.0.1", "::1"}:
                 return JSONResponse(
                     status_code=403,
                     content={"detail": "Cross-origin requests from untrusted origins are forbidden."}
@@ -49,6 +50,17 @@ class EventRequest(BaseModel):
     cell: Optional[str] = Field(None, max_length=30)
     value: Optional[Any] = None
     button: Optional[str] = Field(None, max_length=50)
+
+    @field_validator("value")
+    @classmethod
+    def validate_value_size(cls, v):
+        if v is not None:
+            if isinstance(v, str) and len(v) > 2000:
+                raise ValueError("Value string exceeds maximum allowed length of 2000 characters.")
+            elif not isinstance(v, (int, float, bool, str)):
+                if len(str(v)) > 2000:
+                    raise ValueError("Value payload exceeds maximum allowed size.")
+        return v
 
 class HauntRequest(BaseModel):
     haunt_type: str = Field(..., max_length=50)

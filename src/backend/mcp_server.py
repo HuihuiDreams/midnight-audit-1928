@@ -274,6 +274,23 @@ def run_stdio_server():
             line = sys.stdin.readline(65536)
             if not line:
                 break
+            if len(line) == 65536 and not line.endswith("\n"):
+                # Discard remaining line until newline to prevent splitting into invalid partial frames
+                while True:
+                    discard = sys.stdin.readline(65536)
+                    if not discard or discard.endswith("\n"):
+                        break
+                err_resp = {
+                    "jsonrpc": "2.0",
+                    "id": None,
+                    "error": {
+                        "code": -32700,
+                        "message": "Parse error: request line exceeded 64KB limit"
+                    }
+                }
+                sys.stdout.write(json.dumps(err_resp) + "\n")
+                sys.stdout.flush()
+                continue
             line = line.strip()
             if not line:
                 continue

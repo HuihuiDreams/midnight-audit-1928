@@ -186,8 +186,7 @@ def test_issue5_no_cors_and_injection_prevention():
     with open(bas_path, "r", encoding="utf-8") as f:
         bas = f.read()
 
-    assert "fChar = Left$(msgToWrite, 1)" in bas
-    assert "msgToWrite = \"'\" & msgToWrite" in bas
+    assert "NeutralizeFormulaPrefix" in bas
     assert '.NumberFormat = "@"' in bas
 
 def test_issue6_save_file_isolation(tmp_path):
@@ -315,7 +314,7 @@ def test_i5_mac_safe_transport():
     with open(bas_path, "r", encoding="utf-8") as f:
         bas = f.read()
 
-    assert 'tmpFile = "/tmp/ma_payload.json"' in bas
+    assert 'tmpFile = "/tmp/ma_payload_' in bas
     assert "Print #fNum, jsonPayload;" in bas
     assert "--data-binary @" in bas
     assert "Kill tmpFile" in bas
