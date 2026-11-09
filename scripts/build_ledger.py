@@ -74,11 +74,19 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     ws["A2"] = "MISKATONIC UNIVERSITY — ANNEX ARCHIVE DELINQUENCY LEDGER"
     ws["A2"].font = font_title
     ws["A2"].alignment = Alignment(horizontal="left", vertical="center")
+    ws.row_dimensions[2].height = 24
 
     ws.merge_cells("A3:I3")
     ws["A3"] = "FISCAL PERIOD: OCTOBER 1928 | HALLOWEEN MIDNIGHT CUSTODIAL AUDIT | ALL BALANCES SUBJECT TO CUSTODIAL SEAL"
     ws["A3"].font = font_subtitle
     ws["A3"].alignment = Alignment(horizontal="left", vertical="center")
+    ws.row_dimensions[3].height = 18
+
+    for r in (2, 3):
+        for c in range(1, 10):
+            cell = ws.cell(row=r, column=c)
+            cell.fill = fill_bone
+            cell.border = thin_border
 
     # 2. Table Column Headers
     headers = [
@@ -159,12 +167,12 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
             cell.alignment = Alignment(horizontal="left", vertical="center")
 
     # 6. Row 18: Emergency Vault Override Input
-    ws.row_dimensions[18].height = 24
+    ws.row_dimensions[18].height = 28
     ws["A18"] = "EMERGENCY OVERRIDE CODE (PHASE 3):"
     ws["A18"].font = font_header
     ws["A18"].fill = fill_decay
     ws["A18"].border = thin_border
-    ws["A18"].alignment = Alignment(horizontal="left", vertical="center")
+    ws["A18"].alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
     
     ws["B18"].font = Font(name="Courier New", size=11, bold=True, color=COLOR_CARBON)
     ws["B18"].fill = fill_bone
@@ -181,10 +189,19 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     seal_btn = ws["C18"]
     seal_btn.value = "[ SEAL ARCHIVE ]"
     seal_btn.font = Font(name="Courier New", size=10, bold=True, color=COLOR_DECAYING_PAPER)
-    seal_btn.fill = PatternFill(fill_type="solid", start_color=COLOR_HOSPITAL_GREEN, end_color=COLOR_HOSPITAL_GREEN)
+    fill_seal = PatternFill(fill_type="solid", start_color=COLOR_HOSPITAL_GREEN, end_color=COLOR_HOSPITAL_GREEN)
+    seal_btn.fill = fill_seal
     seal_btn.alignment = Alignment(horizontal="center", vertical="center")
     for c in range(3, 5):
-        ws.cell(row=18, column=c).border = thin_border
+        cell = ws.cell(row=18, column=c)
+        cell.fill = fill_seal
+        cell.border = thin_border
+
+    # Row 18 trailer (E18:I18)
+    for c in range(5, 10):
+        cell = ws.cell(row=18, column=c)
+        cell.fill = fill_bone
+        cell.border = thin_border
 
     # 7. Yellow Handover Note (Post-It across full radar width K4:AN16)
     ws.merge_cells("K4:AN16")
@@ -249,7 +266,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
 
     # Column widths
     col_widths = {
-        1: 14, # A: Record ID
+        1: 20, # A: Record ID / Override Label
         2: 24, # B: Borrower Name
         3: 26, # C: Department
         4: 32, # D: Tome Title

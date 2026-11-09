@@ -263,6 +263,7 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                     Case "LOCK_SHEET"
                         gArchiveSealed = True
                         StopEyeBlink
+                        ws.Range("B10:H12").Value = Empty
                         ws.Range("B10:H12").Interior.Color = COLOR_COLD_ASH
                         ws.Range("B10:H12").Font.Color = COLOR_WARNING_RED
                         ws.Range("B10").Value = "[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]"
@@ -739,6 +740,7 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
         ScreenTremor
 
         ' Apply Final Cold Ash Stamp
+        ws.Range("B10:H12").Value = Empty
         ws.Range("B10:H12").Interior.Color = COLOR_COLD_ASH
         ws.Range("B10:H12").Font.Color = COLOR_WARNING_RED
         ws.Range("B10").Value = "[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]"

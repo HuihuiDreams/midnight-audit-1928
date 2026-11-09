@@ -45,7 +45,11 @@ def test_build_ledger_generates_file():
     assert ws["K19"].value is not None
     assert "RADAR" in ws["K19"].value
 
-    # Verify Interactive Button Cells
+    # Verify Interactive Button Cells & A18/B18 styling
+    assert ws["A18"].value == "EMERGENCY OVERRIDE CODE (PHASE 3):"
+    assert ws["A18"].fill.start_color.rgb in ["00C5BFA8", "FFC5BFA8", "C5BFA8"]
+    assert ws["A18"].border.left.style == "thin"
+    assert ws["B18"].fill.start_color.rgb in ["00D3CEB9", "FFD3CEB9", "D3CEB9"]
     assert ws["C18"].value == "[ SEAL ARCHIVE ]"
     assert ws["K18"].value == "[ SPRAY REAGENT ]"
 

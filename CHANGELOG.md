@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Handover Note Full-Width Responsive Alignment**: Expanded yellow Post-It note (`K4:AN16`) across the full 30-column width of the radar grid (width 120 chars), eliminating receipt-ribbon word wrapping and severe vertical text truncation while increasing font to crisp 10pt Courier New.
+- **Spray Reagent Full-Width Action Bar**: Expanded `[ SPRAY REAGENT ]` button (`K18:AN18`) and radar header (`K19:AN19`) to match the 30x30 radar grid geometry, updating click interception across `K18:AN18` in `Sheet1_Archive.cls`.
+
+### Fixed
+
+- **A18 Label Background & Text Truncation**: Styled A18 with Decaying Paper fill (`#C5BFA8`) and Hospital Green thin border; widened Column A to 20 and enabled 2-line word wrapping at 28pt height to eliminate text truncation behind cell B18.
+- **Letterhead Banner Paper Fill**: Added Bone Paper (`#D3CEB9`) background fill and hairline borders to title banners `A2:I2` and `A3:I3`, eliminating raw unstyled white patches.
+- **Row 18 Control Bar Completion**: Set `D18` button background fill and styled trailing cells `E18:I18` with Bone Paper fill and thin borders, closing off the bottom table perimeter.
+- **Phase 4 Cold Ash Stamp Text Collisions**: Cleared range `B10:H12` (`.Value = Empty`) before applying Cold Ash banishment stamp in `M_DaemonBridge.bas`, preventing visual collisions with existing borrower entries.
+
 ## [1.2.1]
 
 ### Security
