@@ -48,7 +48,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     font_flagged = Font(name="Courier New", size=10, bold=True, color=COLOR_WARNING_RED)
     font_hidden = Font(name="Courier New", size=14, bold=True, color=COLOR_ABYSS)
     font_censored = Font(name="Courier New", size=10, bold=False, color=COLOR_ABYSS)
-    font_note = Font(name="Courier New", size=9, bold=False, color=COLOR_CARBON)
+    font_note = Font(name="Courier New", size=10, bold=False, color=COLOR_CARBON)
 
     fill_bone = PatternFill(fill_type="solid", start_color=COLOR_BONE_PAPER, end_color=COLOR_BONE_PAPER)
     fill_decay = PatternFill(fill_type="solid", start_color=COLOR_DECAYING_PAPER, end_color=COLOR_DECAYING_PAPER)
@@ -162,6 +162,8 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     ws.row_dimensions[18].height = 24
     ws["A18"] = "EMERGENCY OVERRIDE CODE (PHASE 3):"
     ws["A18"].font = font_header
+    ws["A18"].fill = fill_decay
+    ws["A18"].border = thin_border
     ws["A18"].alignment = Alignment(horizontal="left", vertical="center")
     
     ws["B18"].font = Font(name="Courier New", size=11, bold=True, color=COLOR_CARBON)
@@ -184,8 +186,8 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     for c in range(3, 5):
         ws.cell(row=18, column=c).border = thin_border
 
-    # 7. Yellow Handover Note (Post-It in K4:N16)
-    ws.merge_cells("K4:N16")
+    # 7. Yellow Handover Note (Post-It across full radar width K4:AN16)
+    ws.merge_cells("K4:AN16")
     note_cell = ws["K4"]
     note_cell.value = (
         "[📎 MISKATONIC ANNEX ARCHIVE — NIGHT MEMO]\n"
@@ -203,21 +205,35 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     note_cell.alignment = Alignment(horizontal="left", vertical="top", wrap_text=True)
     
     for r in range(4, 17):
-        for c in range(11, 15):
-            ws.cell(row=r, column=c).border = thick_note_border
+        for c in range(11, 41):
+            cell = ws.cell(row=r, column=c)
+            cell.fill = fill_note
+            cell.border = Border(
+                top=Side(style='medium', color=COLOR_CARBON) if r == 4 else None,
+                bottom=Side(style='medium', color=COLOR_CARBON) if r == 16 else None,
+                left=Side(style='medium', color=COLOR_CARBON) if c == 11 else None,
+                right=Side(style='medium', color=COLOR_CARBON) if c == 40 else None,
+            )
 
-    # Phase 2 Button: [ SPRAY REAGENT ] (K18:N18)
-    ws.merge_cells("K18:N18")
+    # Phase 2 Button: [ SPRAY REAGENT ] (K18:AN18)
+    ws.merge_cells("K18:AN18")
     spray_btn = ws["K18"]
     spray_btn.value = "[ SPRAY REAGENT ]"
     spray_btn.font = Font(name="Courier New", size=10, bold=True, color=COLOR_BONE_PAPER)
-    spray_btn.fill = PatternFill(fill_type="solid", start_color=COLOR_PHOSPHOR_GREEN, end_color=COLOR_PHOSPHOR_GREEN)
+    fill_spray = PatternFill(fill_type="solid", start_color=COLOR_PHOSPHOR_GREEN, end_color=COLOR_PHOSPHOR_GREEN)
+    spray_btn.fill = fill_spray
     spray_btn.alignment = Alignment(horizontal="center", vertical="center")
-    for c in range(11, 15):
-        ws.cell(row=18, column=c).border = thin_border
+    for c in range(11, 41):
+        cell = ws.cell(row=18, column=c)
+        cell.fill = fill_spray
+        cell.border = thin_border
 
     # 8. 30x30 Radar Grid (K20:AN49)
-    ws.cell(row=19, column=11, value="ANNEX BASEMENT PLAN RADAR (30x30) — CORRUPTED").font = font_header
+    ws.merge_cells("K19:AN19")
+    radar_title = ws["K19"]
+    radar_title.value = "ANNEX BASEMENT PLAN RADAR (30x30) — CORRUPTED"
+    radar_title.font = font_header
+    radar_title.alignment = Alignment(horizontal="center", vertical="center")
 
     glitch_tokens = ["#ROT!", "#REF!", "#N/A", "??", "[VOID]", "#ERR!"]
     for r in range(20, 50):

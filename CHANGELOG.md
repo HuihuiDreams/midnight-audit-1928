@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1]
+
+### Security
+
+- **Security Headers & Cross-Origin Protection**: Added `SecurityHeadersAndOriginMiddleware` configuring `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Content-Security-Policy: default-src 'none'`, and `Referrer-Policy: no-referrer`, while rejecting untrusted external browser `Origin` headers to mitigate CSRF and DNS rebinding attacks.
+- **Input Validation & DoS Protection**: Enforced strict validation and length bounds across API request models (`EventRequest`, `HauntRequest`, `BanishRequest`), capped `pending_effects` queue to prevent unbounded disk/memory growth, and limited ritual phrase normalization buffers.
+- **Strict Haunt Type Enforcement**: Gated `queue_haunt` and `/api/haunt` to strictly accept only recognized haunt types (`cell_text`, `flicker_lamp`, `thunder_invert`, `ink_spread`, `whisper`, `screen_tremor`), returning 400 Bad Request on unrecognized payloads.
+- **Lockfile Permission Hardening**: Restricted file permissions on `game_state.json.lock` from `0o666` to `0o600` (owner read/write only).
+- **VBA Transport Symlink Mitigation**: Added pre-execution file unlinking (`Kill tmpFile`) before temporary file creation on macOS to prevent symlink-following attacks.
+- **Excel Injection & Coordinate Validation**: Hardened VBA action handlers (`SET_VALUE`, `HIJACK_TYPE`, `SPREAD_BLOOD_SCAB`) to validate cell coordinates via `IsValidCellAddress` and neutralize formula injection prefixes (`=`, `+`, `-`, `@`) even when preceded by whitespace.
+
 ## [1.2.0]
 
 ### Added

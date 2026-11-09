@@ -8,7 +8,9 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from pydantic import BaseModel, Field
 from typing import Optional, Any
 import uvicorn
 
@@ -17,24 +19,44 @@ from src.backend.puzzle_state import PuzzleEngine, PhaseEnum, file_lock
 app = FastAPI(
     title="The Midnight Audit (1928) — Local Daemon Bridge",
     description="Bridge connecting 1990s Excel VBA Client with 2026 Kiro Agent Mastermind.",
-    version="1.0.0"
+    version="1.2.1"
 )
+
+class SecurityHeadersAndOriginMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        origin = request.headers.get("origin")
+        if origin:
+            allowed = ["http://localhost", "http://127.0.0.1", "https://localhost", "https://127.0.0.1"]
+            if not any(origin.startswith(a) for a in allowed):
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "Cross-origin requests from untrusted origins are forbidden."}
+                )
+
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Content-Security-Policy"] = "default-src 'none'"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        return response
+
+app.add_middleware(SecurityHeadersAndOriginMiddleware)
 
 engine = PuzzleEngine(load_existing=True)
 
 class EventRequest(BaseModel):
-    event_type: str
-    cell: Optional[str] = None
+    event_type: str = Field(..., max_length=50)
+    cell: Optional[str] = Field(None, max_length=30)
     value: Optional[Any] = None
-    button: Optional[str] = None
+    button: Optional[str] = Field(None, max_length=50)
 
 class HauntRequest(BaseModel):
-    haunt_type: str
-    target_cell: Optional[str] = None
-    message: Optional[str] = None
+    haunt_type: str = Field(..., max_length=50)
+    target_cell: Optional[str] = Field(None, max_length=30)
+    message: Optional[str] = Field(None, max_length=2000)
 
 class BanishRequest(BaseModel):
-    phrase: str
+    phrase: str = Field(..., max_length=500)
 
 @app.get("/")
 def root():

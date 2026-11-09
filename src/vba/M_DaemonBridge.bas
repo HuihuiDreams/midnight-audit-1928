@@ -32,6 +32,9 @@ Public Sub PostEvent(ByVal eventType As String, Optional ByVal cellCoord As Stri
         ' Mac safe curl transport via temporary file to prevent shell/AppleScript escaping bugs
         Dim tmpFile As String
         tmpFile = "/tmp/ma_payload.json"
+        On Error Resume Next
+        Kill tmpFile
+        On Error GoTo FallbackHandler
         Dim fNum As Integer
         fNum = FreeFile
         Open tmpFile For Output As #fNum
@@ -195,7 +198,7 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                                 Dim fxCell As String
                                 fxCell = Trim$(ExtractJsonField(actionChunk, "cell"))
                                 If Len(fxCell) = 0 Then fxCell = Trim$(cellCoord)
-                                If Len(fxCell) = 0 Then
+                                If Not IsValidCellAddress(fxCell) Then
                                     If gLocalPhase = 1 Then fxCell = "H7" Else fxCell = "B18"
                                 End If
                                 SpreadBloodScab ws.Range(fxCell)
@@ -205,7 +208,13 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                         Dim svCell As String, svVal As String
                         svCell = Trim$(ExtractJsonField(actionChunk, "cell"))
                         svVal = ExtractJsonField(actionChunk, "value")
-                        If Len(svCell) > 0 Then
+                        If IsValidCellAddress(svCell) Then
+                            Dim fCharSv As String
+                            fCharSv = Left$(Trim$(svVal), 1)
+                            If fCharSv = "=" Or fCharSv = "+" Or fCharSv = "-" Or fCharSv = "@" Then
+                                svVal = "'" & svVal
+                            End If
+                            ws.Range(svCell).NumberFormat = "@"
                             ws.Range(svCell).Value = svVal
                             ws.Range(svCell).Font.Color = COLOR_WARNING_RED
                         End If
@@ -229,9 +238,15 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                     Case "HIJACK_TYPE"
                         Dim hjCell As String, hjText As String
                         hjCell = Trim$(ExtractJsonField(actionChunk, "cell"))
-                        If Len(hjCell) = 0 Then hjCell = "B18"
+                        If Not IsValidCellAddress(hjCell) Then hjCell = "B18"
                         hjText = ExtractJsonField(actionChunk, "text")
                         If Len(hjText) = 0 Then hjText = "YOUR SALARY CANNOT SAVE YOU"
+                        Dim fCharHj As String
+                        fCharHj = Left$(Trim$(hjText), 1)
+                        If fCharHj = "=" Or fCharHj = "+" Or fCharHj = "-" Or fCharHj = "@" Then
+                            hjText = "'" & hjText
+                        End If
+                        ws.Range(hjCell).NumberFormat = "@"
                         ws.Range(hjCell).Value = hjText
                         ws.Range(hjCell).Font.Color = COLOR_DRIED_BLOOD
                         ThudBeep
@@ -293,7 +308,7 @@ Private Sub ExecuteHauntAction(ByVal ws As Worksheet, ByVal hType As String, ByV
             ' Neutralize formula injection (=, +, -, @)
             Dim fChar As String
             fChar = Left$(msgToWrite, 1)
-            If fChar = "=" Or fChar = "+" Or fChar = "-" Or fChar = "@" Then
+            If fChar = "=" Or fChar = "+" Or fChar = "-" Or fChar = "@" Or Left$(Trim$(msgToWrite), 1) = "=" Or Left$(Trim$(msgToWrite), 1) = "+" Or Left$(Trim$(msgToWrite), 1) = "-" Or Left$(Trim$(msgToWrite), 1) = "@" Then
                 msgToWrite = "'" & msgToWrite
             End If
 

@@ -46,8 +46,8 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     If Target Is Nothing Then Exit Sub
     If gArchiveSealed Then Exit Sub
     
-    ' Check for Click on [ SPRAY REAGENT ] Button (K18:N18)
-    If Not Intersect(Target, Me.Range("K18:N18")) Is Nothing Then
+    ' Check for Click on [ SPRAY REAGENT ] Button (K18:AN18)
+    If Not Intersect(Target, Me.Range("K18:AN18")) Is Nothing Then
         TriggerReagentMacro
         Exit Sub
     End If

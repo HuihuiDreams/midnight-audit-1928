@@ -224,7 +224,7 @@ def handle_json_rpc(request: Any) -> Optional[Dict[str, Any]]:
                 },
                 "serverInfo": {
                     "name": "midnight-audit-mcp",
-                    "version": "1.0.0"
+                    "version": "1.2.1"
                 }
             }
         }
@@ -271,7 +271,7 @@ def run_stdio_server():
     sys.stderr.flush()
     while True:
         try:
-            line = sys.stdin.readline()
+            line = sys.stdin.readline(65536)
             if not line:
                 break
             line = line.strip()

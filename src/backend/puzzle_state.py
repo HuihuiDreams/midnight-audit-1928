@@ -55,7 +55,7 @@ def file_lock(lock_path: Optional[str] = None):
         try:
             if lock_dir and not os.path.exists(lock_dir):
                 os.makedirs(lock_dir, exist_ok=True)
-            lock_fd = os.open(target, os.O_RDWR | os.O_CREAT, 0o666)
+            lock_fd = os.open(target, os.O_RDWR | os.O_CREAT, 0o600)
         except OSError:
             lock_fd = None
 
@@ -92,6 +92,15 @@ PALETTE = {
     "WARNING_RED": "#8A1C14",
     "PHOSPHOR_GREEN": "#3B533E",
     "COLD_ASH": "#8A8D8F",
+}
+
+VALID_HAUNT_TYPES = {
+    "cell_text",
+    "flicker_lamp",
+    "thunder_invert",
+    "ink_spread",
+    "whisper",
+    "screen_tremor",
 }
 
 class PhaseEnum(str, Enum):
@@ -456,7 +465,7 @@ class PuzzleEngine:
                 "message": "The archive is sealed. The void books are closed."
             }
 
-        phrase_clean = re.sub(r"\s+", " ", str(phrase).strip().upper())
+        phrase_clean = re.sub(r"\s+", " ", str(phrase)[:500].strip().upper())
         # Spec-compliant ritual sealing: requires MIDNIGHT_SETTLEMENT phase and exact phrase
         if self.current_phase == PhaseEnum.MIDNIGHT_SETTLEMENT and phrase_clean == "SEAL THE DEEP VAULT":
             self.archive_sealed = True
@@ -501,17 +510,23 @@ class PuzzleEngine:
             return res
 
     def queue_haunt(self, haunt_type: str, target_cell: Optional[str] = None, message: Optional[str] = None):
+        clean_haunt = str(haunt_type).strip().lower()
+        if clean_haunt not in VALID_HAUNT_TYPES:
+            raise ValueError(f"Invalid haunt type: {haunt_type}")
         if target_cell:
             cell_clean = target_cell.strip().upper()
             if not re.match(r"^[A-Z]{1,3}\d{1,5}(?::[A-Z]{1,3}\d{1,5})?$", cell_clean):
                 raise ValueError("Invalid target cell coordinate.")
             target_cell = cell_clean
+        clean_msg = str(message)[:2000] if message is not None else None
         with file_lock():
             self.load_state()
+            if len(self.pending_effects) >= 50:
+                self.pending_effects.pop(0)
             self.pending_effects.append({
-                "type": haunt_type,
+                "type": clean_haunt,
                 "target_cell": target_cell,
-                "message": message
+                "message": clean_msg
             })
             self.save_state()
 
