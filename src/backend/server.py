@@ -8,7 +8,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from urllib.parse import urlparse
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel, Field, field_validator
@@ -78,8 +78,9 @@ class BanishRequest(BaseModel):
     phrase: str = Field(..., max_length=500)
 
 def haunt_actions(pending):
+    # Queued entries that already carry a "command" (e.g. LOCK_SHEET from the MCP ritual) pass through unchanged
     return [
-        {
+        dict(p) if "command" in p else {
             "command": "TRIGGER_HAUNT",
             "haunt_type": p["type"],
             "cell": p["target_cell"],
@@ -140,10 +141,13 @@ def handle_event(req: EventRequest):
         return res
 
 @app.get("/api/pending")
-def get_pending():
-    # Polled by the VBA client so haunts appear without waiting for the next player event
+def get_pending(x_audit_client: Optional[str] = Header(None)):
+    # Polled by the VBA client so haunts appear without waiting for the next player event.
+    # This GET drains the queue, so it needs a header that a browser page (<img>, <script>) cannot send cross-origin.
+    if x_audit_client != "1":
+        raise HTTPException(status_code=403, detail="Missing X-Audit-Client header.")
     with file_lock():
-        engine.load_state()
+        # pop_pending_effects loads the latest state itself
         return {"actions": haunt_actions(engine.pop_pending_effects())}
 
 @app.get("/api/pixel_radar")
@@ -165,7 +169,7 @@ def queue_haunt(req: HauntRequest):
 def banish(req: BanishRequest):
     with file_lock():
         engine.load_state()
-        return engine.judge_ritual(req.phrase)
+        return engine.judge_ritual(req.phrase, deliver_to_workbook=True)
 
 @app.post("/api/reset")
 def reset_game():

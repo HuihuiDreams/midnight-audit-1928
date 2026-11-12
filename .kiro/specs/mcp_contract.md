@@ -91,12 +91,12 @@ Processes the final banishing ritual command or code phrase.
       "effect": "SCREEN_TREMOR"
     },
     {
-      "command": "LOCK_SHEET",
-      "color": "#8A8D8F"
+      "command": "LOCK_SHEET"
     }
   ]
 }
 ```
+The workbook decides the stamp area (`B10:H12`) and ash-grey fill itself. `/api/banish` is called by the Agent side, not by the workbook, so on success it also queues these actions for the workbook's next `/api/pending` heartbeat. (The workbook's own sealing goes through `/api/event` and receives the actions in that response.)
 
 ### 2.4 `GET /api/pixel_radar`
 Returns the 30x30 matrix of hex colors for rendering the chemical developer reveal in Phase 2.
@@ -116,7 +116,7 @@ Returns the 30x30 matrix of hex colors for rendering the chemical developer reve
 
 ### 2.5 `GET /api/pending`
 
-Pops every queued haunt and returns it as `TRIGGER_HAUNT` actions, in the same shape `/api/event` appends to its responses. The VBA client polls this every 3 seconds (`StartHauntPolling`) so haunts queued by the Kiro Agent appear while the player is idle. An empty queue returns `{"actions": []}`. If the pop cannot be saved the daemon answers `500` and the haunts stay queued; the poller ignores non-200 replies.
+Pops every queued entry and returns it as actions, in the same shape `/api/event` appends to its responses: `TRIGGER_HAUNT` for haunts, and queued concluding actions such as `LOCK_SHEET` unchanged. The request must carry the header `X-Audit-Client: 1` (the VBA poller sends it); without it the daemon answers `403` and leaves the queue untouched, because this GET drains the queue and a web page must not be able to trigger it. The VBA client polls this every 3 seconds (`StartHauntPolling`) so haunts queued by the Kiro Agent appear while the player is idle. An empty queue returns `{"actions": []}`. If the pop cannot be saved the daemon answers `500` and the haunts stay queued; the poller ignores non-200 replies.
 
 - **Response**:
 ```json

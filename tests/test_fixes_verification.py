@@ -189,34 +189,23 @@ def test_issue5_no_cors_and_injection_prevention():
     assert "NeutralizeFormulaPrefix" in bas
     assert '.NumberFormat = "@"' in bas
 
-def test_issue6_save_file_isolation(tmp_path):
-    """Verify that running tests never deletes or alters a real game_state.json in project root."""
-    import json
-    project_root = os.path.dirname(os.path.dirname(__file__))
-    real_save_path = os.path.join(project_root, "game_state.json")
+def test_issue6_save_file_isolation():
+    """Running the suite must not change the real game_state.json in the project root (compared byte for byte)."""
+    real_save = os.path.join(os.path.dirname(os.path.dirname(__file__)), "game_state.json")
 
-    # Put a sentinel save file in project root if not already present
-    sentinel_data = {"sentinel": "real_player_save_data_1928", "phase": 3}
-    created_real_file = False
-    if not os.path.exists(real_save_path):
-        with open(real_save_path, "w", encoding="utf-8") as f:
-            json.dump(sentinel_data, f)
-        created_real_file = True
+    def snapshot():
+        if not os.path.exists(real_save):
+            return None
+        with open(real_save, "rb") as f:
+            return f.read()
 
-    try:
-        # Create and save engine state in a test
-        engine = PuzzleEngine()
-        engine.handle_cell_change("H7", "7.00")
-        engine.save_state()
+    before = snapshot()
 
-        # The real save file must still exist and contain the sentinel data
-        assert os.path.exists(real_save_path)
-        with open(real_save_path, "r", encoding="utf-8") as f:
-            content = json.load(f)
-        assert content.get("sentinel") == "real_player_save_data_1928"
-    finally:
-        if created_real_file and os.path.exists(real_save_path):
-            os.remove(real_save_path)
+    engine = PuzzleEngine()
+    engine.handle_cell_change("H7", "7.00")
+    engine.save_state()
+
+    assert snapshot() == before
 
 def test_deepened_issue1_phase4_offline_gating_and_sealed_flag():
     """Verify that VBA HandleOfflineEvent strictly requires banish event and Not gArchiveSealed."""
@@ -284,6 +273,12 @@ def test_deepened_issue5_cell_validation_and_mcp():
         bas = f.read()
     assert "Function IsValidCellAddress" in bas
     assert "isTargetValid = IsValidCellAddress(targetAddress)" in bas
+    # VBA mirrors the Python bounds: XFD / 1048576 / 900 cells, and cell_text never takes a range
+    assert "MAX_SHEET_ROW As Long = 1048576" in bas
+    assert "MAX_SHEET_COLUMN As Long = 16384" in bas
+    assert "MAX_RANGE_AREA As Long = 900" in bas
+    assert "65536" not in bas
+    assert 'If InStr(targetAddress, ":") > 0 Then isTargetValid = False' in bas
     assert "isInkTargetValid = IsValidCellAddress(inkTarget)" in bas
 
 def test_i4_sync_state_and_non_200_no_fallthrough():
@@ -534,8 +529,12 @@ def test_s8_archive_sealed_prevents_retrigger():
         bas = f.read()
     assert "If gArchiveSealed Then Exit Sub" in bas
 
-def test_s9_vba_json_parser_behavioral_equivalence():
-    """Verify S9: VBA ExtractJsonField logic correctly extracts strings, booleans, and numbers."""
+def test_s9_python_port_of_the_extract_json_field_algorithm():
+    """
+    S9: exercises a Python PORT of the ExtractJsonField algorithm against real daemon JSON.
+    It does not run the VBA code, so it cannot catch a divergence between the port and M_DaemonBridge.bas.
+    Tests that read .bas files are source checks (lint), not behavior tests; VBA behavior needs Excel.
+    """
     import json
 
     sample_response = json.dumps({
@@ -1051,7 +1050,9 @@ def test_vba_poll_fetches_pending_haunts_with_events_disabled_and_reschedules():
     assert "HandleOfflineEvent" not in poll   # a silent daemon must never fall back to the offline engine
 
 def test_vba_polling_starts_on_open_and_is_cleaned_up_everywhere():
-    assert _vba_source("ThisWorkbook.cls").index("SyncDaemonState") < _vba_source("ThisWorkbook.cls").index("StartHauntPolling")
+    opened = _vba_proc(_vba_source("ThisWorkbook.cls"), "Private Sub Workbook_Open")
+    # A seal queued while the workbook was closed must be drained before SyncDaemonState marks the archive sealed
+    assert opened.index("PollPendingHaunts") < opened.index("SyncDaemonState") < opened.index("StartHauntPolling")
     assert "StopHauntPolling" in _vba_proc(_vba_source("ThisWorkbook.cls"), "Private Sub Workbook_BeforeClose")
     assert "StopHauntPolling" in _vba_proc(_vba_source("M_Bootstrap.bas"), "Public Sub EmergencyReset(")
 
@@ -1103,3 +1104,39 @@ def test_vba_emergency_reset_lifts_sheet_protection():
     reset = _vba_proc(_vba_source("M_Bootstrap.bas"), "Public Sub EmergencyReset(")
 
     assert 'ThisWorkbook.Sheets("Audit_Ledger_1928").Unprotect' in reset
+
+def test_test_isolation_has_a_single_entry_point():
+    """No test module may bind the real save path at import time; conftest is the only isolation point."""
+    import re
+    tests_dir = os.path.dirname(__file__)
+    for name in sorted(os.listdir(tests_dir)):
+        if not name.startswith("test_") or not name.endswith(".py"):
+            continue
+        with open(os.path.join(tests_dir, name), "r", encoding="utf-8") as f:
+            source = f.read()
+        assert not re.search(r"^from src\.backend\.puzzle_state import .*GAME_STATE_FILE", source, re.M), name
+
+    with open(os.path.join(tests_dir, "conftest.py"), "r", encoding="utf-8") as f:
+        conftest = f.read()
+    assert conftest.index('os.environ["GAME_STATE_FILE"]') < conftest.index("import src.backend.puzzle_state")
+    assert "tests.test_" not in conftest
+
+def test_vba_pending_poll_sends_the_client_header_on_both_transports():
+    with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "src", "vba", "M_DaemonBridge.bas"), "r", encoding="utf-8") as f:
+        bas = f.read()
+    fetch = bas[bas.index("Private Function FetchPendingHaunts()"):bas.index("End Function", bas.index("Private Function FetchPendingHaunts()"))]
+
+    assert 'http.setRequestHeader "X-Audit-Client", "1"' in fetch
+    assert '-H ""X-Audit-Client: 1""' in fetch
+
+def test_vba_screen_tremor_never_moves_a_foreign_window():
+    with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "src", "vba", "M_HorrorFX.bas"), "r", encoding="utf-8") as f:
+        fx = f.read()
+    tremor = fx[fx.index("Public Sub ScreenTremor()"):fx.index("End Sub", fx.index("Public Sub ScreenTremor()"))]
+
+    assert "hWnd = Application.Hwnd" in tremor
+    assert "hWnd = GetForegroundWindow()\n" not in tremor  # the foreground window is only compared, never shaken
+    assert "And hWnd = GetForegroundWindow() Then" in tremor
+    code = "\n".join(line for line in tremor.splitlines() if not line.strip().startswith("'"))
+    assert "SmallScroll" not in code
+    assert "ActiveWindow" not in code

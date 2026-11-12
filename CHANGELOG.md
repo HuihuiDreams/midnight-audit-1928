@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`LICENSE`**: The MIT license the README already declared (copyright holder: the git author `huihuidreams`, 2026).
+
+### Changed
+
+- **Agent Ritual Reaches the Workbook (`mcp_server.py`, `server.py`, `puzzle_state.py`, `M_DaemonBridge.bas`)**: A successful `judge_ritual` (MCP) or `POST /api/banish` sealed only the backend, so the open workbook was never stamped or protected and rejected every entry until reopened. `judge_ritual(..., deliver_to_workbook=True)` now queues `THUNDER_STROBE`, `SCREEN_TREMOR` and `LOCK_SHEET` in the same save as the seal; `/api/pending` passes queued actions that carry a `command` through unchanged, and `PollPendingHaunts` runs any queued command, not only `TRIGGER_HAUNT`. The workbook's own seal (`/api/event`) is unchanged and does not lock twice.
+- **Haunt Target Validation (`puzzle_state.py`, `M_DaemonBridge.bas`)**: `validate_haunt_target` (Python) and `IsValidCellAddress` (VBA) now share the same bounds: columns up to `XFD`, rows up to 1,048,576 (was 99,999 in Python and 65,536 in VBA), no leading zeros, and ranges of at most 900 cells. `cell_text` accepts a single cell only, so one message can no longer overwrite `A1:AN50`. An out-of-bounds address now falls back to the status bar instead of vanishing under `On Error Resume Next`.
+- **`LOCK_SHEET` Carries No Dead Fields (`puzzle_state.py`, `mcp_contract.md`)**: Removed `color` and `stamp_range`; the workbook always stamps `B10:H12` in cold ash.
+- **Screen Tremor Only Moves Excel (`M_HorrorFX.bas`)**: Windows shakes `Application.Hwnd` and only while Excel is the foreground window (it used to shake whatever window was in front). macOS no longer scrolls `ActiveWindow`; it flickers the ledger with `FlashKeroseneLamp`.
+- **Tests Have One Isolation Point (`tests/conftest.py`)**: `GAME_STATE_FILE` is pointed at a temporary directory before the backend is imported, every test gets a fresh temporary save and fresh server and MCP engines, and the three copies of `_break_disk` are now the `break_disk` fixture. The `tests.test_*` patches that never took effect are gone.
+
+### Fixed
+
+- **Tests Deleted the Real Save (`tests/test_edge_cases.py`)**: Its autouse fixture removed the `GAME_STATE_FILE` bound at import time, which was the real `game_state.json`; the save hook runs the suite on every backend save. The fixture is gone and a test now guards against module-level bindings.
+- **MCP Stdio Died on Non-ASCII Input (`mcp_server.py`)**: Under a non-UTF-8 locale (`PYTHONIOENCODING=ascii`, Windows code pages) a Chinese message raised `UnicodeDecodeError`, and the error handler then raised `UnboundLocalError` on `req`, ending the process. stdin and stdout are now UTF-8 and `req` is reset on every loop.
+- **Corrupt Save Was Half Loaded (`puzzle_state.py`)**: `from_dict` assigned fields as it parsed, so a bad `attempts` value left the phase changed while `load_state()` returned `False`, and the next save wrote that mix back. It now parses first and assigns after, rejects a non-object file, and keeps a copy of an unreadable save as `game_state.json.corrupt` before the next save replaces it.
+- **Empty Poll Wrote the Disk Every 3 Seconds (`puzzle_state.py`)**: `pop_pending_effects` saved even when nothing was queued. It now returns early. `GET /api/pending` also no longer loads the state twice.
+- **Agent Seal Made While the Workbook Was Closed (`ThisWorkbook.cls`)**: On reopen, `SyncDaemonState` set `gArchiveSealed` before any poll ran, so the queued `LOCK_SHEET` was never executed and the sheet stayed unsealed and unprotected. `Workbook_Open` now polls once before the sync.
+- **Bad Queue Entry Lost the Queue and Failed Events (`puzzle_state.py`)**: `pending_effects` was loaded unchecked, so `[{}]` made `GET /api/pending` and `/api/event` answer `500` (`KeyError`) after the queue had already been cleared and the phase saved. Loading now keeps only haunts with a known type and built actions with a `command`, and drops the rest without declaring the save corrupt.
+- **Empty or Non-Object Save (`puzzle_state.py`)**: `[]` and `{}` loaded as success; they are now rejected like any other non-object file.
+- **`game_state.json.corrupt` Was Rewritten Every Poll (`puzzle_state.py`)**: The copy is skipped when the same bytes are already kept.
+- **Isolation Test Used the Real Save as a Sentinel (`tests/test_fixes_verification.py`)**: `test_issue6_save_file_isolation` failed whenever a real `game_state.json` existed and could leave a fake save behind. It now compares the real save's bytes before and after, and creates nothing.
+
+### Security
+
+- **`GET /api/pending` Needs `X-Audit-Client: 1` (`server.py`, `M_DaemonBridge.bas`)**: The endpoint drains the haunt queue, and a request without an `Origin` header (an `<img>` tag, another process) passed the origin check. Without the header it now answers `403` and leaves the queue alone; the VBA poller sends it on both the MSXML and the macOS `curl` transport.
+
 ## [1.3.1] - 2026-11-12
 
 ### Added

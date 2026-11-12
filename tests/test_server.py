@@ -1,30 +1,9 @@
 import os
-import pytest
 from fastapi.testclient import TestClient
 from src.backend.server import app, engine
 
-@pytest.fixture(autouse=True)
-def reset_engine():
-    from src.backend.puzzle_state import PuzzleEngine, GAME_STATE_FILE
-    import src.backend.server as srv
-    if os.path.exists(GAME_STATE_FILE):
-        try:
-            os.remove(GAME_STATE_FILE)
-        except Exception:
-            pass
-    srv.engine = PuzzleEngine()
-
 client = TestClient(app)
-
-def _break_disk(monkeypatch):
-    """Make every state write fail (as a locked or read-only state file would); returns the real os.replace."""
-    real_replace = os.replace
-
-    def refuse(src, dst):
-        raise PermissionError(13, "Permission denied")
-
-    monkeypatch.setattr(os, "replace", refuse)
-    return real_replace
+WORKBOOK = {"X-Audit-Client": "1"}  # the header the VBA poller sends
 
 def _advance_to_phase_4():
     client.post("/api/event", json={"event_type": "cell_change", "cell": "H7", "value": "7.00"})
@@ -129,8 +108,8 @@ def test_banish_endpoint():
     assert res_after.status_code == 200
     assert res_after.json()["banished"] is False
 
-def test_event_save_failure_returns_500_and_leaves_phase_unchanged(monkeypatch):
-    _break_disk(monkeypatch)
+def test_event_save_failure_returns_500_and_leaves_phase_unchanged(break_disk):
+    break_disk()
 
     res = client.post("/api/event", json={"event_type": "cell_change", "cell": "H7", "value": "7.00"})
 
@@ -141,16 +120,16 @@ def test_event_save_failure_returns_500_and_leaves_phase_unchanged(monkeypatch):
     assert status["phase"] == 1
     assert status["row13_awakened"] is False
 
-def test_wrong_answer_still_gets_feedback_when_disk_is_broken(monkeypatch):
-    _break_disk(monkeypatch)
+def test_wrong_answer_still_gets_feedback_when_disk_is_broken(break_disk):
+    break_disk()
 
     res = client.post("/api/event", json={"event_type": "cell_change", "cell": "H7", "value": "1.00"})
 
     assert res.status_code == 200
     assert res.json()["accepted"] is False
 
-def test_haunt_save_failure_returns_500_and_queues_nothing(monkeypatch):
-    real_replace = _break_disk(monkeypatch)
+def test_haunt_save_failure_returns_500_and_queues_nothing(monkeypatch, break_disk):
+    real_replace = break_disk()
 
     res = client.post("/api/haunt", json={"haunt_type": "whisper", "message": "lost"})
 
@@ -158,9 +137,9 @@ def test_haunt_save_failure_returns_500_and_queues_nothing(monkeypatch):
     monkeypatch.setattr(os, "replace", real_replace)
     assert client.get("/api/status").json()["pending_effects"] == []
 
-def test_banish_save_failure_returns_500_and_does_not_seal(monkeypatch):
+def test_banish_save_failure_returns_500_and_does_not_seal(monkeypatch, break_disk):
     _advance_to_phase_4()
-    real_replace = _break_disk(monkeypatch)
+    real_replace = break_disk()
 
     res = client.post("/api/banish", json={"phrase": "SEAL THE DEEP VAULT"})
 
@@ -170,9 +149,9 @@ def test_banish_save_failure_returns_500_and_does_not_seal(monkeypatch):
     assert status["archive_sealed"] is False
     assert status["phase"] == 4
 
-def test_reset_save_failure_keeps_current_game(monkeypatch):
+def test_reset_save_failure_keeps_current_game(break_disk):
     client.post("/api/event", json={"event_type": "cell_change", "cell": "H7", "value": "7.00"})
-    _break_disk(monkeypatch)
+    break_disk()
 
     res = client.post("/api/reset")
 
@@ -230,7 +209,7 @@ def test_pending_endpoint_delivers_queued_haunts_without_a_player_event():
     client.post("/api/haunt", json={"haunt_type": "cell_text", "target_cell": "A13", "message": "DID ARMITAGE AUTHORIZE THIS?"})
     client.post("/api/haunt", json={"haunt_type": "whisper", "message": "...the floorboards remember..."})
 
-    res = client.get("/api/pending")
+    res = client.get("/api/pending", headers=WORKBOOK)
 
     assert res.status_code == 200
     actions = res.json()["actions"]
@@ -238,16 +217,60 @@ def test_pending_endpoint_delivers_queued_haunts_without_a_player_event():
         {"command": "TRIGGER_HAUNT", "haunt_type": "cell_text", "cell": "A13", "message": "DID ARMITAGE AUTHORIZE THIS?"},
         {"command": "TRIGGER_HAUNT", "haunt_type": "whisper", "cell": None, "message": "...the floorboards remember..."},
     ]
-    assert client.get("/api/pending").json() == {"actions": []}
+    assert client.get("/api/pending", headers=WORKBOOK).json() == {"actions": []}
     assert client.get("/api/status").json()["pending_effects"] == []
 
-def test_pending_endpoint_keeps_haunts_queued_when_the_pop_cannot_be_saved(monkeypatch):
+def test_pending_endpoint_keeps_haunts_queued_when_the_pop_cannot_be_saved(monkeypatch, break_disk):
     client.post("/api/haunt", json={"haunt_type": "whisper", "message": "still here"})
-    real_replace = _break_disk(monkeypatch)
+    real_replace = break_disk()
 
-    res = client.get("/api/pending")
+    res = client.get("/api/pending", headers=WORKBOOK)
 
     assert res.status_code == 500
     monkeypatch.setattr(os, "replace", real_replace)
     assert len(client.get("/api/status").json()["pending_effects"]) == 1
-    assert len(client.get("/api/pending").json()["actions"]) == 1
+    assert len(client.get("/api/pending", headers=WORKBOOK).json()["actions"]) == 1
+
+def test_banish_endpoint_delivers_lock_sheet_to_the_workbook_through_pending():
+    _advance_to_phase_4()
+
+    res = client.post("/api/banish", json={"phrase": "SEAL THE DEEP VAULT"}).json()
+    lock = next(a for a in res["actions"] if a["command"] == "LOCK_SHEET")
+    delivered = client.get("/api/pending", headers=WORKBOOK).json()["actions"]
+
+    assert lock == {"command": "LOCK_SHEET"}
+    assert [a.get("effect") or a["command"] for a in delivered] == ["THUNDER_STROBE", "SCREEN_TREMOR", "LOCK_SHEET"]
+    assert client.get("/api/pending", headers=WORKBOOK).json() == {"actions": []}
+
+def test_banish_through_the_event_endpoint_does_not_lock_the_sheet_twice():
+    _advance_to_phase_4()
+
+    res = client.post("/api/event", json={"event_type": "banish", "value": "SEAL THE DEEP VAULT"}).json()
+
+    assert [a["command"] for a in res["actions"]].count("LOCK_SHEET") == 1
+
+def test_pending_endpoint_refuses_requests_without_the_client_header_and_keeps_the_queue():
+    client.post("/api/haunt", json={"haunt_type": "whisper", "message": "mine"})
+
+    assert client.get("/api/pending").status_code == 403
+    assert client.get("/api/pending", headers={"X-Audit-Client": "0"}).status_code == 403
+
+    delivered = client.get("/api/pending", headers=WORKBOOK).json()["actions"]
+    assert [a["message"] for a in delivered] == ["mine"]
+
+def test_bad_queue_entry_in_the_save_does_not_break_pending_or_events():
+    import json
+    import src.backend.puzzle_state as ps
+    client.post("/api/haunt", json={"haunt_type": "whisper", "message": "good"})
+    with open(ps.GAME_STATE_FILE, "r", encoding="utf-8") as f:
+        saved = json.load(f)
+    saved["pending_effects"] += [{}, None, "abc"]
+    with open(ps.GAME_STATE_FILE, "w", encoding="utf-8") as f:
+        json.dump(saved, f)
+
+    event = client.post("/api/event", json={"event_type": "cell_change", "cell": "H7", "value": "7.00"})
+
+    assert event.status_code == 200
+    assert event.json()["accepted"] is True
+    assert [a["message"] for a in event.json()["actions"] if a["command"] == "TRIGGER_HAUNT"] == ["good"]
+    assert client.get("/api/status").json()["phase"] == 2

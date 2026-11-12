@@ -12,6 +12,9 @@ Public gHijackTriggered As Boolean
 Public gArchiveSealed As Boolean
 Private Const HAUNT_POLL_INTERVAL As String = "00:00:03"
 Private mNextPollTime As Double
+Private Const MAX_SHEET_ROW As Long = 1048576
+Private Const MAX_SHEET_COLUMN As Long = 16384
+Private Const MAX_RANGE_AREA As Long = 900
 
 ''' <summary>
 ''' Dispatches an event to the local Python daemon or routes to offline fallback.
@@ -188,7 +191,8 @@ Public Sub PollPendingHaunts()
 
     Dim respText As String
     respText = FetchPendingHaunts()
-    If InStr(respText, """TRIGGER_HAUNT""") > 0 Then
+    If InStr(respText, """command""") > 0 Then
+        ' Queued actions are haunts, or the LOCK_SHEET that seals the archive after the Agent's ritual.
         ' A haunt may write into H7/B18; it must not be mistaken for a player attempt
         Dim eventsWereOn As Boolean
         eventsWereOn = Application.EnableEvents
@@ -206,12 +210,13 @@ Private Function FetchPendingHaunts() As String
     FetchPendingHaunts = ""
     #If Mac Then
         Dim cmd As String
-        cmd = "curl -s -m 1 -X GET " & DAEMON_URL & "/pending"
+        cmd = "curl -s -m 1 -X GET -H ""X-Audit-Client: 1"" " & DAEMON_URL & "/pending"
         FetchPendingHaunts = MacScript("do shell script """ & Replace(cmd, """", "\""") & """")
     #Else
         Dim http As Object
         Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
         http.Open "GET", DAEMON_URL & "/pending", False
+        http.setRequestHeader "X-Audit-Client", "1"
         http.setTimeouts 500, 500, 1000, 1000
         http.send
         If http.Status = 200 Then FetchPendingHaunts = http.responseText
@@ -410,9 +415,10 @@ Private Sub ExecuteHauntAction(ByVal ws As Worksheet, ByVal hType As String, ByV
             targetAddress = Trim$(hCell)
             If Len(targetAddress) = 0 Then targetAddress = Trim$(cellCoord)
 
-            ' Validate target cell coordinates (e.g. A1 to ZZ9999 or range)
+            ' Validate target cell coordinates (A1 to XFD1048576); cell_text writes one cell, never a range
             Dim isTargetValid As Boolean
             isTargetValid = IsValidCellAddress(targetAddress)
+            If InStr(targetAddress, ":") > 0 Then isTargetValid = False
 
             If isTargetValid Then
                 ws.Range(targetAddress).NumberFormat = "@"
@@ -689,31 +695,37 @@ End Function
 
 ''' <summary>
 ''' Validates an Excel cell or range coordinate (e.g. "A1", "H7", "B18", "A13:I13", "K20:AN49").
-''' Disallows special characters, formula prefixes, and invalid bounds.
+''' Disallows special characters, formula prefixes, and invalid bounds (columns up to XFD, rows up to 1048576).
+''' A range may cover at most MAX_RANGE_AREA cells (the largest legitimate target is the 30x30 radar K20:AN49).
 ''' </summary>
 Public Function IsValidCellAddress(ByVal addr As String) As Boolean
     On Error Resume Next
     IsValidCellAddress = False
     Dim cleanAddr As String
     cleanAddr = Trim$(UCase$(addr))
-    If Len(cleanAddr) < 2 Or Len(cleanAddr) > 15 Then Exit Function
+    If Len(cleanAddr) < 2 Or Len(cleanAddr) > 21 Then Exit Function
 
     Dim parts() As String
+    Dim colA As Long, rowA As Long, colB As Long, rowB As Long
     If InStr(cleanAddr, ":") > 0 Then
         parts = Split(cleanAddr, ":")
         If UBound(parts) <> 1 Then Exit Function
-        IsValidCellAddress = IsValidSingleCell(parts(0)) And IsValidSingleCell(parts(1))
+        If Not IsValidSingleCell(parts(0), colA, rowA) Then Exit Function
+        If Not IsValidSingleCell(parts(1), colB, rowB) Then Exit Function
+        ' Double: a whole-sheet span overflows Long
+        If CDbl(Abs(colB - colA) + 1) * CDbl(Abs(rowB - rowA) + 1) > MAX_RANGE_AREA Then Exit Function
+        IsValidCellAddress = True
     Else
-        IsValidCellAddress = IsValidSingleCell(cleanAddr)
+        IsValidCellAddress = IsValidSingleCell(cleanAddr, colA, rowA)
     End If
 End Function
 
-Private Function IsValidSingleCell(ByVal cellRef As String) As Boolean
+Private Function IsValidSingleCell(ByVal cellRef As String, ByRef colNum As Long, ByRef rowNum As Long) As Boolean
     On Error Resume Next
     IsValidSingleCell = False
     Dim l As Long
     l = Len(cellRef)
-    If l < 2 Or l > 7 Then Exit Function
+    If l < 2 Or l > 10 Then Exit Function
 
     Dim i As Long
     Dim colPart As String, rowPart As String
@@ -734,13 +746,21 @@ Private Function IsValidSingleCell(ByVal cellRef As String) As Boolean
     Next i
 
     If Len(colPart) < 1 Or Len(colPart) > 3 Then Exit Function
-    If Len(rowPart) < 1 Or Len(rowPart) > 5 Then Exit Function
+    If Len(rowPart) < 1 Or Len(rowPart) > 7 Then Exit Function
     If Left$(rowPart, 1) = "0" Then Exit Function ' Leading zero invalid
 
     Dim rNum As Long
     rNum = Val(rowPart)
-    If rNum < 1 Or rNum > 65536 Then Exit Function
+    If rNum < 1 Or rNum > MAX_SHEET_ROW Then Exit Function
 
+    Dim cNum As Long, k As Long
+    For k = 1 To Len(colPart)
+        cNum = cNum * 26 + (Asc(Mid$(colPart, k, 1)) - 64)
+    Next k
+    If cNum > MAX_SHEET_COLUMN Then Exit Function ' Beyond XFD
+
+    colNum = cNum
+    rowNum = rNum
     IsValidSingleCell = True
 End Function
 

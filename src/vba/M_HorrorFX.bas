@@ -26,18 +26,17 @@ Public Sub ThudBeep()
 End Sub
 
 ''' <summary>
-''' Window tremor: violently shakes the active Excel window for 400-600ms.
+''' Window tremor: violently shakes the Excel window for 400-600ms (Windows), or flickers the ledger (macOS).
 ''' </summary>
 Public Sub ScreenTremor()
     On Error Resume Next
     #If Mac Then
-        ' macOS: shift active window slightly or toggle screen updating
+        ' macOS: no safe window handle, and scrolling ActiveWindow can hit another workbook and drift.
+        ' Shake the ledger itself with lamp flickers instead.
         Dim i As Long
-        For i = 1 To 6
-            ActiveWindow.SmallScroll Down:=1
-            PlatformSleep 40
-            ActiveWindow.SmallScroll Up:=1
-            PlatformSleep 40
+        For i = 1 To 3
+            FlashKeroseneLamp
+            PlatformSleep 60
         Next i
     #Else
         #If VBA7 Then
@@ -50,8 +49,9 @@ Public Sub ScreenTremor()
         Dim width As Long, height As Long
         Dim shakeStep As Long
         
-        hWnd = GetForegroundWindow()
-        If hWnd <> 0 Then
+        ' Shake Excel only, and only while it is in front: the player may have switched to another application
+        hWnd = Application.Hwnd
+        If hWnd <> 0 And hWnd = GetForegroundWindow() Then
             GetWindowRect hWnd, r
             origX = r.Left
             origY = r.Top

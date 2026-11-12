@@ -1,19 +1,6 @@
-import pytest
 import json
 from src.backend.mcp_server import handle_json_rpc, list_tools, call_tool
 from src.backend.puzzle_state import PuzzleEngine
-
-@pytest.fixture(autouse=True)
-def reset_mcp_engine():
-    import os
-    from src.backend.puzzle_state import PuzzleEngine, GAME_STATE_FILE
-    import src.backend.mcp_server as mcp
-    if os.path.exists(GAME_STATE_FILE):
-        try:
-            os.remove(GAME_STATE_FILE)
-        except Exception:
-            pass
-    mcp.engine = PuzzleEngine()
 
 def test_list_tools():
     tools = list_tools()
@@ -119,14 +106,6 @@ def test_json_rpc_tools_call():
     assert "content" in resp["result"]
     assert "ARCHIVE SEALED" in resp["result"]["content"][0]["text"]
 
-def _break_disk(monkeypatch):
-    import os
-
-    def refuse(src, dst):
-        raise PermissionError(13, "Permission denied")
-
-    monkeypatch.setattr(os, "replace", refuse)
-
 def _tools_call(request_id, name, arguments):
     return handle_json_rpc({
         "jsonrpc": "2.0",
@@ -135,8 +114,8 @@ def _tools_call(request_id, name, arguments):
         "params": {"name": name, "arguments": arguments}
     })
 
-def test_haunt_save_failure_is_a_tool_error_not_a_protocol_error(monkeypatch):
-    _break_disk(monkeypatch)
+def test_haunt_save_failure_is_a_tool_error_not_a_protocol_error(break_disk):
+    break_disk()
 
     resp = _tools_call(10, "haunt_spreadsheet", {"haunt_type": "whisper", "message": "lost"})
 
@@ -145,12 +124,12 @@ def test_haunt_save_failure_is_a_tool_error_not_a_protocol_error(monkeypatch):
     assert resp["result"]["isError"] is True
     assert "could not be saved" in resp["result"]["content"][0]["text"]
 
-def test_ritual_save_failure_does_not_report_victory(monkeypatch):
+def test_ritual_save_failure_does_not_report_victory(break_disk):
     import src.backend.mcp_server as mcp
     from src.backend.puzzle_state import PhaseEnum
     mcp.engine.current_phase = PhaseEnum.MIDNIGHT_SETTLEMENT
     mcp.engine.save_state()
-    _break_disk(monkeypatch)
+    break_disk()
 
     resp = _tools_call(11, "judge_ritual", {"phrase": "SEAL THE DEEP VAULT"})
 
@@ -199,3 +178,59 @@ def test_inspect_ledger_reports_failed_attempts():
     text = call_tool("inspect_ledger", {})["content"][0]["text"]
 
     assert "Failed Attempts: H7=2, B18=0" in text
+
+def test_stdio_server_survives_non_ascii_input_under_an_ascii_locale(tmp_path):
+    import os
+    import subprocess
+    import sys
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    frames = [
+        {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {
+            "name": "haunt_spreadsheet",
+            "arguments": {"haunt_type": "whisper", "message": "你好，审计员"}}},
+        {"jsonrpc": "2.0", "id": 2, "method": "ping"},
+    ]
+    stdin = "".join(json.dumps(f, ensure_ascii=False) + "\n" for f in frames).encode("utf-8")
+    env = dict(os.environ, PYTHONIOENCODING="ascii", GAME_STATE_FILE=str(tmp_path / "game_state.json"))
+
+    proc = subprocess.run([sys.executable, "-m", "src.backend.mcp_server"], input=stdin,
+                          cwd=project_root, env=env, capture_output=True, timeout=30)
+
+    assert proc.returncode == 0, proc.stderr.decode("utf-8", "replace")
+    replies = [json.loads(line) for line in proc.stdout.decode("utf-8").splitlines()]
+    assert [r["id"] for r in replies] == [1, 2]
+    assert "你好，审计员" in replies[0]["result"]["content"][0]["text"]
+
+def test_mcp_ritual_success_queues_the_concluding_actions_for_the_workbook():
+    import src.backend.mcp_server as mcp
+    from src.backend.puzzle_state import PhaseEnum
+    mcp.engine.current_phase = PhaseEnum.MIDNIGHT_SETTLEMENT
+    mcp.engine.save_state()
+
+    resp = _tools_call(30, "judge_ritual", {"phrase": "SEAL THE DEEP VAULT"})
+
+    assert "RITUAL SUCCESSFUL" in resp["result"]["content"][0]["text"]
+    queued = PuzzleEngine(load_existing=True).pending_effects
+    assert [a.get("effect") or a["command"] for a in queued] == ["THUNDER_STROBE", "SCREEN_TREMOR", "LOCK_SHEET"]
+
+def test_mcp_ritual_rejection_queues_nothing():
+    import src.backend.mcp_server as mcp
+    from src.backend.puzzle_state import PhaseEnum
+    mcp.engine.current_phase = PhaseEnum.MIDNIGHT_SETTLEMENT
+    mcp.engine.save_state()
+
+    _tools_call(31, "judge_ritual", {"phrase": "WRONG PHRASE"})
+
+    assert PuzzleEngine(load_existing=True).pending_effects == []
+
+def test_mcp_ritual_save_failure_seals_nothing_and_queues_nothing(break_disk):
+    import src.backend.mcp_server as mcp
+    from src.backend.puzzle_state import PhaseEnum
+    mcp.engine.current_phase = PhaseEnum.MIDNIGHT_SETTLEMENT
+    mcp.engine.save_state()
+    break_disk()
+
+    _tools_call(32, "judge_ritual", {"phrase": "SEAL THE DEEP VAULT"})
+
+    assert mcp.engine.archive_sealed is False
+    assert mcp.engine.pending_effects == []

@@ -1,19 +1,8 @@
 import os
-import pytest
-from src.backend.puzzle_state import PuzzleEngine, PhaseEnum, GAME_STATE_FILE
+from src.backend.puzzle_state import PuzzleEngine, PhaseEnum
 from src.backend.mcp_server import call_tool, handle_json_rpc
 from fastapi.testclient import TestClient
 from src.backend.server import app
-
-@pytest.fixture(autouse=True)
-def reset_edge_state():
-    if os.path.exists(GAME_STATE_FILE):
-        try:
-            os.remove(GAME_STATE_FILE)
-        except Exception:
-            pass
-    import src.backend.server as srv
-    srv.engine = PuzzleEngine()
 
 client = TestClient(app)
 

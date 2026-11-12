@@ -188,7 +188,7 @@ def call_tool(name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
 
         elif name == "judge_ritual":
             phrase = arguments.get("phrase", "")
-            res = engine.judge_ritual(phrase)
+            res = engine.judge_ritual(phrase, deliver_to_workbook=True)
             if res["banished"]:
                 text = f"RITUAL SUCCESSFUL! {res['message']}\nSTAMP: {res['stamp']}"
             else:
@@ -290,9 +290,13 @@ def handle_json_rpc(request: Any) -> Optional[Dict[str, Any]]:
 
 def run_stdio_server():
     """Stdio transport for MCP integration with Kiro IDE or Claude."""
+    # MCP frames are UTF-8 JSON; do not depend on the process locale (Windows code pages, PYTHONIOENCODING)
+    sys.stdin.reconfigure(encoding="utf-8", errors="replace")
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.write("The Midnight Audit MCP Server started over stdio.\n")
     sys.stderr.flush()
     while True:
+        req = None
         try:
             line = sys.stdin.readline(65536)
             if not line:

@@ -4,6 +4,8 @@ import json
 import copy
 import functools
 import tempfile
+import shutil
+import filecmp
 from enum import Enum
 import re
 import contextlib
@@ -167,6 +169,63 @@ VALID_HAUNT_TYPES = {
     "screen_tremor",
 }
 
+MAX_SHEET_COLUMN = 16384  # XFD
+MAX_SHEET_ROW = 1048576
+MAX_HAUNT_AREA = 900  # the largest legitimate target is the 30x30 radar K20:AN49
+
+_CELL_REF_RE = re.compile(r"^([A-Z]{1,3})([1-9]\d{0,6})$")
+
+def validate_haunt_target(target: str, haunt_type: str) -> str:
+    """
+    Validate a haunt target (a cell or a range) against the real sheet bounds; mirrors IsValidCellAddress in VBA.
+    cell_text writes into the target, so it takes a single cell. Other effects may take a range of at most MAX_HAUNT_AREA cells.
+    """
+    clean = str(target).strip().upper()
+    refs = clean.split(":")
+    if len(refs) > 2:
+        raise ValueError("Invalid target cell coordinate.")
+    corners = []
+    for ref in refs:
+        m = _CELL_REF_RE.match(ref)
+        if not m:
+            raise ValueError("Invalid target cell coordinate.")
+        col = 0
+        for ch in m.group(1):
+            col = col * 26 + ord(ch) - 64
+        row = int(m.group(2))
+        if col > MAX_SHEET_COLUMN or row > MAX_SHEET_ROW:
+            raise ValueError("Invalid target cell coordinate.")
+        corners.append((col, row))
+    if len(corners) == 2:
+        if haunt_type == "cell_text":
+            raise ValueError("cell_text needs a single target cell, not a range.")
+        (c1, r1), (c2, r2) = corners
+        if (abs(c2 - c1) + 1) * (abs(r2 - r1) + 1) > MAX_HAUNT_AREA:
+            raise ValueError(f"Target range is larger than {MAX_HAUNT_AREA} cells.")
+    return clean
+
+def _clean_pending_effects(raw: Any) -> List[Dict[str, Any]]:
+    """
+    The queue is transient, so a bad entry is dropped instead of declaring the whole save corrupt (which would
+    lose the player's progress). Only entries the dispatcher can execute survive: a haunt with a known type,
+    or an already built action that carries a command.
+    """
+    if not isinstance(raw, list):
+        return []
+    cleaned = []
+    for entry in raw:
+        if not isinstance(entry, dict):
+            continue
+        if isinstance(entry.get("command"), str):
+            cleaned.append(dict(entry))
+        elif isinstance(entry.get("type"), str) and entry["type"] in VALID_HAUNT_TYPES:
+            cleaned.append({
+                "type": entry["type"],
+                "target_cell": entry.get("target_cell"),
+                "message": entry.get("message"),
+            })
+    return cleaned
+
 class PhaseEnum(str, Enum):
     THE_AUDIT_DISCREPANCY = "THE_AUDIT_DISCREPANCY"
     THE_UNSEEN_INTRUDER = "THE_UNSEEN_INTRUDER"
@@ -221,23 +280,31 @@ class PuzzleEngine:
         }
 
     def from_dict(self, data: Dict[str, Any]) -> None:
-        if not data:
-            return
+        if not isinstance(data, dict) or not data:
+            raise ValueError("Game state must be a non-empty JSON object.")
+        # Parse every field first and assign only when all of them parsed,
+        # so a corrupt file can never leave the engine half loaded.
+        phase = self.current_phase
         if "current_phase" in data:
             try:
-                self.current_phase = PhaseEnum(data["current_phase"])
+                phase = PhaseEnum(data["current_phase"])
             except ValueError:
                 pass
+        pending_effects = _clean_pending_effects(data["pending_effects"]) if "pending_effects" in data else None
+        attempts = {str(k): int(v) for k, v in data["attempts"].items()} if "attempts" in data else None
+        ledger_data = {int(k): v for k, v in data["ledger_data"].items()} if "ledger_data" in data else None
+
+        self.current_phase = phase
         self.row13_awakened = data.get("row13_awakened", self.row13_awakened)
         self.intruder_revealed = data.get("intruder_revealed", self.intruder_revealed)
         self.archive_sealed = data.get("archive_sealed", self.archive_sealed)
         self.hijack_triggered = data.get("hijack_triggered", self.hijack_triggered)
-        if "pending_effects" in data:
-            self.pending_effects = list(data["pending_effects"])
-        if "attempts" in data:
-            self.attempts.update({str(k): int(v) for k, v in data["attempts"].items()})
-        if "ledger_data" in data:
-            self.ledger_data = {int(k): v for k, v in data["ledger_data"].items()}
+        if pending_effects is not None:
+            self.pending_effects = pending_effects
+        if attempts is not None:
+            self.attempts.update(attempts)
+        if ledger_data is not None:
+            self.ledger_data = ledger_data
 
     def save_state(self, filepath: Optional[str] = None) -> None:
         target_path = filepath or GAME_STATE_FILE
@@ -274,6 +341,14 @@ class PuzzleEngine:
                 return True
             except Exception as e:
                 sys.stderr.write(f"Error loading game state from {target_path}: {e}\n")
+                # The next save replaces the unreadable file; keep a copy so it can be repaired by hand
+                # (skipped when the same bytes are already kept: a persistent fault would otherwise copy every poll)
+                backup = target_path + ".corrupt"
+                try:
+                    if not (os.path.exists(backup) and filecmp.cmp(target_path, backup, shallow=False)):
+                        shutil.copyfile(target_path, backup)
+                except OSError:
+                    pass
                 return False
 
     def get_state(self) -> Dict[str, Any]:
@@ -522,7 +597,11 @@ class PuzzleEngine:
         }
 
     @_rolls_back_on_save_failure
-    def judge_ritual(self, phrase: str) -> Dict[str, Any]:
+    def judge_ritual(self, phrase: str, deliver_to_workbook: bool = False) -> Dict[str, Any]:
+        """
+        deliver_to_workbook: for callers that are not the workbook itself (the MCP agent). A successful ritual then
+        also queues its concluding actions, which the workbook receives on its next /api/pending heartbeat.
+        """
         if self.archive_sealed:
             return {
                 "accepted": False,
@@ -551,12 +630,16 @@ class PuzzleEngine:
                         "effect": "SCREEN_TREMOR"
                     },
                     {
-                        "command": "LOCK_SHEET",
-                        "color": PALETTE["COLD_ASH"],
-                        "stamp_range": "B10:H12"
+                        "command": "LOCK_SHEET"
                     }
                 ]
             }
+            if deliver_to_workbook:
+                # Same save as the seal itself, so the archive can never be sealed without the workbook being told
+                for action in res["actions"]:
+                    if len(self.pending_effects) >= 50:
+                        self.pending_effects.pop(0)
+                    self.pending_effects.append(dict(action))
             self.save_state()
             return res
         else:
@@ -580,10 +663,7 @@ class PuzzleEngine:
         if clean_haunt not in VALID_HAUNT_TYPES:
             raise ValueError(f"Invalid haunt type: {haunt_type}")
         if target_cell:
-            cell_clean = str(target_cell).strip().upper()
-            if not re.match(r"^[A-Z]{1,3}\d{1,5}(?::[A-Z]{1,3}\d{1,5})?$", cell_clean):
-                raise ValueError("Invalid target cell coordinate.")
-            target_cell = cell_clean
+            target_cell = validate_haunt_target(target_cell, clean_haunt)
         clean_msg = str(message)[:2000] if message is not None else None
         with file_lock():
             self.load_state()
@@ -600,6 +680,9 @@ class PuzzleEngine:
     def pop_pending_effects(self) -> List[Dict[str, Any]]:
         with file_lock():
             self.load_state()
+            if not self.pending_effects:
+                # The VBA client polls every 3 seconds; an empty queue must not touch the disk
+                return []
             effects = list(self.pending_effects)
             self.pending_effects.clear()
             self.save_state()

@@ -77,7 +77,7 @@ Every Windows API declaration must be protected with `#If...#ElseIf...#End If` d
 
 ### 3.2 macOS Audio & Tremor Fallbacks
 - On macOS, `kernel32` and `user32` are absent. Audio calls fall back to `MacScript("beep")` or terminal visual flash.
-- Screen tremor on macOS performs localized cell scrolling or subtle window displacement via application properties rather than calling raw Win32 `MoveWindow`.
+- Screen tremor on macOS flickers the ledger header (`FlashKeroseneLamp`) instead of moving a window: there is no safe window handle, and scrolling `ActiveWindow` can hit another workbook. On Windows the tremor moves `Application.Hwnd` only, and only while Excel is the foreground window.
 
 ### 3.3 HTTP Transport
 - Windows: `CreateObject("MSXML2.ServerXMLHTTP.6.0")` with 500ms timeout.

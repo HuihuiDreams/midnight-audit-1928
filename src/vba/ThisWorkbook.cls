@@ -17,6 +17,9 @@ Option Explicit
 Private Sub Workbook_Open()
     On Error Resume Next
     InitializeArchiveUI
+    ' Drain what piled up while the workbook was closed (a LOCK_SHEET queued by the Agent's ritual) before
+    ' the state sync marks the archive sealed, which would stop every later poll and leave the sheet unsealed
+    PollPendingHaunts
     SyncDaemonState
     StartHauntPolling
     On Error GoTo 0
