@@ -127,7 +127,7 @@ python3 scripts/build_ledger.py
 ## 🛡️ Kiro 规范系统 (`/.kiro`) 与 Agent 准则
 
 本项目严格遵循 Kiro Agent 引导与规范标准构建：
-- [`AGENTS.md`](AGENTS.md)：核心 Agent 工作准则、整体 UI 设计标准、Karpathy 准则、TDD 协议与故事背景。
+- [`.kiro/steering/agent_guidelines.md`](.kiro/steering/agent_guidelines.md)：核心 Agent 工作准则、整体 UI 设计标准、Karpathy 准则、TDD 协议与故事背景。
 - [`.kiro/steering/architecture.md`](.kiro/steering/architecture.md)：跨平台 PtrSafe VBA 规则与 Windows 文件锁规避。
 - [`.kiro/steering/aesthetic_autopsy.md`](.kiro/steering/aesthetic_autopsy.md)："阴森档案"配色方案、字体规则与第 13 行深渊。
 - [`.kiro/steering/cosmic_entity_persona.md`](.kiro/steering/cosmic_entity_persona.md)：威尔伯·沃特雷的官僚恶魔人格。

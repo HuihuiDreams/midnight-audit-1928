@@ -127,7 +127,7 @@ Because `openpyxl` generates `.xlsx` styling and layout while Excel compiles mac
 ## 🛡️ Kiro Specification System (`/.kiro`) & Agent Guidelines
 
 This project is built under strict compliance with Kiro agent steering and specification standards:
-- [`AGENTS.md`](AGENTS.md): Core agent working guidelines, holistic UI design standards, Karpathy guidelines, TDD protocols, and story lore grounding.
+- [`.kiro/steering/agent_guidelines.md`](.kiro/steering/agent_guidelines.md): Core agent working guidelines, holistic UI design standards, Karpathy guidelines, TDD protocols, and story lore grounding.
 - [`.kiro/steering/architecture.md`](.kiro/steering/architecture.md): Cross-platform PtrSafe VBA rules and Windows file-lock avoidance.
 - [`.kiro/steering/aesthetic_autopsy.md`](.kiro/steering/aesthetic_autopsy.md): "Morbid Archive" color palette, font rules, and Row 13 Abyss.
 - [`.kiro/steering/cosmic_entity_persona.md`](.kiro/steering/cosmic_entity_persona.md): Wilbur Whateley's bureaucratic demon persona.

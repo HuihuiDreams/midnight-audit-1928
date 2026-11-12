@@ -944,10 +944,12 @@ def test_halloween_horror_enhancements():
 
 
 def test_agent_guidelines_and_changelog_integrity():
-    """Verify AGENTS.md exists with required universal guidelines, no conversation IDs, and is tracked in CHANGELOG.md."""
+    """Verify the Kiro steering agent guidelines exist with required rules, no conversation IDs, and are tracked in CHANGELOG.md."""
     repo_root = os.path.dirname(os.path.dirname(__file__))
-    agents_path = os.path.join(repo_root, "AGENTS.md")
-    assert os.path.isfile(agents_path), "AGENTS.md must exist in repo root"
+    agents_path = os.path.join(repo_root, ".kiro", "steering", "agent_guidelines.md")
+    assert os.path.isfile(agents_path), "agent_guidelines.md must exist in .kiro/steering"
+    # The root AGENTS.md was migrated into steering; keeping both would load the rules twice.
+    assert not os.path.exists(os.path.join(repo_root, "AGENTS.md"))
 
     with open(agents_path, "r", encoding="utf-8") as f:
         content = f.read()
@@ -974,10 +976,16 @@ def test_agent_guidelines_and_changelog_integrity():
     assert "Test-Driven Development" in content or "测试驱动开发" in content
     assert "CHANGELOG" in content
 
-    # Verify CHANGELOG.md tracks AGENTS.md
+    # Layout ranges must match the build script and aesthetic_autopsy.md
+    for stale in ("K4:U16", "W4:AN16", "B20:H26", "B28:H49"):
+        assert stale not in content
+    for current in ("K4:AN12", "K13:AN16", "B21:H28", "B30:H48"):
+        assert current in content
+
+    # Verify CHANGELOG.md tracks the steering file
     changelog_path = os.path.join(repo_root, "CHANGELOG.md")
     with open(changelog_path, "r", encoding="utf-8") as f:
         changelog = f.read()
-    assert "AGENTS.md" in changelog
+    assert "agent_guidelines.md" in changelog
 
 

@@ -18,9 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Release Version `1.3.0`**: Bumped MCP `serverInfo.version` (`src/backend/mcp_server.py`) and FastAPI daemon `version` (`src/backend/server.py`) from `1.2.1` to `1.3.0`.
+- **Agent Guidelines Moved to Kiro Steering (`.kiro/steering/agent_guidelines.md`)**: Converted the root `AGENTS.md` into an always-included Kiro steering rule and removed `AGENTS.md`, so Kiro no longer loads the same guidelines twice. Relative links now resolve from `.kiro/steering/`, the architecture section points to `architecture.md` instead of repeating its diagram, delegation now refers to `invoke_sub_agent`, and the verification hook is mentioned in the TDD section. `README.md` and `README_CN.md` link to the new path.
 
 ### Fixed
 
+- Corrected stale cell ranges in the agent guidelines to match `scripts/build_ledger.py` and `aesthetic_autopsy.md`: handover note `K4:AN12` (was `K4:U16`), night protocol card `K13:AN16` (was `W4:AN16`), cipher strip `B21:H28` (was `B20:H26`), Armitage memorandum `B30:H48` plus plaque `B50:H50` (was `B28:H49`).
+- Corrected the conditional-compilation order in the agent guidelines to `#If Mac ... #ElseIf VBA7 ... #Else`, matching `architecture.md`.
 - Standardized MCP and verification-hook execution on cross-platform `uv`, which resolves project dependencies without OS-specific `.venv` paths.
 - Constrained the generated template to the canonical `A1:AN50` canvas and stabilized its workbook core metadata across equivalent builds.
 
