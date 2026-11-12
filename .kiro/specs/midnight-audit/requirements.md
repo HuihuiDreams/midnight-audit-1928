@@ -75,7 +75,7 @@ The player is the night auditor of the Miskatonic University Annex Archive on **
 
 **User story:** As the Kiro agent playing the Auditor, I want tools to watch and haunt the ledger.
 
-1. WHEN Kiro calls `initialize` THE SYSTEM SHALL return `serverInfo` `{ "name": "midnight-audit-mcp", "version": "1.3.0" }`.
+1. WHEN Kiro calls `initialize` THE SYSTEM SHALL return `serverInfo` `{ "name": "midnight-audit-mcp", "version": "1.3.1" }`.
 2. WHEN Kiro calls `inspect_ledger` THE SYSTEM SHALL return the current phase, ledger rows for `target_range` (cell, row, or range), and the anomaly dossier when `include_anomalies` is true.
 3. WHEN Kiro calls `haunt_spreadsheet` with a recognised `haunt_type` THE SYSTEM SHALL queue the effect in `game_state.json` for the VBA client to pull via `/api/status`.
 4. WHEN `haunt_spreadsheet` receives an unknown `haunt_type` or malformed `target_cell` THE SYSTEM SHALL reject it without queueing.

@@ -42,6 +42,7 @@ The Midnight Audit stitches three disparate eras of computing into an unholy, li
 2. **In-Flight Cell Mutation**:
    - Primary: VBA hooks report user actions via lightweight HTTP POST requests to `http://127.0.0.1:8000/api/event`.
    - VBA applies the returned JSON mutation instructions (`Interior.Color`, `Value`, `Font.Color`, `Blink`) directly inside the Excel application thread.
+   - Haunts queued by the Agent are fetched by a 3-second `Application.OnTime` heartbeat (`GET /api/pending`, `StartHauntPolling` / `StopHauntPolling`); the poller is cancelled on `EmergencyReset`, workbook close, and archive seal, and never falls back to the offline engine.
    - Secondary (Windows optional): `xlwings` / COM dispatch can be used if explicit out-of-process control is desired, but the HTTP API bridge is the canonical cross-platform mechanism.
 3. **Offline Fallback**: If the Python daemon is unreachable, the VBA client automatically falls back to an embedded, zero-dependency offline puzzle rule engine without crashing.
 

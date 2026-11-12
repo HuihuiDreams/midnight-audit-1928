@@ -24,6 +24,8 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     
     ' Check for Late Fee input in H7
     If Not Intersect(Target, Me.Range("H7")) Is Nothing Then
+        ' A cleared cell is not an attempt
+        If Len(Trim$(CStr(Me.Range("H7").Value))) = 0 Then Exit Sub
         Application.EnableEvents = False
         PostEvent "cell_change", "H7", CStr(Me.Range("H7").Value)
         Application.EnableEvents = True
@@ -32,6 +34,8 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     
     ' Check for Override Code input in B18
     If Not Intersect(Target, Me.Range("B18")) Is Nothing Then
+        ' A cleared cell is not an attempt
+        If Len(Trim$(CStr(Me.Range("B18").Value))) = 0 Then Exit Sub
         Application.EnableEvents = False
         PostEvent "cell_change", "B18", CStr(Me.Range("B18").Value)
         Application.EnableEvents = True

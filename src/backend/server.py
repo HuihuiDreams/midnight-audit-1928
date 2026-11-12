@@ -15,12 +15,12 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Optional, Any
 import uvicorn
 
-from src.backend.puzzle_state import PuzzleEngine, PhaseEnum, file_lock
+from src.backend.puzzle_state import PuzzleEngine, StateSaveError, file_lock
 
 app = FastAPI(
     title="The Midnight Audit (1928) — Local Daemon Bridge",
     description="Bridge connecting 1990s Excel VBA Client with 2026 Kiro Agent Mastermind.",
-    version="1.3.0"
+    version="1.3.1"
 )
 
 class SecurityHeadersAndOriginMiddleware(BaseHTTPMiddleware):
@@ -42,6 +42,13 @@ class SecurityHeadersAndOriginMiddleware(BaseHTTPMiddleware):
         return response
 
 app.add_middleware(SecurityHeadersAndOriginMiddleware)
+
+@app.exception_handler(StateSaveError)
+async def state_save_error_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Game state could not be saved; the entry was not applied."}
+    )
 
 engine = PuzzleEngine(load_existing=True)
 
@@ -69,6 +76,17 @@ class HauntRequest(BaseModel):
 
 class BanishRequest(BaseModel):
     phrase: str = Field(..., max_length=500)
+
+def haunt_actions(pending):
+    return [
+        {
+            "command": "TRIGGER_HAUNT",
+            "haunt_type": p["type"],
+            "cell": p["target_cell"],
+            "message": p["message"]
+        }
+        for p in pending
+    ]
 
 @app.get("/")
 def root():
@@ -110,20 +128,23 @@ def handle_event(req: EventRequest):
                 "message": f"Unknown event type: {req.event_type}"
             }
 
-        # Append any queued haunt actions to response
-        pending = engine.pop_pending_effects()
+        # Append any queued haunt actions to response. Delivery is best effort:
+        # if the queue cannot be saved, the haunts stay queued and the result above is still returned.
+        try:
+            pending = engine.pop_pending_effects()
+        except StateSaveError:
+            pending = []
         if pending:
-            actions = res.get("actions", [])
-            for p in pending:
-                actions.append({
-                    "command": "TRIGGER_HAUNT",
-                    "haunt_type": p["type"],
-                    "cell": p["target_cell"],
-                    "message": p["message"]
-                })
-            res["actions"] = actions
+            res["actions"] = res.get("actions", []) + haunt_actions(pending)
 
         return res
+
+@app.get("/api/pending")
+def get_pending():
+    # Polled by the VBA client so haunts appear without waiting for the next player event
+    with file_lock():
+        engine.load_state()
+        return {"actions": haunt_actions(engine.pop_pending_effects())}
 
 @app.get("/api/pixel_radar")
 def get_pixel_radar():
@@ -150,8 +171,9 @@ def banish(req: BanishRequest):
 def reset_game():
     global engine
     with file_lock():
-        engine = PuzzleEngine()
-        engine.save_state()
+        fresh_engine = PuzzleEngine()
+        fresh_engine.save_state()
+        engine = fresh_engine
         return {"reset": True, "phase": 1}
 
 if __name__ == "__main__":

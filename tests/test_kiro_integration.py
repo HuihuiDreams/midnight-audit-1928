@@ -5,7 +5,7 @@ from src.backend.mcp_server import handle_json_rpc
 from src.backend.server import app
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RELEASE_VERSION = "1.3.0"
+RELEASE_VERSION = "1.3.1"
 
 
 def _load_json(*parts):
@@ -47,9 +47,30 @@ def test_kiro_verification_hook():
     hook = _load_json(".kiro", "hooks", "verify-backend-and-ledger.json")["hooks"][0]
     assert hook["trigger"] == "PostFileSave"
     assert hook["action"]["command"] == (
-        "uv run --with-requirements requirements.txt python -m pytest -q "
+        "uv run --with-requirements requirements-dev.txt python -m pytest -q "
         "&& uv run --with-requirements requirements.txt python scripts/build_ledger.py"
     )
+
+
+def _requirement_names(filename):
+    with open(os.path.join(PROJECT_ROOT, filename), encoding="utf-8") as f:
+        lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+    return lines
+
+
+def test_runtime_requirements_exclude_test_tooling():
+    runtime = " ".join(_requirement_names("requirements.txt"))
+    for needed in ("fastapi", "uvicorn", "openpyxl", "pydantic"):
+        assert needed in runtime
+    for dev_only in ("pytest", "httpx"):
+        assert dev_only not in runtime
+
+
+def test_dev_requirements_extend_runtime_requirements():
+    dev = _requirement_names("requirements-dev.txt")
+    assert "-r requirements.txt" in dev
+    assert any(line.startswith("pytest") for line in dev)
+    assert any(line.startswith("httpx") for line in dev)
 
 
 def test_kiro_spec_folder_complete():

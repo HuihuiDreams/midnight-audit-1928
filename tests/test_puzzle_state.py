@@ -1,5 +1,27 @@
+import os
 import pytest
-from src.backend.puzzle_state import PuzzleEngine, PhaseEnum, PALETTE
+from src.backend.puzzle_state import PuzzleEngine, PhaseEnum, PALETTE, StateSaveError
+
+def _break_disk(monkeypatch):
+    """Make every state write fail (as a locked or read-only state file would); returns the real os.replace."""
+    real_replace = os.replace
+
+    def refuse(src, dst):
+        raise PermissionError(13, "Permission denied")
+
+    monkeypatch.setattr(os, "replace", refuse)
+    return real_replace
+
+def _engine_at_phase(phase):
+    engine = PuzzleEngine()
+    if phase >= 2:
+        engine.handle_cell_change("H7", "7.00")
+    if phase >= 3:
+        engine.handle_reagent_spray()
+    if phase >= 4:
+        engine.handle_cell_change("B18", "S")
+        engine.handle_cell_change("B18", "SEAL THE DEEP VAULT")
+    return engine
 
 def test_initial_puzzle_state():
     engine = PuzzleEngine()
@@ -130,3 +152,189 @@ def test_state_persistence(tmp_path):
     assert loaded is True
     assert engine2.phase_number == 2
     assert engine2.row13_awakened is True
+
+def test_save_state_failure_raises_and_leaves_no_temp_files(tmp_path, monkeypatch, capsys):
+    target = tmp_path / "failing_game_state.json"
+    _break_disk(monkeypatch)
+
+    with pytest.raises(StateSaveError):
+        PuzzleEngine().save_state(str(target))
+
+    assert "Error saving game state" in capsys.readouterr().err
+    assert not target.exists()
+    assert [p.name for p in tmp_path.iterdir() if p.suffix != ".lock"] == []
+
+def test_phase_1_save_failure_rolls_back_memory(monkeypatch):
+    engine = PuzzleEngine()
+    _break_disk(monkeypatch)
+
+    with pytest.raises(StateSaveError):
+        engine.handle_cell_change("H7", "7.00")
+
+    assert engine.phase_number == 1
+    assert engine.row13_awakened is False
+    assert engine.ledger_data[7]["fee"] is None
+    assert engine.ledger_data[7]["status"] == "FLAGGED"
+
+def test_reagent_spray_save_failure_rolls_back_memory(monkeypatch):
+    engine = _engine_at_phase(2)
+    _break_disk(monkeypatch)
+
+    with pytest.raises(StateSaveError):
+        engine.handle_reagent_spray()
+
+    assert engine.phase_number == 2
+    assert engine.intruder_revealed is False
+
+def test_hijack_save_failure_rolls_back_so_next_entry_still_hijacks(monkeypatch):
+    engine = _engine_at_phase(3)
+    real_replace = _break_disk(monkeypatch)
+
+    with pytest.raises(StateSaveError):
+        engine.handle_cell_change("B18", "S")
+    assert engine.hijack_triggered is False
+
+    monkeypatch.setattr(os, "replace", real_replace)
+    assert engine.handle_cell_change("B18", "S")["hijacked"] is True
+
+def test_override_code_save_failure_keeps_phase_3(monkeypatch):
+    engine = _engine_at_phase(3)
+    engine.handle_cell_change("B18", "S")
+    _break_disk(monkeypatch)
+
+    with pytest.raises(StateSaveError):
+        engine.handle_cell_change("B18", "SEAL THE DEEP VAULT")
+
+    assert engine.phase_number == 3
+
+def test_ritual_save_failure_does_not_seal_archive(monkeypatch):
+    engine = _engine_at_phase(4)
+    _break_disk(monkeypatch)
+
+    with pytest.raises(StateSaveError):
+        engine.judge_ritual("SEAL THE DEEP VAULT")
+
+    assert engine.archive_sealed is False
+    assert engine.phase_number == 4
+
+def test_haunt_queue_save_failure_rolls_back(monkeypatch):
+    engine = PuzzleEngine()
+    _break_disk(monkeypatch)
+
+    with pytest.raises(StateSaveError):
+        engine.queue_haunt("whisper", None, "lost")
+
+    assert engine.pending_effects == []
+
+def test_pop_pending_effects_save_failure_keeps_effects_queued(monkeypatch):
+    engine = PuzzleEngine()
+    engine.queue_haunt("whisper", None, "still queued")
+    _break_disk(monkeypatch)
+
+    with pytest.raises(StateSaveError):
+        engine.pop_pending_effects()
+
+    assert len(engine.pending_effects) == 1
+
+def test_rejected_inputs_do_not_need_the_disk(monkeypatch):
+    phase_1 = PuzzleEngine()
+    phase_3 = _engine_at_phase(3)
+    phase_3.handle_cell_change("B18", "S")
+    phase_4 = _engine_at_phase(4)
+    _break_disk(monkeypatch)
+
+    assert phase_1.handle_cell_change("H7", "1.00")["accepted"] is False
+    assert phase_1.handle_cell_change("H7", "not a number")["accepted"] is False
+    assert phase_3.handle_cell_change("B18", "WRONG CODE")["accepted"] is False
+    assert phase_4.judge_ritual("HELLO GHOST")["banished"] is False
+
+def test_missing_state_file_resets_engine_to_new_game():
+    engine = _engine_at_phase(3)
+    from src.backend.puzzle_state import GAME_STATE_FILE
+    assert os.path.exists(GAME_STATE_FILE)
+    os.remove(GAME_STATE_FILE)
+
+    assert engine.load_state() is False
+
+    assert engine.phase_number == 1
+    assert engine.row13_awakened is False
+    assert engine.intruder_revealed is False
+    assert engine.ledger_data[7]["fee"] is None
+    assert engine.ledger_data[7]["status"] == "FLAGGED"
+
+@pytest.mark.parametrize("empty_value", ["", "   ", None])
+def test_empty_entry_is_ignored_without_penalty(empty_value):
+    phase_1 = PuzzleEngine()
+    res = phase_1.handle_cell_change("H7", empty_value)
+    assert res["accepted"] is False
+    assert "actions" not in res
+    assert phase_1.phase_number == 1
+
+    phase_3 = _engine_at_phase(3)
+    res = phase_3.handle_cell_change("B18", empty_value)
+    assert res["accepted"] is False
+    assert "actions" not in res
+    assert phase_3.hijack_triggered is False
+
+def test_wrong_fee_attempts_are_counted():
+    engine = PuzzleEngine()
+    assert engine.get_state()["attempts"] == {"H7": 0, "B18": 0}
+
+    engine.handle_cell_change("H7", "5.00")
+    engine.handle_cell_change("H7", "not a number")
+    engine.handle_cell_change("H7", "")          # cleared cell is not an attempt
+    assert engine.attempts["H7"] == 2
+
+    engine.handle_cell_change("H7", "7.00")      # the correct fee is not a failed attempt
+    assert engine.attempts["H7"] == 2
+
+def test_wrong_cipher_attempts_are_counted_but_the_hijack_is_not():
+    engine = _engine_at_phase(3)
+
+    engine.handle_cell_change("B18", "S")        # first entry is hijacked, not judged
+    assert engine.attempts["B18"] == 0
+
+    engine.handle_cell_change("B18", "WRONG")
+    engine.handle_cell_change("B18", "STILL WRONG")
+    assert engine.attempts["B18"] == 2
+
+    engine.handle_cell_change("B18", "SEAL THE DEEP VAULT")
+    assert engine.attempts["B18"] == 2
+
+def test_attempts_persist_across_load_and_reset_with_a_new_game(tmp_path):
+    state_file = str(tmp_path / "attempts_state.json")
+    engine = PuzzleEngine()
+    engine.handle_cell_change("H7", "1.00")
+    engine.save_state(state_file)
+
+    reloaded = PuzzleEngine()
+    reloaded.load_state(state_file)
+    assert reloaded.attempts["H7"] == 1
+
+    assert PuzzleEngine().attempts == {"H7": 0, "B18": 0}
+
+def test_attempt_counting_never_turns_feedback_into_an_error(monkeypatch):
+    engine = PuzzleEngine()
+    _break_disk(monkeypatch)
+
+    res = engine.handle_cell_change("H7", "1.00")
+
+    assert res["accepted"] is False
+    assert "actions" in res
+
+def test_entity_face_matrix_is_30x30_and_uses_only_legend_characters():
+    from src.backend.puzzle_state import ENTITY_FACE_MATRIX, ENTITY_FACE_LEGEND
+
+    assert len(ENTITY_FACE_MATRIX) == 30
+    assert {len(row) for row in ENTITY_FACE_MATRIX} == {30}
+    assert set("".join(ENTITY_FACE_MATRIX)) <= set(ENTITY_FACE_LEGEND)
+    assert set(ENTITY_FACE_LEGEND.values()) <= set(PALETTE)
+
+def test_pixel_radar_grid_is_built_from_the_face_matrix():
+    from src.backend.puzzle_state import ENTITY_FACE_MATRIX, ENTITY_FACE_LEGEND
+
+    grid = PuzzleEngine().get_pixel_radar()["grid"]
+
+    for r, row in enumerate(ENTITY_FACE_MATRIX):
+        for c, ch in enumerate(row):
+            assert grid[r][c] == PALETTE[ENTITY_FACE_LEGEND[ch]]

@@ -8,7 +8,7 @@ if PROJECT_ROOT not in sys.path:
 import json
 import re
 from typing import Dict, Any, List, Optional, Set
-from src.backend.puzzle_state import PuzzleEngine, file_lock
+from src.backend.puzzle_state import PuzzleEngine, StateSaveError, file_lock
 
 engine = PuzzleEngine(load_existing=True)
 
@@ -94,13 +94,20 @@ def list_tools() -> List[Dict[str, Any]]:
         }
     ]
 
+def tool_error(text: str) -> Dict[str, Any]:
+    return {"content": [{"type": "text", "text": text}], "isError": True}
+
 def call_tool(name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
     global engine
+    if not isinstance(arguments, dict):
+        return tool_error("Tool arguments must be a JSON object.")
     with file_lock():
         engine.load_state()
 
         if name == "inspect_ledger":
             target = arguments.get("target_range")
+            if target is not None and not isinstance(target, str):
+                return tool_error("target_range must be a string.")
             include_anomalies = arguments.get("include_anomalies", False)
             state = engine.get_state()
             
@@ -110,6 +117,7 @@ def call_tool(name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
                 f"Row 13 Awakened: {state['row13_awakened']}",
                 f"Intruder Revealed: {state['intruder_revealed']}",
                 f"Archive Sealed: {state['archive_sealed']}",
+                f"Failed Attempts: H7={state['attempts'].get('H7', 0)}, B18={state['attempts'].get('B18', 0)}",
                 ""
             ]
 
@@ -128,7 +136,10 @@ def call_tool(name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
                         lines.append("Abyss Message: 'STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS'")
                     matched = True
                 if 18 in target_rows:
-                    lines.append(f"Cell B18: Override Code Cell (Phase 3). Hijack triggered: {engine.hijack_triggered}")
+                    lines.append(
+                        "Row 18: Control bar - B18 Override Code Cell (Phase 3), C18:D18 [ SEAL ARCHIVE ], "
+                        f"K18:AN18 [ SPRAY REAGENT ]. Hijack triggered: {engine.hijack_triggered}"
+                    )
                     matched = True
                 if not matched:
                     lines.append(f"Target range {t_upper} appears standard or within ledger scope.")
@@ -206,6 +217,15 @@ def handle_json_rpc(request: Any) -> Optional[Dict[str, Any]]:
     req_id = request.get("id")
     method = request.get("method")
     params = request.get("params") or {}
+    if not isinstance(params, dict):
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "error": {
+                "code": -32602,
+                "message": "Invalid params: expected a JSON object"
+            }
+        }
 
     if method == "ping":
         return {
@@ -224,7 +244,7 @@ def handle_json_rpc(request: Any) -> Optional[Dict[str, Any]]:
                 },
                 "serverInfo": {
                     "name": "midnight-audit-mcp",
-                    "version": "1.3.0"
+                    "version": "1.3.1"
                 }
             }
         }
@@ -240,7 +260,10 @@ def handle_json_rpc(request: Any) -> Optional[Dict[str, Any]]:
         tool_name = params.get("name")
         arguments = params.get("arguments") or {}
         try:
-            result = call_tool(tool_name, arguments)
+            try:
+                result = call_tool(tool_name, arguments)
+            except StateSaveError as e:
+                result = tool_error(str(e))
             return {
                 "jsonrpc": "2.0",
                 "id": req_id,

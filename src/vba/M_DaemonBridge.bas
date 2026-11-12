@@ -10,6 +10,8 @@ Private Const DAEMON_URL As String = "http://127.0.0.1:8000/api"
 Public gLocalPhase As Long
 Public gHijackTriggered As Boolean
 Public gArchiveSealed As Boolean
+Private Const HAUNT_POLL_INTERVAL As String = "00:00:03"
+Private mNextPollTime As Double
 
 ''' <summary>
 ''' Dispatches an event to the local Python daemon or routes to offline fallback.
@@ -31,6 +33,7 @@ Public Sub PostEvent(ByVal eventType As String, Optional ByVal cellCoord As Stri
     #If Mac Then
         ' Mac safe curl transport via unique temporary file to mitigate /tmp symlink attacks
         Dim tmpFile As String
+        Randomize
         tmpFile = "/tmp/ma_payload_" & Format(Now, "hhnnss") & "_" & Int(Rnd * 100000) & ".json"
         On Error Resume Next
         Kill tmpFile
@@ -54,8 +57,9 @@ Public Sub PostEvent(ByVal eventType As String, Optional ByVal cellCoord As Stri
             ProcessDaemonResponse respText, cellCoord
             Exit Sub
         ElseIf Len(respText) > 0 Then
-            ' Server is reachable and responded with non-200 (e.g. 400/422).
+            ' Server is reachable and responded with non-200 (e.g. 400/422/500).
             ' Do NOT fall back to offline mode, to avoid state divergence.
+            ReportDaemonRefusal
             Exit Sub
         End If
     #Else
@@ -71,8 +75,9 @@ Public Sub PostEvent(ByVal eventType As String, Optional ByVal cellCoord As Stri
             ProcessDaemonResponse http.responseText, cellCoord
             Exit Sub
         ElseIf http.Status > 0 Then
-            ' Server is reachable and responded with non-200 (e.g. 400/422).
+            ' Server is reachable and responded with non-200 (e.g. 400/422/500).
             ' Do NOT fall back to offline mode, to avoid state divergence.
+            ReportDaemonRefusal
             Exit Sub
         End If
     #End If
@@ -85,6 +90,17 @@ FallbackHandler:
     #End If
     ' Python daemon is not running; seamlessly route to local offline rule engine
     HandleOfflineEvent eventType, cellCoord, cellVal, buttonName
+End Sub
+
+''' <summary>
+''' Tells the player the daemon refused the entry (for example when it could not save game state),
+''' so a silent no-op is not mistaken for a broken workbook.
+''' </summary>
+Private Sub ReportDaemonRefusal()
+    On Error Resume Next
+    Application.DisplayStatusBar = True
+    Application.StatusBar = "THE LEDGER REFUSES THE ENTRY - NOTHING WAS RECORDED. TRY AGAIN."
+    On Error GoTo 0
 End Sub
 
 ''' <summary>
@@ -135,6 +151,75 @@ OfflineSync:
     ' Daemon is offline; initialize to phase 1 if not already set
     If gLocalPhase = 0 Then gLocalPhase = 1
 End Sub
+
+''' <summary>
+''' Starts the background heartbeat that fetches haunts queued by the Kiro Agent (GET /api/pending),
+''' so they appear while the player is thinking instead of waiting for the next edit or click.
+''' </summary>
+Public Sub StartHauntPolling()
+    On Error Resume Next
+    StopHauntPolling
+    If gArchiveSealed Then Exit Sub
+    mNextPollTime = Now + TimeValue(HAUNT_POLL_INTERVAL)
+    Application.OnTime mNextPollTime, "PollPendingHaunts"
+    On Error GoTo 0
+End Sub
+
+''' <summary>
+''' Cancels the pending poll timer (EmergencyReset, workbook close, archive sealed).
+''' </summary>
+Public Sub StopHauntPolling()
+    On Error Resume Next
+    If mNextPollTime <> 0 Then
+        Application.OnTime mNextPollTime, "PollPendingHaunts", , False
+        mNextPollTime = 0
+    End If
+    On Error GoTo 0
+End Sub
+
+''' <summary>
+''' One heartbeat: fetch queued haunts, run them, schedule the next beat.
+''' A silent or refusing daemon is ignored; polling never falls back to the offline engine.
+''' </summary>
+Public Sub PollPendingHaunts()
+    On Error Resume Next
+    mNextPollTime = 0
+    If gArchiveSealed Then Exit Sub
+
+    Dim respText As String
+    respText = FetchPendingHaunts()
+    If InStr(respText, """TRIGGER_HAUNT""") > 0 Then
+        ' A haunt may write into H7/B18; it must not be mistaken for a player attempt
+        Dim eventsWereOn As Boolean
+        eventsWereOn = Application.EnableEvents
+        Application.EnableEvents = False
+        ProcessDaemonResponse respText
+        Application.EnableEvents = eventsWereOn
+    End If
+
+    StartHauntPolling
+    On Error GoTo 0
+End Sub
+
+Private Function FetchPendingHaunts() As String
+    On Error GoTo FetchFailed
+    FetchPendingHaunts = ""
+    #If Mac Then
+        Dim cmd As String
+        cmd = "curl -s -m 1 -X GET " & DAEMON_URL & "/pending"
+        FetchPendingHaunts = MacScript("do shell script """ & Replace(cmd, """", "\""") & """")
+    #Else
+        Dim http As Object
+        Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+        http.Open "GET", DAEMON_URL & "/pending", False
+        http.setTimeouts 500, 500, 1000, 1000
+        http.send
+        If http.Status = 200 Then FetchPendingHaunts = http.responseText
+    #End If
+    Exit Function
+FetchFailed:
+    FetchPendingHaunts = ""
+End Function
 
 ''' <summary>
 ''' Executes returned server commands (JSON parser helper for standard actions)
@@ -255,12 +340,14 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                     Case "LOCK_SHEET"
                         gArchiveSealed = True
                         StopEyeBlink
+                        StopHauntPolling
                         ws.Range("B10:H12").Value = Empty
                         ws.Range("B10:H12").Interior.Color = COLOR_COLD_ASH
                         ws.Range("B10:H12").Font.Color = COLOR_WARNING_RED
                         ws.Range("B10").Value = "[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]"
                         ws.Range("B11").Value = "ALL BALANCES CANCELLED BY ORDER OF ARMITAGE"
                         ws.Range("B12").Value = "REST NOW, AUDITOR. THE VOID BOOKS ARE CLOSED."
+                        ws.Protect
                         MsgBox "ARCHIVE SEALED. The entity has been banished into the floorboards.", vbInformation, "Audit Terminated"
 
                     Case "TRIGGER_HAUNT"
@@ -683,10 +770,10 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
             ws.Range("A13").Font.Color = COLOR_WARNING_RED
             ws.Range("A13").Value = "STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS"
 
-            ' Reveal censored rows 14-16
+            ' Reveal censored rows 14-16 by recoloring only (same as the daemon path);
+            ' the pre-printed I14 text already carries the radar coordinate.
             ws.Range("A14:I16").Interior.Color = COLOR_DECAYING_PAPER
             ws.Range("A14:I16").Font.Color = COLOR_CARBON
-            ws.Range("B14").Value = "COORDINATE DISCLOSED: RADAR GRID K20:AN49"
 
             ThudBeep
             ScreenTremor
@@ -742,6 +829,7 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
     If gLocalPhase = 4 And Not gArchiveSealed And (eventType = "banish" Or buttonName = "SEAL_ARCHIVE") Then
         gArchiveSealed = True
         StopEyeBlink
+        StopHauntPolling
         ThunderInvert
         ScreenTremor
 
@@ -752,6 +840,7 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
         ws.Range("B10").Value = "[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]"
         ws.Range("B11").Value = "ALL BALANCES CANCELLED BY ORDER OF ARMITAGE"
         ws.Range("B12").Value = "REST NOW, AUDITOR. THE VOID BOOKS ARE CLOSED."
+        ws.Protect
 
         MsgBox "ARCHIVE SEALED. The entity has been banished into the floorboards.", vbInformation, "Audit Terminated"
     End If

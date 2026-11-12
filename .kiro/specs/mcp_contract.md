@@ -24,10 +24,12 @@ Returns the current phase, active anomalies, and queued instructions for the VBA
   "pending_effects": [
     {
       "type": "cell_text",
-      "cell": "A13",
-      "value": "STOP AUDITING ROW 13."
+      "target_cell": "A13",
+      "message": "STOP AUDITING ROW 13."
     }
-  ]
+  ],
+  "attempts": {"H7": 0, "B18": 0},
+  "records_count": 7
 }
 ```
 
@@ -112,6 +114,30 @@ Returns the 30x30 matrix of hex colors for rendering the chemical developer reve
 }
 ```
 
+### 2.5 `GET /api/pending`
+
+Pops every queued haunt and returns it as `TRIGGER_HAUNT` actions, in the same shape `/api/event` appends to its responses. The VBA client polls this every 3 seconds (`StartHauntPolling`) so haunts queued by the Kiro Agent appear while the player is idle. An empty queue returns `{"actions": []}`. If the pop cannot be saved the daemon answers `500` and the haunts stay queued; the poller ignores non-200 replies.
+
+- **Response**:
+```json
+{
+  "actions": [
+    {"command": "TRIGGER_HAUNT", "haunt_type": "cell_text", "cell": "A13", "message": "DID DR. ARMITAGE AUTHORIZE YOUR OVERTIME?"}
+  ]
+}
+```
+
+`attempts` in `/api/status` counts rejected entries per input cell (`H7` wrong or non-numeric fee, `B18` wrong override code after the first-entry hijack). Cleared cells and correct answers are not counted. `inspect_ledger` prints the same counts as `Failed Attempts: H7=<n>, B18=<n>`.
+
+### 2.6 Persistence Failures
+
+Any endpoint that changes game state (`/api/event`, `/api/haunt`, `/api/banish`, `/api/reset`, `/api/pending`) writes `game_state.json` before answering. If the write fails, the in-memory state is rolled back and the daemon answers:
+
+- **Status**: `500`
+- **Body**: `{"detail": "Game state could not be saved; the entry was not applied."}`
+
+Clients must treat this as "nothing happened" and must not fall back to the offline engine. Rejected inputs (wrong fee, wrong cipher, wrong ritual phrase) are still answered normally; their attempt counter is saved on a best-effort basis. Haunt delivery on `/api/event` is best effort: if only the queue cannot be saved, the event result is still returned and the haunts stay queued.
+
 ---
 
 ## 3. Kiro Model Context Protocol (MCP) Tool Schemas
@@ -180,3 +206,10 @@ Allows the Kiro Agent to evaluate a freeform player ritual or sealing incantatio
 }
 ```
 - **Returns**: Judgement object indicating whether the ritual succeeds, along with supernatural dialogue and concluding effects.
+
+### 3.4 Invalid Arguments
+
+Arguments of the wrong type (non-object `arguments`, non-string `target_range`, non-string `target_cell`) return a normal result with `"isError": true`. A non-object `params` on `tools/call` returns JSON-RPC error `-32602`. `inspect_ledger` describes any target in row 18 as the control bar (B18 override cell, C18:D18 `[ SEAL ARCHIVE ]`, K18:AN18 `[ SPRAY REAGENT ]`).
+
+### 3.5 Persistence Failures
+If a tool changes state and the write to `game_state.json` fails (`haunt_spreadsheet`, `judge_ritual`), the in-memory state is rolled back and the tool returns a normal result with `"isError": true` and a text block starting with `Game state could not be saved`. The call is not reported as a JSON-RPC protocol error.

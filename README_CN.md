@@ -32,7 +32,7 @@ cd "The Midnight Audit (1928)"
 # 创建 Python 虚拟环境
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # runtime + test tools (use requirements.txt for runtime only)
 
 # 安装 uv（Kiro MCP 与验证钩子需要）
 # macOS 使用 Homebrew:
@@ -54,7 +54,7 @@ python3 -m src.backend.server
 手动验证相同命令：
 
 ```bash
-uv run --with-requirements requirements.txt python -m pytest -q && \
+uv run --with-requirements requirements-dev.txt python -m pytest -q && \
   uv run --with-requirements requirements.txt python scripts/build_ledger.py
 ```
 
@@ -75,7 +75,7 @@ python3 scripts/build_ledger.py
    - 在 VBA 编辑器菜单中选择 **文件 > 导入文件...**，从 `src/vba/` 导入以下 3 个 `.bas` 文件：
      - `src/vba/M_Bootstrap.bas`
      - `src/vba/M_DaemonBridge.bas`
-     - `src/vba/M_HorrorFX.bas`
+     - `src/vba/M_HorrorFX.bas`（内含 30×30 实体面孔点阵的生成副本；修改 `puzzle_state.py` 中的 `ENTITY_FACE_MATRIX` 后，运行 `python scripts/sync_vba_radar.py` 并重新导入）
 4. **粘贴 2 个文档事件类（`.cls` 文件 — 仅限复制粘贴）**：
    - ⚠️ *重要*：`Sheet1_Archive.cls` 和 `ThisWorkbook.cls` 是 Excel 文档类模块。**切勿**使用 *文件 > 导入文件*（导入会创建无法拦截工作表/工作簿事件的独立类模块）。
    - 在左侧 VBA 工程树中双击 **`Sheet1 (Audit_Ledger_1928)`**，用文本编辑器打开 `src/vba/Sheet1_Archive.cls`，复制**从第 10 行 `Option Explicit` 到末尾的所有代码**（跳过前 9 行 `VERSION 1.0 CLASS ... Attribute VB_...`），粘贴到 `Sheet1` 代码窗口。

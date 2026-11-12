@@ -8,7 +8,7 @@
       "matcher": "(^|/)(src/backend/[^/]+\\.py|scripts/build_ledger\\.py)$",
       "action": {
         "type": "command",
-        "command": "uv run --with-requirements requirements.txt python -m pytest -q && uv run --with-requirements requirements.txt python scripts/build_ledger.py",
+        "command": "uv run --with-requirements requirements-dev.txt python -m pytest -q && uv run --with-requirements requirements.txt python scripts/build_ledger.py",
         "timeout": 180
       }
     }

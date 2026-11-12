@@ -32,7 +32,7 @@ cd "The Midnight Audit (1928)"
 # Setup Python Virtual Environment
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # runtime + test tools (use requirements.txt for runtime only)
 
 # Install uv once for Kiro MCP and verification hooks.
 # macOS with Homebrew:
@@ -54,7 +54,7 @@ The save hook at `.kiro/hooks/verify-backend-and-ledger.json` also requires `uv`
 Verify the same command manually:
 
 ```bash
-uv run --with-requirements requirements.txt python -m pytest -q && \
+uv run --with-requirements requirements-dev.txt python -m pytest -q && \
   uv run --with-requirements requirements.txt python scripts/build_ledger.py
 ```
 
@@ -75,7 +75,7 @@ Because `openpyxl` generates `.xlsx` styling and layout while Excel compiles mac
    - In the VBE menu, select **File > Import File...** and import the 3 `.bas` files from `src/vba/`:
      - `src/vba/M_Bootstrap.bas`
      - `src/vba/M_DaemonBridge.bas`
-     - `src/vba/M_HorrorFX.bas`
+     - `src/vba/M_HorrorFX.bas` (contains a generated copy of the 30×30 entity face; after editing `ENTITY_FACE_MATRIX` in `puzzle_state.py`, run `python scripts/sync_vba_radar.py` and re-import it)
 4. **Paste the 2 Document Event Classes (`.cls` — Copy & Paste Only)**:
    - ⚠️ *Important*: `Sheet1_Archive.cls` and `ThisWorkbook.cls` are Excel document class modules. Do **not** use *File > Import File* for them (importing creates detached class modules that won't intercept worksheet/workbook events).
    - Double-click **`Sheet1 (Audit_Ledger_1928)`** in the left VBA Project tree, open `src/vba/Sheet1_Archive.cls` in a text editor, copy everything **starting from line 10 (`Option Explicit`) to the end** (skip lines 1–9 `VERSION 1.0 CLASS ... Attribute VB_...`), and paste it into the `Sheet1` code pane.

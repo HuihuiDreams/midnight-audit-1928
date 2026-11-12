@@ -1,13 +1,12 @@
 import os
 import zipfile
+from datetime import date, timedelta
 
 import openpyxl
 from scripts.build_ledger import build_ledger_workbook, TEMPLATE_FILENAME
 
-def test_build_ledger_generates_file():
-    output_path = "tests/test_output_ledger.xlsx"
-    if os.path.exists(output_path):
-        os.remove(output_path)
+def test_build_ledger_generates_file(tmp_path):
+    output_path = str(tmp_path / "test_output_ledger.xlsx")
 
     wb = build_ledger_workbook(output_path)
     assert os.path.exists(output_path)
@@ -150,10 +149,6 @@ def test_build_ledger_generates_file():
     assert ws.column_dimensions["AO"].width != 2.2
     assert ws.column_dimensions["AP"].width != 2.2
 
-    # Cleanup
-    if os.path.exists(output_path):
-        os.remove(output_path)
-
 
 def test_build_ledger_archive_contents_are_reproducible(tmp_path):
     first_output = tmp_path / "first.xlsx"
@@ -167,3 +162,61 @@ def test_build_ledger_archive_contents_are_reproducible(tmp_path):
         second_contents = {name: second_archive.read(name) for name in second_archive.namelist()}
 
     assert first_contents == second_contents
+
+GAME_NIGHT = date(1928, 10, 31)
+VISIBLE_ROWS = range(6, 13)
+CENSORED_ROWS = range(14, 17)
+
+
+def _ledger_sheet(tmp_path):
+    output_path = str(tmp_path / "ledger.xlsx")
+    build_ledger_workbook(output_path)
+    return openpyxl.load_workbook(output_path)["Audit_Ledger_1928"]
+
+
+def test_every_overdue_count_runs_to_the_game_night(tmp_path):
+    ws = _ledger_sheet(tmp_path)
+
+    for row in (*VISIBLE_ROWS, *CENSORED_ROWS):
+        due = date.fromisoformat(ws.cell(row=row, column=6).value)
+        days = ws.cell(row=row, column=7).value
+        assert due + timedelta(days=days) == GAME_NIGHT, ws.cell(row=row, column=1).value
+
+
+def test_every_loan_is_checked_out_before_it_is_due(tmp_path):
+    ws = _ledger_sheet(tmp_path)
+
+    for row in (*VISIBLE_ROWS, *CENSORED_ROWS):
+        checkout = date.fromisoformat(ws.cell(row=row, column=5).value)
+        due = date.fromisoformat(ws.cell(row=row, column=6).value)
+        assert checkout < due, ws.cell(row=row, column=1).value
+
+
+def test_paid_fees_are_five_cents_per_overdue_day(tmp_path):
+    ws = _ledger_sheet(tmp_path)
+
+    for row in VISIBLE_ROWS:
+        fee = ws.cell(row=row, column=8).value
+        if fee is not None:
+            assert round(ws.cell(row=row, column=7).value * 0.05, 2) == fee, ws.cell(row=row, column=1).value
+    assert round(ws["G7"].value * 0.05, 2) == 7.0   # Wilbur's unpaid fee is the Phase 1 answer
+
+
+def test_only_wilbur_exceeds_the_hundred_day_threshold_of_rule_1(tmp_path):
+    ws = _ledger_sheet(tmp_path)
+
+    over_threshold = [ws.cell(row=r, column=1).value for r in VISIBLE_ROWS if ws.cell(row=r, column=7).value > 100]
+
+    assert over_threshold == ["ARK-007"]
+
+
+def test_sheet_ledger_matches_the_engine_records(tmp_path):
+    from src.backend.puzzle_state import PuzzleEngine
+    ws = _ledger_sheet(tmp_path)
+
+    for row, record in PuzzleEngine().ledger_data.items():
+        assert ws.cell(row=row, column=1).value == record["id"]
+        assert ws.cell(row=row, column=2).value == record["borrower"]
+        assert ws.cell(row=row, column=7).value == record["overdue"]
+        assert ws.cell(row=row, column=8).value == record["fee"]
+        assert ws.cell(row=row, column=9).value == record["status"]

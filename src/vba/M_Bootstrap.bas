@@ -89,12 +89,16 @@ Public Sub EmergencyReset(Optional ByVal silent As Boolean = False)
         ActiveWindow.DisplayVerticalScrollBar = True
     End If
     
+    ' Lift the sealed-sheet protection (also runs silently when the workbook closes)
+    ThisWorkbook.Sheets("Audit_Ledger_1928").Unprotect
+    
     ' Clear shortcut bindings
     Application.OnKey "^+R"
     Application.OnKey "^+r"
     
     ' Cancel timers
     StopEyeBlink
+    StopHauntPolling
     CancelAmbientWhisper
     
     If Not silent Then

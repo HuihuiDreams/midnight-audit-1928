@@ -403,14 +403,17 @@ def test_i8_mcp_json_rpc_compliance():
     assert bad_resp["error"]["code"] == -32601
 
 def test_s1_save_state_error_logging_and_cleanup(tmp_path, monkeypatch, capsys):
-    """Verify S1: save_state logs errors to sys.stderr and cleans up temp files on failure."""
+    """Verify S1: save_state logs errors to sys.stderr and raises StateSaveError instead of reporting success."""
+    from src.backend.puzzle_state import StateSaveError
+
     engine = PuzzleEngine()
     # Direct save to an uncreatable path (e.g. file used as directory)
     fake_dir_file = tmp_path / "not_a_dir"
     fake_dir_file.write_text("blocked")
     target_path = str(fake_dir_file / "invalid_sub" / "game_state.json")
 
-    engine.save_state(target_path)
+    with pytest.raises(StateSaveError):
+        engine.save_state(target_path)
     captured = capsys.readouterr()
     assert "Error saving game state" in captured.err
 
@@ -440,7 +443,8 @@ def test_s2_inspect_ledger_range_matching():
 
     # B18 matches row 18
     res_b18 = call_tool("inspect_ledger", {"target_range": "B18"})
-    assert "Cell B18:" in res_b18["content"][0]["text"]
+    assert "Row 18:" in res_b18["content"][0]["text"]
+    assert "B18 Override Code Cell" in res_b18["content"][0]["text"]
 
 def test_s3_vba_blood_scab_color_restoration():
     """Verify S3: SpreadBloodScab saves original colors in array and restores each cell's exact color."""
@@ -469,11 +473,11 @@ def test_s4_pixel_radar_and_blinking_eye_alignment():
     assert grid[15][13] == PALETTE["DRIED_BLOOD"]
     assert radar["blinking_cells"] == ["W34", "X34", "W35", "X35"]
 
-    # In VBA, RenderPixelFace sets (r=15 Or r=16) And (c=13 Or c=14) to COLOR_DRIED_BLOOD
-    fx_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src", "vba", "M_HorrorFX.bas")
-    with open(fx_path, "r", encoding="utf-8") as f:
-        fx = f.read()
-    assert "(r = 15 Or r = 16) And (c = 13 Or c = 14)" in fx
+    # The VBA renders the same matrix (see test_vba_face_pixels_equal_python_radar_cell_for_cell)
+    from src.backend.puzzle_state import ENTITY_FACE_MATRIX, ENTITY_FACE_LEGEND
+    for r in (14, 15):
+        for c in (12, 13):
+            assert ENTITY_FACE_LEGEND[ENTITY_FACE_MATRIX[r][c]] == "DRIED_BLOOD"
 
 def test_s5_platform_sleep_midnight_wrap_around():
     """Verify S5: PlatformSleep handles midnight wrap-around when Timer resets to 0."""
@@ -856,49 +860,13 @@ def test_issue6_no_dead_configs():
     assert "src.backend.mcp_server.GAME_STATE_FILE" not in conftest
 
 def test_issue7_mouth_rendering_and_spec_drift():
-    """Verify VBA RenderPixelFace renders mouth, coordinates match Python radar 1:1, and spec documents 2s blink interval."""
-    fx_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src", "vba", "M_HorrorFX.bas")
-    with open(fx_path, "r", encoding="utf-8") as f:
-        fx = f.read()
+    """Verify the shared face matrix renders the mouth, and the spec documents the 2s blink interval."""
+    from src.backend.puzzle_state import ENTITY_FACE_MATRIX, ENTITY_FACE_LEGEND
 
-    # VBA 1-based mouth range (r=21..23, c=11..20)
-    assert "r >= 21 And r <= 23 And c >= 11 And c <= 20" in fx
-    assert "cell.Interior.Color = COLOR_DRIED_BLOOD" in fx
-    assert "dc = c - 15" in fx
-    assert "r <= 10" in fx
-
-    # Algorithmic verification: offline VBA pixel matrix must match online get_pixel_radar 100% across all 900 cells
-    from src.backend.puzzle_state import PALETTE
-    engine = PuzzleEngine()
-    py_radar = engine.get_pixel_radar()["grid"]
-
-    vba_grid = [["" for _ in range(30)] for _ in range(30)]
-    for r in range(1, 31):
-        for c in range(1, 31):
-            dr = r - 15
-            dc = c - 15
-            dist_sq = dr * dr + dc * dc
-            if (r == 15 or r == 16) and (c == 13 or c == 14):
-                color = PALETTE["DRIED_BLOOD"]
-            elif 14 <= r <= 17 and 12 <= c <= 15:
-                color = PALETTE["PHOSPHOR_GREEN"]
-            elif 13 <= r <= 18 and 11 <= c <= 16:
-                color = PALETTE["CARBON"]
-            elif 21 <= r <= 23 and 11 <= c <= 20:
-                color = PALETTE["DRIED_BLOOD"]
-            elif 120 <= dist_sq <= 170:
-                color = PALETTE["CARBON"]
-            elif dist_sq < 120:
-                color = PALETTE["DECAYING_PAPER"]
-            else:
-                color = PALETTE["BONE_PAPER"]
-            if r <= 10 and (c == r or c == (31 - r) or (abs(c - 9) <= 1 and r <= 8) or (abs(c - 22) <= 1 and r <= 8)):
-                color = PALETTE["CARBON"]
-            vba_grid[r - 1][c - 1] = color
-
-    for r in range(30):
-        for c in range(30):
-            assert py_radar[r][c] == vba_grid[r][c], f"Pixel mismatch at r={r}, c={c}: {py_radar[r][c]} != {vba_grid[r][c]}"
+    # 0-based mouth range (r=20..22, c=10..19)
+    for r in range(20, 23):
+        for c in range(10, 20):
+            assert ENTITY_FACE_LEGEND[ENTITY_FACE_MATRIX[r][c]] == "DRIED_BLOOD"
 
     spec_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".kiro", "specs", "puzzle_engine_spec.md")
     with open(spec_path, "r", encoding="utf-8") as f:
@@ -989,3 +957,149 @@ def test_agent_guidelines_and_changelog_integrity():
     assert "agent_guidelines.md" in changelog
 
 
+
+# ---------------------------------------------------------------------------
+# VBA source-level checks. VBA cannot run under pytest, so these only pin the
+# source text; the behavior still has to be confirmed in Excel (tasks.md #16).
+# ---------------------------------------------------------------------------
+
+def _vba_source(name):
+    path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "src", "vba", name)
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+def _vba_proc(source, header):
+    start = source.index(header)
+    return source[start:source.index("End Sub", start)]
+
+def test_vba_lamp_flicker_restores_original_header_colors():
+    fx = _vba_source("M_HorrorFX.bas")
+    lamp = _vba_proc(fx, "Public Sub FlashKeroseneLamp()")
+
+    assert "origColors(i, j) = c.Cells(i, j).Interior.Color" in lamp
+    assert "c.Cells(i, j).Interior.Color = origColors(i, j)" in lamp
+    assert "COLOR_BONE_PAPER" not in lamp
+    assert 'Set ws = ThisWorkbook.Sheets("Audit_Ledger_1928")' in lamp
+
+def test_vba_thunder_invert_targets_the_game_sheet():
+    thunder = _vba_proc(_vba_source("M_HorrorFX.bas"), "Public Sub ThunderInvert()")
+
+    assert 'Set ws = ThisWorkbook.Sheets("Audit_Ledger_1928")' in thunder
+
+def test_vba_start_eye_blink_cancels_pending_timer_first():
+    start = _vba_proc(_vba_source("M_HorrorFX.bas"), "Public Sub StartEyeBlink(ByVal ws As Worksheet)")
+
+    assert start.index("StopEyeBlink") < start.index("ToggleEyeBlink")
+
+def test_vba_does_not_use_reserved_word_step_as_variable():
+    import re
+    fx = _vba_source("M_HorrorFX.bas")
+
+    assert not re.search(r"\bDim\s+step\b", fx, re.IGNORECASE)
+    assert not re.search(r"\bNext\s+step\b", fx, re.IGNORECASE)
+
+def test_vba_cleared_input_cells_are_not_sent_as_attempts():
+    cls = _vba_source("Sheet1_Archive.cls")
+
+    for cell in ("H7", "B18"):
+        start = cls.index(f'Intersect(Target, Me.Range("{cell}"))')
+        block = cls[start:cls.index(f'PostEvent "cell_change", "{cell}"')]
+        guard = f'If Len(Trim$(CStr(Me.Range("{cell}").Value))) = 0 Then Exit Sub'
+        assert block.index(guard) < block.index("Application.EnableEvents = False")
+
+def test_vba_tells_player_when_daemon_refuses_an_entry():
+    bas = _vba_source("M_DaemonBridge.bas")
+
+    assert "Private Sub ReportDaemonRefusal()" in bas
+    assert bas.count("ReportDaemonRefusal\n") == 2   # Windows and macOS non-200 branches
+    assert "Application.StatusBar = " in _vba_proc(bas, "Private Sub ReportDaemonRefusal()")
+
+def test_offline_mode_reveals_censored_rows_by_color_only_like_online_mode():
+    bas = _vba_source("M_DaemonBridge.bas")
+    offline_phase_1 = _vba_proc(bas, "Public Sub HandleOfflineEvent(")
+
+    # Online AWAKEN_ROW_13 / UNLOCK_CENSORED_ROWS only recolor A14:I16; I14 already carries the coordinate.
+    assert 'ws.Range("B14")' not in offline_phase_1
+    assert "COORDINATE DISCLOSED" not in bas
+
+def test_mac_temp_file_name_is_seeded_randomly():
+    bas = _vba_source("M_DaemonBridge.bas")
+
+    assert bas.index("Randomize") < bas.index('tmpFile = "/tmp/ma_payload_')
+
+def test_vba_haunt_polling_lifecycle():
+    bas = _vba_source("M_DaemonBridge.bas")
+
+    start = _vba_proc(bas, "Public Sub StartHauntPolling()")
+    assert start.index("StopHauntPolling") < start.index("Application.OnTime")   # never two chains
+    assert "If gArchiveSealed Then Exit Sub" in start
+    assert '"PollPendingHaunts"' in start
+
+    stop = _vba_proc(bas, "Public Sub StopHauntPolling()")
+    assert 'Application.OnTime mNextPollTime, "PollPendingHaunts", , False' in stop
+
+def test_vba_poll_fetches_pending_haunts_with_events_disabled_and_reschedules():
+    bas = _vba_source("M_DaemonBridge.bas")
+    poll = _vba_proc(bas, "Public Sub PollPendingHaunts()")
+
+    assert "If gArchiveSealed Then Exit Sub" in poll
+    assert '"/pending"' in _vba_proc(bas, "Private Function FetchPendingHaunts() As String")
+    # A haunt that writes into H7/B18 must not be mistaken for a player attempt
+    assert poll.index("Application.EnableEvents = False") < poll.index("ProcessDaemonResponse")
+    assert poll.index("ProcessDaemonResponse") < poll.index("Application.EnableEvents = eventsWereOn")
+    assert poll.rindex("StartHauntPolling") > poll.index("ProcessDaemonResponse")
+    assert "HandleOfflineEvent" not in poll   # a silent daemon must never fall back to the offline engine
+
+def test_vba_polling_starts_on_open_and_is_cleaned_up_everywhere():
+    assert _vba_source("ThisWorkbook.cls").index("SyncDaemonState") < _vba_source("ThisWorkbook.cls").index("StartHauntPolling")
+    assert "StopHauntPolling" in _vba_proc(_vba_source("ThisWorkbook.cls"), "Private Sub Workbook_BeforeClose")
+    assert "StopHauntPolling" in _vba_proc(_vba_source("M_Bootstrap.bas"), "Public Sub EmergencyReset(")
+
+    bas = _vba_source("M_DaemonBridge.bas")
+    lock_sheet = bas[bas.index('Case "LOCK_SHEET"'):bas.index('Case "TRIGGER_HAUNT"')]
+    assert "StopHauntPolling" in lock_sheet
+    offline_seal = bas[bas.index("' Phase 4: Banishment Execution"):]
+    assert "StopHauntPolling" in offline_seal
+
+def test_vba_entity_face_is_generated_from_the_python_matrix():
+    from scripts.sync_vba_radar import render_block, BEGIN_MARKER, END_MARKER
+    fx = _vba_source("M_HorrorFX.bas")
+
+    block = fx[fx.index(BEGIN_MARKER):fx.index(END_MARKER) + len(END_MARKER)]
+
+    assert block == render_block(), "M_HorrorFX.bas is out of date: run `python scripts/sync_vba_radar.py`"
+
+def test_vba_render_pixel_face_has_no_hand_written_geometry():
+    render = _vba_proc(_vba_source("M_HorrorFX.bas"), "Public Sub RenderPixelFace(ByVal ws As Worksheet)")
+
+    assert "EntityFaceRow(r)" in render
+    assert "EntityFaceColor(" in render
+    assert "distSq" not in render
+
+def test_vba_face_pixels_equal_python_radar_cell_for_cell():
+    import re
+    from src.backend.puzzle_state import PALETTE
+    fx = _vba_source("M_HorrorFX.bas")
+
+    rows = {int(n): text for n, text in re.findall(r'Case (\d+): EntityFaceRow = "([^"]*)"', fx)}
+    colors = dict(re.findall(r'Case "(.)": EntityFaceColor = COLOR_(\w+)', fx))
+    py_grid = PuzzleEngine().get_pixel_radar()["grid"]
+
+    assert sorted(rows) == list(range(1, 31))
+    for r in range(30):
+        assert len(rows[r + 1]) == 30
+        for c in range(30):
+            assert PALETTE[colors[rows[r + 1][c]]] == py_grid[r][c], f"pixel mismatch at r={r}, c={c}"
+
+def test_vba_sealing_protects_the_sheet_after_stamping_in_both_modes():
+    bas = _vba_source("M_DaemonBridge.bas")
+    online = bas[bas.index('Case "LOCK_SHEET"'):bas.index('Case "TRIGGER_HAUNT"')]
+    offline = bas[bas.index("' Phase 4: Banishment Execution"):]
+
+    for seal_path in (online, offline):
+        assert seal_path.index('ws.Range("B12").Value') < seal_path.index("ws.Protect") < seal_path.index("MsgBox")
+
+def test_vba_emergency_reset_lifts_sheet_protection():
+    reset = _vba_proc(_vba_source("M_Bootstrap.bas"), "Public Sub EmergencyReset(")
+
+    assert 'ThisWorkbook.Sheets("Audit_Ledger_1928").Unprotect' in reset

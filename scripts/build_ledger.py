@@ -231,13 +231,13 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
 
     # 4. Active Borrower Records (Rows 6-12) — 1928 Alternating Ledger Stripes & Red Audit Column Rules
     records = [
-        ("ARK-001", "Henry Armitage", "Dept of Rare Books", "Cultes des Goules", "1928-09-01", "1928-10-01", 12, 0.60, "CLEARED"),
-        ("ARK-007", "Wilbur Whateley", "Dunwich Settlement", "Necronomicon (Dee Trans.)", "1928-04-15", "1928-05-26", 140, None, "FLAGGED"),
-        ("ARK-012", "Francis Morgan", "Dept of Archaeology", "Book of Eibon", "1928-08-10", "1928-09-08", 35, 1.75, "CLEARED"),
-        ("ARK-019", "Warren Rice", "Dept of Classical Lang", "De Vermis Mysteriis", "1928-06-20", "1928-07-25", 80, 4.00, "CLEARED"),
-        ("ARK-023", "Asenath Waite", "Innsmouth Requisition", "Unaussprechlichen Kulten", "1928-09-10", "1928-09-28", 15, 0.75, "CLEARED"),
-        ("ARK-031", "Pickman, R.U.", "Boston Fine Arts", "Ars Magna Lucis et Umbrae", "1928-06-01", "1928-07-10", 95, 4.75, "CLEARED"),
-        ("ARK-040", "Edward Derby", "Dept of Literature", "Liber Ivonis", "1928-10-01", "1928-10-08", 5, 0.25, "CLEARED"),
+        ("ARK-001", "Henry Armitage", "Dept of Rare Books", "Cultes des Goules", "1928-09-19", "1928-10-19", 12, 0.60, "CLEARED"),
+        ("ARK-007", "Wilbur Whateley", "Dunwich Settlement", "Necronomicon (Dee Trans.)", "1928-05-03", "1928-06-13", 140, None, "FLAGGED"),
+        ("ARK-012", "Francis Morgan", "Dept of Archaeology", "Book of Eibon", "1928-08-28", "1928-09-26", 35, 1.75, "CLEARED"),
+        ("ARK-019", "Warren Rice", "Dept of Classical Lang", "De Vermis Mysteriis", "1928-07-08", "1928-08-12", 80, 4.00, "CLEARED"),
+        ("ARK-023", "Asenath Waite", "Innsmouth Requisition", "Unaussprechlichen Kulten", "1928-09-28", "1928-10-16", 15, 0.75, "CLEARED"),
+        ("ARK-031", "Pickman, R.U.", "Boston Fine Arts", "Ars Magna Lucis et Umbrae", "1928-06-19", "1928-07-28", 95, 4.75, "CLEARED"),
+        ("ARK-040", "Edward Derby", "Dept of Literature", "Liber Ivonis", "1928-10-19", "1928-10-26", 5, 0.25, "CLEARED"),
     ]
 
     for i, row_data in enumerate(records, start=6):
@@ -304,9 +304,9 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
 
     # 6. Censored Rows (Rows 14-16)
     censored_records = [
-        ("ARK-066", "[EXPUNGED BY ORDER]", "Dunwich Vault", "The Seven Cryptical Books", "1928-01-01", "1928-01-13", 273, None, "COORDINATE: RADAR GRID K20:AN49"),
-        ("ARK-067", "[NAME MUTATED]", "Kadath Sub-basement", "Pnakotic Manuscripts", "1927-10-31", "1927-11-13", 345, None, "ACCESS DENIED"),
-        ("ARK-068", "Keziah Mason", "Arkham Witch House", "Azathoth & Other Horrors", "1692-05-01", "1692-05-19", 86320, None, "REMAINS UNBURIED"),
+        ("ARK-066", "[EXPUNGED BY ORDER]", "Dunwich Vault", "The Seven Cryptical Books", "1928-01-01", "1928-01-13", 292, None, "COORDINATE: RADAR GRID K20:AN49"),
+        ("ARK-067", "[NAME MUTATED]", "Kadath Sub-basement", "Pnakotic Manuscripts", "1927-10-31", "1927-11-13", 353, None, "ACCESS DENIED"),
+        ("ARK-068", "Keziah Mason", "Arkham Witch House", "Azathoth & Other Horrors", "1692-05-01", "1692-05-19", 86361, None, "REMAINS UNBURIED"),
     ]
     for i, row_data in enumerate(censored_records, start=14):
         ws.row_dimensions[i].height = 19

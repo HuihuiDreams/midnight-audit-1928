@@ -48,7 +48,7 @@ Public Sub ScreenTremor()
         Dim r As RECT
         Dim origX As Long, origY As Long
         Dim width As Long, height As Long
-        Dim step As Long
+        Dim shakeStep As Long
         
         hWnd = GetForegroundWindow()
         If hWnd <> 0 Then
@@ -58,13 +58,13 @@ Public Sub ScreenTremor()
             width = r.Right - r.Left
             height = r.Bottom - r.Top
             
-            For step = 1 To 12
+            For shakeStep = 1 To 12
                 Dim dx As Long, dy As Long
-                dx = (step Mod 3 - 1) * 8
-                dy = ((step + 1) Mod 3 - 1) * 8
+                dx = (shakeStep Mod 3 - 1) * 8
+                dy = ((shakeStep + 1) Mod 3 - 1) * 8
                 MoveWindow hWnd, origX + dx, origY + dy, width, height, 1
                 PlatformSleep 25
-            Next step
+            Next shakeStep
             
             ' Restore original position
             MoveWindow hWnd, origX, origY, width, height, 1
@@ -74,20 +74,41 @@ Public Sub ScreenTremor()
 End Sub
 
 ''' <summary>
-''' Kerosene lamp breathing/flicker effect: shifts background subtly.
+''' Kerosene lamp breathing/flicker effect: shifts background subtly,
+''' then restores each header cell's exact original color.
 ''' </summary>
 Public Sub FlashKeroseneLamp()
     On Error Resume Next
     Dim ws As Worksheet
-    Set ws = ActiveSheet
+    Set ws = ThisWorkbook.Sheets("Audit_Ledger_1928")
+    If ws Is Nothing Then Set ws = ActiveSheet
     
     Dim c As Range
     Set c = ws.Range("A1:I5")
     
+    Dim numR As Long, numC As Long
+    numR = c.Rows.Count
+    numC = c.Columns.Count
+    
+    Dim origColors() As Long
+    ReDim origColors(1 To numR, 1 To numC)
+    
+    Dim i As Long, j As Long
+    For i = 1 To numR
+        For j = 1 To numC
+            origColors(i, j) = c.Cells(i, j).Interior.Color
+        Next j
+    Next i
+    
     c.Interior.Color = COLOR_DECAYING_PAPER
     DoEvents
     PlatformSleep 60
-    c.Interior.Color = COLOR_BONE_PAPER
+    
+    For i = 1 To numR
+        For j = 1 To numC
+            c.Cells(i, j).Interior.Color = origColors(i, j)
+        Next j
+    Next i
     DoEvents
     On Error GoTo 0
 End Sub
@@ -98,7 +119,8 @@ End Sub
 Public Sub ThunderInvert()
     On Error Resume Next
     Dim ws As Worksheet
-    Set ws = ActiveSheet
+    Set ws = ThisWorkbook.Sheets("Audit_Ledger_1928")
+    If ws Is Nothing Then Set ws = ActiveSheet
     
     Dim target As Range
     Set target = ws.Range("A1:J18")
@@ -192,47 +214,16 @@ End Sub
 Public Sub RenderPixelFace(ByVal ws As Worksheet)
     On Error Resume Next
     Dim r As Long, c As Long
-    Dim cell As Range
+    Dim faceRow As String
     
     ' Pre-clear floorplan
     ws.Range("K20:AN49").Value = Empty
     
-    ' Render concentric eldritch skull & central glowing eye (W34:X35 is r=15..16, c=13..14)
+    ' Paint the entity face row by row from the shared matrix (the pupil is W34:X35)
     For r = 1 To 30
+        faceRow = EntityFaceRow(r)
         For c = 1 To 30
-            Set cell = ws.Cells(19 + r, 10 + c)
-            
-            Dim dr As Long, dc As Long, distSq As Long
-            dr = r - 15
-            dc = c - 15
-            distSq = dr * dr + dc * dc
-            
-            If (r = 15 Or r = 16) And (c = 13 Or c = 14) Then
-                ' Central pupil: exactly W34:X35
-                cell.Interior.Color = COLOR_DRIED_BLOOD
-            ElseIf r >= 14 And r <= 17 And c >= 12 And c <= 15 Then
-                ' Glowing Iris
-                cell.Interior.Color = COLOR_PHOSPHOR_GREEN
-            ElseIf r >= 13 And r <= 18 And c >= 11 And c <= 16 Then
-                ' Eye socket
-                cell.Interior.Color = COLOR_CARBON
-            ElseIf r >= 21 And r <= 23 And c >= 11 And c <= 20 Then
-                ' Eldritch Mouth (matches online get_pixel_radar r=20..22, c=10..19)
-                cell.Interior.Color = COLOR_DRIED_BLOOD
-            ElseIf distSq <= 170 And distSq >= 120 Then
-                ' Outer skull boundary
-                cell.Interior.Color = COLOR_CARBON
-            ElseIf distSq < 120 Then
-                ' Decaying bone tissue
-                cell.Interior.Color = COLOR_DECAYING_PAPER
-            Else
-                cell.Interior.Color = COLOR_BONE_PAPER
-            End If
-            
-            ' Horns curving upwards
-            If r <= 10 And (c = r Or c = (31 - r) Or (Abs(c - 9) <= 1 And r <= 8) Or (Abs(c - 22) <= 1 And r <= 8)) Then
-                cell.Interior.Color = COLOR_CARBON
-            End If
+            ws.Cells(19 + r, 10 + c).Interior.Color = EntityFaceColor(Mid$(faceRow, c, 1))
         Next c
         DoEvents
         PlatformSleep 12
@@ -243,11 +234,63 @@ Public Sub RenderPixelFace(ByVal ws As Worksheet)
     On Error GoTo 0
 End Sub
 
+' BEGIN GENERATED ENTITY FACE - do not edit by hand; run scripts/sync_vba_radar.py
+' Source of truth: ENTITY_FACE_MATRIX and ENTITY_FACE_LEGEND in src/backend/puzzle_state.py
+Private Function EntityFaceRow(ByVal r As Long) As String
+    Select Case r
+        Case 1: EntityFaceRow = "#......###..........###......#"
+        Case 2: EntityFaceRow = ".#.....###...###....###.....#."
+        Case 3: EntityFaceRow = "..#....################....#.."
+        Case 4: EntityFaceRow = "...#...################...#..."
+        Case 5: EntityFaceRow = "....#.####,,,,,,,,,####..#...."
+        Case 6: EntityFaceRow = ".....#####,,,,,,,,,,#####....."
+        Case 7: EntityFaceRow = "....######,,,,,,,,,,#####....."
+        Case 8: EntityFaceRow = "...###,###,,,,,,,,,,######...."
+        Case 9: EntityFaceRow = "...##,,,#,,,,,,,,,,,,#,,##...."
+        Case 10: EntityFaceRow = "..###,,,,#,,,,,,,,,,#,,,###..."
+        Case 11: EntityFaceRow = "..##,,,,,,,,,,,,,,,,,,,,,##..."
+        Case 12: EntityFaceRow = "..##,,,,,,,,,,,,,,,,,,,,,##..."
+        Case 13: EntityFaceRow = "..##,,,,,,######,,,,,,,,,##..."
+        Case 14: EntityFaceRow = ".###,,,,,,#GGGG#,,,,,,,,,###.."
+        Case 15: EntityFaceRow = ".###,,,,,,#GBBG#,,,,,,,,,###.."
+        Case 16: EntityFaceRow = ".###,,,,,,#GBBG#,,,,,,,,,###.."
+        Case 17: EntityFaceRow = "..##,,,,,,#GGGG#,,,,,,,,,##..."
+        Case 18: EntityFaceRow = "..##,,,,,,######,,,,,,,,,##..."
+        Case 19: EntityFaceRow = "..##,,,,,,,,,,,,,,,,,,,,,##..."
+        Case 20: EntityFaceRow = "..###,,,,,,,,,,,,,,,,,,,###..."
+        Case 21: EntityFaceRow = "...##,,,,,BBBBBBBBBB,,,,##...."
+        Case 22: EntityFaceRow = "...###,,,,BBBBBBBBBB,,,###...."
+        Case 23: EntityFaceRow = "....###,,,BBBBBBBBBB,,###....."
+        Case 24: EntityFaceRow = ".....###,,,,,,,,,,,,,###......"
+        Case 25: EntityFaceRow = "......####,,,,,,,,,####......."
+        Case 26: EntityFaceRow = ".......###############........"
+        Case 27: EntityFaceRow = ".........###########.........."
+        Case 28: EntityFaceRow = ".............###.............."
+        Case 29: EntityFaceRow = ".............................."
+        Case 30: EntityFaceRow = ".............................."
+    End Select
+End Function
+
+Private Function EntityFaceColor(ByVal ch As String) As Long
+    Select Case ch
+        Case ".": EntityFaceColor = COLOR_BONE_PAPER
+        Case ",": EntityFaceColor = COLOR_DECAYING_PAPER
+        Case "#": EntityFaceColor = COLOR_CARBON
+        Case "B": EntityFaceColor = COLOR_DRIED_BLOOD
+        Case "G": EntityFaceColor = COLOR_PHOSPHOR_GREEN
+        Case Else: EntityFaceColor = COLOR_BONE_PAPER
+    End Select
+End Function
+' END GENERATED ENTITY FACE
+
 ''' <summary>
 ''' Starts background timer for the central eye blinking in the radar.
 ''' </summary>
 Public Sub StartEyeBlink(ByVal ws As Worksheet)
     On Error Resume Next
+    ' RenderPixelFace and the START_EYE_BLINK action both start the blink: cancel the pending
+    ' timer first so only one OnTime chain exists and StopEyeBlink can always cancel it.
+    StopEyeBlink
     mEyeBlinkState = False
     ToggleEyeBlink
     On Error GoTo 0

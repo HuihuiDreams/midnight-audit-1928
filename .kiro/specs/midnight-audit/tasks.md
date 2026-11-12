@@ -48,3 +48,13 @@
   - Verify: 100% pass, zero failures
 - [ ] 16. Manual smoke test in Excel (Windows and macOS): import VBA modules, play Phase 1 → 4 with the Daemon running, then again offline
   - Verify: archive sealed stamp appears in both modes; `Ctrl+Shift+R` restores the UI
+
+## Post-Audit Hardening
+
+- [x] 17. `save_state` raises `StateSaveError`; mutating calls roll back; daemon answers `500`, MCP answers `isError`
+- [x] 18. Count rejected entries (`attempts`), expose them in `/api/status` and `inspect_ledger`; add `GET /api/pending`
+- [x] 19. Share one 30×30 entity face between Python and VBA (`ENTITY_FACE_MATRIX` → `scripts/sync_vba_radar.py`)
+- [x] 20. Split `requirements.txt` (runtime) from `requirements-dev.txt` (tests)
+- [ ] 21. In Excel: confirm haunt polling (queue a haunt with the MCP tool while idle, expect it within ~3 s), `Ctrl+Shift+R` stops it, sealing protects the sheet and `Ctrl+Shift+R` lifts it
+- [ ] 22. In Excel for Mac: confirm the `MacScript` + `/tmp` transport reaches the daemon; if `/tmp` writes are denied, switch the temp file to `Environ("TMPDIR")`
+- [x] 23. Bump `serverInfo.version` and FastAPI `version` to `1.3.1`; cut `CHANGELOG.md` `[Unreleased]` to `## [1.3.1] - 2026-11-12`

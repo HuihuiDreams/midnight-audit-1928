@@ -33,11 +33,13 @@
 ### Phase 1: Overdue Ledger Audit (The Audit Discrepancy)
 - **Starting State**:
   - Ledger contains rows 6 to 12 of borrowing records.
-  - Row 7: Record `ARK-007`, Borrower: `Wilbur Whateley`, Tome: `Necronomicon (Dee Trans.)`, Due Date: `1928-05-26`, Overdue Days: `140`.
+  - Row 7: Record `ARK-007`, Borrower: `Wilbur Whateley`, Tome: `Necronomicon (Dee Trans.)`, Due Date: `1928-06-13`, Overdue Days: `140` (counted to the game night, 1928-10-31, as for every record on the ledger: due date + overdue days = 1928-10-31).
   - Column H ("Late Fee Paid ($)") is blank for Row 7. Status in Column I is `"FLAGGED"`.
 - **Player Action**:
   - Yellow Handover Note Rule 1: *"For records overdue > 100 days, calculate late fee ($0.05 per overdue day) in Column H to balance delinquent ledger."*
   - Correct input in cell `H7`: `140 * 0.05 = 7.00` (accepts `7`, `7.0`, `7.00`, `$7.00`).
+  - Rejected entries are counted in `attempts` (`H7` wrong or non-numeric fee, `B18` wrong override code) so the Agent can see when the player is stuck.
+  - A cleared cell (empty or whitespace) is not an attempt: the VBA `Worksheet_Change` hook does not send it, the engine ignores it with no penalty effects, and in Phase 3 it does not consume the first-entry hijack.
 - **Triggered Effect**:
   - Cell `I7` changes to `"BALANCED (UNHOLY)"`.
   - **The Row 13 Abyss awakens**: Row 13 (A13:I13) shakes; text appears in red/bone font: `"STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS"`.
@@ -52,7 +54,7 @@
 - **Player Action**:
   - Player clicks `SPRAY REAGENT` button or runs `ApplyReagentDeveloper` macro (or daemon event).
 - **Triggered Effect**:
-  - A 30x30 matrix of pixel colors is written to `K20:AN49` row by row with a 15ms stagger.
+  - A 30x30 matrix of pixel colors is written to `K20:AN49` row by row with a 15ms stagger. The matrix is `ENTITY_FACE_MATRIX` in `src/backend/puzzle_state.py`; the offline VBA copy in `M_HorrorFX.bas` is generated from it by `scripts/sync_vba_radar.py`. The reveal intentionally paints over the pre-spray candle-and-pumpkin sanctum: the sanctum is the archive drawing's surface, the entity lies beneath it.
   - Pixel values map to an Eldritch Eye/Demon Face using palette colors:
     - Background: `#D3CEB9` (Bone Paper)
     - Outline / Shadows: `#181614` (Carbon)
@@ -85,7 +87,7 @@
 - **Triggered Effect**:
   - Thunder Strobe: 5 rapid flash cycles inverting sheet background between `#FFFFFF` and `#000000`.
   - Window tremor shakes the Excel interface for 600ms.
-  - The entire sheet is locked into Cold Ash Gray (`#8A8D8F`).
+  - The header block is locked into Cold Ash Gray (`#8A8D8F`) and the sheet is protected (`ws.Protect`, no password) so the sealed archive cannot be edited. `Ctrl+Shift+R` lifts the protection.
   - Giant stamped banner placed across `B10:H12`:
     `========================================`
     `[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]`
