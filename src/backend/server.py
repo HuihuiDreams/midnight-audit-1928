@@ -20,7 +20,7 @@ from src.backend.puzzle_state import PuzzleEngine, PhaseEnum, file_lock
 app = FastAPI(
     title="The Midnight Audit (1928) — Local Daemon Bridge",
     description="Bridge connecting 1990s Excel VBA Client with 2026 Kiro Agent Mastermind.",
-    version="1.2.1"
+    version="1.3.0"
 )
 
 class SecurityHeadersAndOriginMiddleware(BaseHTTPMiddleware):

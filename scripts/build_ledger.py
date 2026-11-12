@@ -8,6 +8,7 @@ pinned dossier handover notes, and 30x30 corrupted blueprint radar grid.
 
 import os
 import sys
+from datetime import datetime
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
@@ -20,6 +21,7 @@ from openpyxl.utils import get_column_letter
 from src.backend.puzzle_state import PALETTE
 
 TEMPLATE_FILENAME = "Midnight_Audit_1928_Template.xlsx"
+BUILD_TIMESTAMP = datetime(1928, 10, 31)
 
 # Palette definitions derived from single source of truth (openpyxl hex format without '#')
 HEX_PALETTE = {k: v.lstrip("#") for k, v in PALETTE.items()}
@@ -75,6 +77,8 @@ RADAR_16BIT_SANCTUM = [
 
 def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     wb = Workbook()
+    wb.properties.created = BUILD_TIMESTAMP
+    wb.properties.modified = BUILD_TIMESTAMP
     ws = wb.active
     ws.title = "Audit_Ledger_1928"
     # Hide raw Excel gridlines so the sheet reads as a 1928 archival artifact, not a modern spreadsheet
@@ -134,11 +138,11 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
         bottom=Side(style='double', color=COLOR_WARNING_RED)
     )
 
-    # 0. Full-Bleed Desk Canvas Backdrop (Rows 1..52, Cols 1..42)
-    # Eliminates all raw modern Excel white background cells around and below the ledger
-    for r in range(1, 53):
+    # 0. Full-Bleed Desk Canvas Backdrop (A1:AN50)
+    # Eliminates raw modern Excel white background inside the ledger canvas.
+    for r in range(1, 51):
         ws.row_dimensions[r].height = 18
-        for c in range(1, 43):
+        for c in range(1, 41):
             ws.cell(row=r, column=c).fill = fill_carbon
 
     # Outer Parchment Folio Margin (A1:I19)
@@ -699,8 +703,8 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     for col_idx, width in col_widths.items():
         ws.column_dimensions[get_column_letter(col_idx)].width = width
 
-    # Radar & right wing columns K to AP (11 to 42) square aspect ratio (fine micro-grid)
-    for col_idx in range(11, 43):
+    # Radar and right-wing columns K:AN (11..40) use square micro-grid cells.
+    for col_idx in range(11, 41):
         ws.column_dimensions[get_column_letter(col_idx)].width = 2.2
 
     wb.save(output_path)

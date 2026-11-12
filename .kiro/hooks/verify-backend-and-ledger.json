@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Verify Backend & Rebuild Ledger Template",
+      "trigger": "PostFileSave",
+      "description": "When a Python file in src/backend/ or scripts/build_ledger.py is saved, run the full pytest suite and, only if it passes, regenerate Midnight_Audit_1928_Template.xlsx.",
+      "matcher": "(^|/)(src/backend/[^/]+\\.py|scripts/build_ledger\\.py)$",
+      "action": {
+        "type": "command",
+        "command": "uv run --with-requirements requirements.txt python -m pytest -q && uv run --with-requirements requirements.txt python scripts/build_ledger.py",
+        "timeout": 180
+      }
+    }
+  ]
+}

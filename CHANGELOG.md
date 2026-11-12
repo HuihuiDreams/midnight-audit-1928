@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Kiro MCP Server Registration (`.kiro/settings/mcp.json`)**: Registers `midnight-audit-mcp` to run `uv run --with-requirements requirements.txt python -m src.backend.mcp_server` from the workspace root, enabled, with `autoApprove` for `inspect_ledger`, `haunt_spreadsheet`, and `judge_ritual`.
+- **Canonical Kiro Spec Folder (`.kiro/specs/midnight-audit/`)**: `requirements.md` (EARS requirements for the 4-phase loop, `A1:AN50` Morbid Archive UI, cross-platform VBA offline fallback, and MCP haunting bridge), `design.md` (3-tier architecture, file-locked `game_state.json` persistence, 30x30 radar coordinates), and `tasks.md` (implementation and release checklist). The existing `mcp_contract.md` and `puzzle_engine_spec.md` are unchanged.
+- **Kiro Verification Hook (`.kiro/hooks/verify-backend-and-ledger.json`)**: When a file in `src/backend/*.py` or `scripts/build_ledger.py` is saved, runs `uv run --with-requirements requirements.txt python -m pytest -q` and, if the suite passes, regenerates `Midnight_Audit_1928_Template.xlsx`.
+- **Kiro Integration Tests (`tests/test_kiro_integration.py`)**: Checks release version strings, the changelog release header, MCP settings, the verification hook, and the spec folder layout.
+
+### Changed
+
+- **Release Version `1.3.0`**: Bumped MCP `serverInfo.version` (`src/backend/mcp_server.py`) and FastAPI daemon `version` (`src/backend/server.py`) from `1.2.1` to `1.3.0`.
+
+### Fixed
+
+- Standardized MCP and verification-hook execution on cross-platform `uv`, which resolves project dependencies without OS-specific `.venv` paths.
+- Constrained the generated template to the canonical `A1:AN50` canvas and stabilized its workbook core metadata across equivalent builds.
+
+## [1.3.0] - 2026-11-12
+
+### Added
+
 - **Yellow Handover Note Full 30-Column Layout & Handwritten Typography (`K4:AN12`, `Bradley Hand`)**:
   - Expanded Ward's sticky note across all 30 columns (`K4:AN12`, spanning Rows 4..12 at ~221pt height), eliminating artificial column AN/Row 12 drop-shadow gaps that cramped the text.
   - Tailored line lengths (<50 chars) and switched font to `Bradley Hand` (bold, 9.5pt), providing an authentic organic ink-pen handwriting aesthetic (replacing plain/flat sans fonts) and ensuring 100% of the header, Rules 1-3, and Ward's bottom warning (`🩸 WARNING: Never alter or inspect Row 13. — Former Auditor Ward (Missing since Oct 30, 11:59 PM)`) are fully visible without truncation.
@@ -42,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Release Version `1.3.0`**: Bumped MCP `serverInfo.version` (`src/backend/mcp_server.py`) and FastAPI daemon `version` (`src/backend/server.py`) from `1.2.1` to `1.3.0`.
 - **Annex Basement Radar De-Cluttering & Silhouette Clarity (`K20:AN49`)**:
   - Removed text error noise (`#ROT!`, `#REF!`, `[VOID]`, etc.) from the entity face and skull interior cells so the pixel-art geometry is crisp and unobstructed. Retained glitch tokens exclusively on perimeter scanning margins, while rendering solid dried-blood ram horns and revealing the central Cosmic Eye / Abyss Core at `W34:X35`.
 - **Corrupted Radar Ghostly Watermark & Concentric Dither (`K20:AN49`)**:

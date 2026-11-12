@@ -1,5 +1,6 @@
 import os
-import pytest
+import zipfile
+
 import openpyxl
 from scripts.build_ledger import build_ledger_workbook, TEMPLATE_FILENAME
 
@@ -106,12 +107,10 @@ def test_build_ledger_generates_file():
     assert ws["K13"].fill.start_color.rgb in ["002E0F0D", "FF2E0F0D", "2E0F0D"]
     assert ws["K3"].fill.start_color.rgb in ["002E0F0D", "FF2E0F0D", "2E0F0D"]
 
-    # Verify Clean Margins & Desk Gutter Spacer (Col A, Col J, and Margin Col AO remain clean carbon desk canvas)
+    # Verify Clean Margins & Desk Gutter Spacer (Columns A and J remain carbon desk canvas)
     assert ws["A31"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
     assert ws["J31"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
     assert ws["J43"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
-    assert ws["AO10"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
-    assert ws["AO11"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
 
     # Lower-Left Memorandum at B30:H48 and Flush Plaques on Row 50
     assert "DR. HENRY ARMITAGE" in ws["B30"].value
@@ -144,13 +143,27 @@ def test_build_ledger_generates_file():
 
     # 6. Verify Unified A1:AN50 Boundary (no bottom-right protrusion)
     assert ws["K51"].value is None
-    assert ws["K51"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
-    assert ws["AO10"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
-    assert ws["AP10"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
-    assert ws.column_dimensions["K"].width == 2.2
-    assert ws.column_dimensions["AP"].width == 2.2
-    assert ws.column_dimensions["BC"].width != 2.2
+    assert ws["K51"].style_id == 0
+    assert ws["AO10"].style_id == 0
+    assert ws["AP10"].style_id == 0
+    assert ws.column_dimensions["AN"].width == 2.2
+    assert ws.column_dimensions["AO"].width != 2.2
+    assert ws.column_dimensions["AP"].width != 2.2
 
     # Cleanup
     if os.path.exists(output_path):
         os.remove(output_path)
+
+
+def test_build_ledger_archive_contents_are_reproducible(tmp_path):
+    first_output = tmp_path / "first.xlsx"
+    second_output = tmp_path / "second.xlsx"
+
+    build_ledger_workbook(first_output)
+    build_ledger_workbook(second_output)
+
+    with zipfile.ZipFile(first_output) as first_archive, zipfile.ZipFile(second_output) as second_archive:
+        first_contents = {name: first_archive.read(name) for name in first_archive.namelist()}
+        second_contents = {name: second_archive.read(name) for name in second_archive.namelist()}
+
+    assert first_contents == second_contents

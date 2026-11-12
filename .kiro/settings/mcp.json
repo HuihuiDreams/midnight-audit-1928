@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "midnight-audit-mcp": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--with-requirements",
+        "requirements.txt",
+        "python",
+        "-m",
+        "src.backend.mcp_server"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "inspect_ledger",
+        "haunt_spreadsheet",
+        "judge_ritual"
+      ]
+    }
+  }
+}

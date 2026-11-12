@@ -224,7 +224,7 @@ def handle_json_rpc(request: Any) -> Optional[Dict[str, Any]]:
                 },
                 "serverInfo": {
                     "name": "midnight-audit-mcp",
-                    "version": "1.2.1"
+                    "version": "1.3.0"
                 }
             }
         }
