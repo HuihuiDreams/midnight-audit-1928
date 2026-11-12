@@ -41,3 +41,6 @@ game_state.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated code review reports
+semantic-review/

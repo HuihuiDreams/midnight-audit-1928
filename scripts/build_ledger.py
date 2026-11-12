@@ -14,9 +14,11 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+from zipfile import ZipFile, ZIP_DEFLATED
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.writer.excel import ExcelWriter
 
 from src.backend.puzzle_state import PALETTE
 
@@ -707,7 +709,8 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     for col_idx in range(11, 41):
         ws.column_dimensions[get_column_letter(col_idx)].width = 2.2
 
-    wb.save(output_path)
+    with ZipFile(output_path, "w", ZIP_DEFLATED, allowZip64=True) as archive:
+        ExcelWriter(wb, archive).save()
     return wb
 
 if __name__ == "__main__":

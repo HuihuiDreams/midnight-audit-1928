@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Canonical Kiro Spec Folder (`.kiro/specs/midnight-audit/`)**: `requirements.md` (EARS requirements for the 4-phase loop, `A1:AN50` Morbid Archive UI, cross-platform VBA offline fallback, and MCP haunting bridge), `design.md` (3-tier architecture, file-locked `game_state.json` persistence, 30x30 radar coordinates), and `tasks.md` (implementation and release checklist). The existing `mcp_contract.md` and `puzzle_engine_spec.md` are unchanged.
 - **Kiro Verification Hook (`.kiro/hooks/verify-backend-and-ledger.json`)**: When a file in `src/backend/*.py` or `scripts/build_ledger.py` is saved, runs `uv run --with-requirements requirements.txt python -m pytest -q` and, if the suite passes, regenerates `Midnight_Audit_1928_Template.xlsx`.
 - **Kiro Integration Tests (`tests/test_kiro_integration.py`)**: Checks release version strings, the changelog release header, MCP settings, the verification hook, and the spec folder layout.
+- **Bilingual VBA Setup, Playthrough, and uv Guide (`README.md`)**: Added detailed English and Chinese (`中文快速上手与 Excel 宏（VBA）导入指南`) instructions covering `.bas` module importing, `.cls` document class copy-pasting (skipping lines 1–9 class headers), `.xlsm` saving, 4-phase playthrough steps, `Ctrl + Shift + R` emergency reset, `uv` installation, and Kiro MCP verification.
 
 ### Changed
 
