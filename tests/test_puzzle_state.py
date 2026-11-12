@@ -462,3 +462,10 @@ def test_persistently_corrupt_save_is_copied_once_not_on_every_load(tmp_path):
     path.write_text("{broken differently", encoding="utf-8")
     engine.load_state()
     assert backup.read_text(encoding="utf-8") == "{broken differently"
+
+@pytest.mark.parametrize("val", [7, 7.0, "7", "7.0", "7.00", "$7", "$7.00", "  7.00  "])
+def test_h7_accepts_plain_numbers_without_currency_symbol(val):
+    engine = PuzzleEngine()
+    res = engine.handle_cell_change("H7", val)
+    assert res["accepted"] is True
+    assert engine.current_phase == PhaseEnum.THE_UNSEEN_INTRUDER

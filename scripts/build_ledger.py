@@ -282,8 +282,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
                     cell.font = font_flagged
             elif j == 8:  # Fee
                 cell.alignment = Alignment(horizontal="right", vertical="center")
-                if val is not None:
-                    cell.number_format = "$#,##0.00"
+                cell.number_format = "$#,##0.00"
             elif j == 9:  # Status
                 cell.alignment = Alignment(horizontal="center", vertical="center")
                 if val == "FLAGGED":

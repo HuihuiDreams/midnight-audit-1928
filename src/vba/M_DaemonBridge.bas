@@ -306,6 +306,7 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                         End If
 
                     Case "AWAKEN_ROW_13"
+                        ws.Range("H7").NumberFormat = "$#,##0.00"
                         ws.Range("A13").Font.Color = COLOR_WARNING_RED
                         ws.Range("A13").Value = "STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS"
                         ws.Range("A14:I16").Interior.Color = COLOR_DECAYING_PAPER
@@ -785,6 +786,7 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
         cleanVal = Val(sVal)
 
         If Abs(cleanVal - 7#) < 0.01 Then
+            ws.Range("H7").NumberFormat = "$#,##0.00"
             ws.Range("I7").Value = "BALANCED (UNHOLY)"
             ws.Range("I7").Font.Color = COLOR_WARNING_RED
             ws.Range("A13").Font.Color = COLOR_WARNING_RED

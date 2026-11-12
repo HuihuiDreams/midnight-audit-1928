@@ -29,6 +29,7 @@ def test_build_ledger_generates_file(tmp_path):
     assert ws["B7"].value == "Wilbur Whateley"
     assert ws["G7"].value == 140
     assert ws["H7"].value is None
+    assert ws["H7"].number_format == "$#,##0.00"
 
     # Verify Handover note exists & Halloween enhancements (Full-width K4:AN12)
     assert "NIGHT AUDITOR HANDOVER NOTE" in ws["K4"].value
