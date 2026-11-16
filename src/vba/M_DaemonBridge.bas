@@ -245,6 +245,9 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
         If pVal >= 1 And pVal <= 4 Then gLocalPhase = pVal
     End If
 
+    Dim ranPhaseRefresh As Boolean
+    ranPhaseRefresh = False
+
     ' Structured action dispatch: iterate actions array and dispatch by command/effect
     Dim posActions As Long
     posActions = InStr(1, jsonResp, """actions""", vbTextCompare)
@@ -307,10 +310,16 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
 
                     Case "AWAKEN_ROW_13"
                         ws.Range("H7").NumberFormat = "$#,##0.00"
+                        ws.Range("H7").Font.Color = COLOR_CARBON
+                        ws.Range("H7").Font.Italic = False
+                        ws.Range("H7").Font.Bold = True
+                        ws.Range("H7").HorizontalAlignment = xlRight
                         ws.Range("A13").Font.Color = COLOR_WARNING_RED
                         ws.Range("A13").Value = "STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS"
                         ws.Range("A14:I16").Interior.Color = COLOR_DECAYING_PAPER
                         ws.Range("A14:I16").Font.Color = COLOR_CARBON
+                        RefreshPhaseGuidance False
+                        ranPhaseRefresh = True
 
                     Case "UNLOCK_CENSORED_ROWS"
                         ws.Range("A14:I16").Interior.Color = COLOR_DECAYING_PAPER
@@ -318,11 +327,14 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
 
                     Case "RENDER_PIXEL_MATRIX"
                         RenderPixelFace ws
+                        RefreshPhaseGuidance True
+                        ranPhaseRefresh = True
 
                     Case "START_EYE_BLINK"
                         StartEyeBlink ws
 
                     Case "HIJACK_TYPE"
+                        gHijackTriggered = True
                         Dim hjCell As String, hjText As String
                         hjCell = Trim$(ExtractJsonField(actionChunk, "cell"))
                         If Not IsValidCellAddress(hjCell) Then hjCell = "B18"
@@ -336,11 +348,16 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                         PlatformSleep 1200
                         ws.Range(hjCell).Value = Empty
                         ws.Range(hjCell).Font.Color = COLOR_CARBON
+                        RefreshPhaseGuidance True
+                        ranPhaseRefresh = True
 
                     Case "UNLOCK_BUTTON"
+                        gLocalPhase = 4
                         ws.Range("C18:D18").Interior.Color = COLOR_WARNING_RED
-                        ws.Range("C18:D18").Font.Color = RGB(255, 255, 255)
+                        ws.Range("C18:D18").Font.Color = COLOR_BONE_PAPER
                         ws.Range("C18").Value = "[ SEAL ARCHIVE ]"
+                        RefreshPhaseGuidance False
+                        ranPhaseRefresh = True
                         MsgBox "Override Accepted. The Seal of Armitage is armed. Click [ SEAL ARCHIVE ] to execute Phase 4 Banishment.", vbExclamation, "Vault Protocol"
 
                     Case "LOCK_SHEET"
@@ -353,6 +370,8 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                         ws.Range("B10").Value = "[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]"
                         ws.Range("B11").Value = "ALL BALANCES CANCELLED BY ORDER OF ARMITAGE"
                         ws.Range("B12").Value = "REST NOW, AUDITOR. THE VOID BOOKS ARE CLOSED."
+                        RefreshPhaseGuidance False
+                        ranPhaseRefresh = True
                         ws.Protect
                         MsgBox "ARCHIVE SEALED. The entity has been banished into the floorboards.", vbInformation, "Audit Terminated"
 
@@ -373,6 +392,12 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
 
                 currPos = objEnd + 1
             Loop
+        End If
+    End If
+
+    If Not ranPhaseRefresh And Not gArchiveSealed Then
+        If LCase$(ExtractJsonField(jsonResp, "accepted")) = "false" And LCase$(ExtractJsonField(jsonResp, "hijacked")) <> "true" And Len(cellCoord) > 0 Then
+            ShowWrongEntryGuidance cellCoord
         End If
     End If
 
@@ -782,27 +807,34 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
     If gLocalPhase = 1 And UCase(cellCoord) = "H7" Then
         Dim cleanVal As Double
         Dim sVal As String
-        sVal = Replace(Replace(cellVal, "$", ""), ",", "")
+        sVal = StripPlaceholderPrefix(cellVal, "[ TYPE FEE ]")
+        sVal = Trim$(Replace(Replace(sVal, "$", ""), ",", ""))
         cleanVal = Val(sVal)
 
-        If Abs(cleanVal - 7#) < 0.01 Then
+        If IsNumeric(sVal) And Abs(cleanVal - 7#) < 0.01 Then
             ws.Range("H7").NumberFormat = "$#,##0.00"
+            ws.Range("H7").Font.Color = COLOR_CARBON
+            ws.Range("H7").Font.Italic = False
+            ws.Range("H7").Font.Bold = True
+            ws.Range("H7").HorizontalAlignment = xlRight
             ws.Range("I7").Value = "BALANCED (UNHOLY)"
             ws.Range("I7").Font.Color = COLOR_WARNING_RED
             ws.Range("A13").Font.Color = COLOR_WARNING_RED
             ws.Range("A13").Value = "STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS"
 
             ' Reveal censored rows 14-16 by recoloring only (same as the daemon path);
-            ' the pre-printed I14 text already carries the radar coordinate.
+            ' the pre-printed I14 text already carries the radar reference.
             ws.Range("A14:I16").Interior.Color = COLOR_DECAYING_PAPER
             ws.Range("A14:I16").Font.Color = COLOR_CARBON
 
             ThudBeep
             ScreenTremor
             gLocalPhase = 2
+            RefreshPhaseGuidance False
         Else
             SpreadBloodScab ws.Range("H7")
             ThudBeep
+            ShowWrongEntryGuidance "H7"
         End If
         Exit Sub
     End If
@@ -812,6 +844,7 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
         RenderPixelFace ws
         ThudBeep
         gLocalPhase = 3
+        RefreshPhaseGuidance True
         Exit Sub
     End If
 
@@ -825,6 +858,7 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
             PlatformSleep 1200
             ws.Range("B18").Value = Empty
             ws.Range("B18").Font.Color = COLOR_CARBON
+            RefreshPhaseGuidance True
             Exit Sub
         Else
             Dim cleanCode As String
@@ -833,16 +867,19 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
             Do While InStr(cleanCode, "  ") > 0
                 cleanCode = Replace(cleanCode, "  ", " ")
             Loop
+            cleanCode = StripPlaceholderPrefix(cleanCode, "[ TYPE PHRASE ]")
             If cleanCode = "SEAL THE DEEP VAULT" Then
                 gLocalPhase = 4
                 ws.Range("C18:D18").Interior.Color = COLOR_WARNING_RED
-                ws.Range("C18:D18").Font.Color = RGB(255, 255, 255)
+                ws.Range("C18:D18").Font.Color = COLOR_BONE_PAPER
                 ws.Range("C18").Value = "[ SEAL ARCHIVE ]"
+                RefreshPhaseGuidance False
                 MsgBox "Override Accepted. The Seal of Armitage is armed. Click [ SEAL ARCHIVE ] to execute Phase 4 Banishment.", vbExclamation, "Vault Protocol"
                 Exit Sub
             Else
                 SpreadBloodScab ws.Range("B18")
                 ThudBeep
+                ShowWrongEntryGuidance "B18"
             End If
         End If
     End If
@@ -862,11 +899,342 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
         ws.Range("B10").Value = "[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]"
         ws.Range("B11").Value = "ALL BALANCES CANCELLED BY ORDER OF ARMITAGE"
         ws.Range("B12").Value = "REST NOW, AUDITOR. THE VOID BOOKS ARE CLOSED."
+        RefreshPhaseGuidance False
         ws.Protect
 
         MsgBox "ARCHIVE SEALED. The entity has been banished into the floorboards.", vbInformation, "Audit Terminated"
     End If
 
+    On Error GoTo 0
+End Sub
+
+''' <summary>
+''' Strips an intact placeholder prefix if the player double-clicked and appended to it.
+''' </summary>
+Public Function StripPlaceholderPrefix(ByVal rawText As String, ByVal placeholder As String) As String
+    Dim trimmed As String
+    trimmed = Trim$(rawText)
+    If Len(trimmed) >= Len(placeholder) Then
+        If Left$(UCase$(trimmed), Len(placeholder)) = UCase$(placeholder) Then
+            StripPlaceholderPrefix = Trim$(Mid$(trimmed, Len(placeholder) + 1))
+            Exit Function
+        End If
+    End If
+    StripPlaceholderPrefix = trimmed
+End Function
+
+''' <summary>
+''' Wax seal HUD prefix. The candle is built from its UTF-16 surrogate pair so this
+''' module stays pure ASCII (VBE imports .bas files with the ANSI code page).
+''' </summary>
+Private Function WaxSealLabel() As String
+    WaxSealLabel = ChrW(55357) & ChrW(56687) & ChrW(65039) & " CUSTODIAL WAX SEAL: "
+End Function
+
+''' <summary>
+''' Returns the spoiler-free 1928 status bar guidance string for the active phase.
+''' </summary>
+Public Function CurrentPhaseStatusText() As String
+    If gArchiveSealed Then
+        CurrentPhaseStatusText = "OCTOBER 31, 1928 - 00:01 AM | ARCHIVE SEALED | REST NOW, AUDITOR"
+        Exit Function
+    End If
+
+    Select Case gLocalPhase
+        Case 2
+            CurrentPhaseStatusText = "PHASE 2/4 | ROW 13 AWAKENED - CLICK LIT GREEN [ SPRAY REAGENT ] BAR ABOVE THE BASEMENT RADAR"
+        Case 3
+            If gHijackTriggered Then
+                CurrentPhaseStatusText = "PHASE 3/4 | QUILL INTERCEPTED - RE-ENTER 4-WORD PHRASE IN EMERGENCY OVERRIDE & PRESS ENTER"
+            Else
+                CurrentPhaseStatusText = "PHASE 3/4 | DECODE CHARRED ROT-3 STRIP (BOTTOM-LEFT) INTO EMERGENCY OVERRIDE & PRESS ENTER"
+            End If
+        Case 4
+            CurrentPhaseStatusText = "PHASE 4/4 | OVERRIDE ACCEPTED - CLICK LIT RED [ SEAL ARCHIVE ] BUTTON TO BANISH THE ENTITY"
+        Case Else
+            CurrentPhaseStatusText = "PHASE 1/4 | AUDIT WILBUR WHATELEY (140 DAYS x $0.05/DAY) IN [ TYPE FEE ] & PRESS ENTER | CTRL+SHIFT+R: RESET EXCEL"
+    End Select
+End Function
+
+''' <summary>
+''' Event-driven UI sync: updates button affordances, Phase HUD (E18:I18), placeholders, and StatusBar.
+''' </summary>
+Public Sub RefreshPhaseGuidance(Optional ByVal focusTarget As Boolean = False)
+    On Error Resume Next
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("Audit_Ledger_1928")
+    If ws Is Nothing Then Set ws = ActiveSheet
+    If ws Is Nothing Then Exit Sub
+
+    CancelAmbientWhisper
+    Application.DisplayStatusBar = True
+    Application.StatusBar = CurrentPhaseStatusText()
+
+    Dim eventsWereOn As Boolean
+    eventsWereOn = Application.EnableEvents
+    Application.EnableEvents = False
+
+    If Not ws.ProtectContents Then
+        Dim effPhase As Long
+        effPhase = gLocalPhase
+        If effPhase = 0 Then effPhase = 1
+
+        If gArchiveSealed Then
+            ws.Range("E18").Value = WaxSealLabel() & "[ SEALED - OCT 31, 1928 00:01 AM ]"
+            ws.Range("E18").Font.Color = COLOR_WARNING_RED
+        ElseIf effPhase = 1 Then
+            Dim h7Val As String
+            h7Val = Trim$(CStr(ws.Range("H7").Value))
+            If Len(h7Val) = 0 Or UCase$(h7Val) = "[ TYPE FEE ]" Then
+                ws.Range("H7").Value = "[ TYPE FEE ]"
+                ws.Range("H7").Font.Color = COLOR_HOSPITAL_GREEN
+                ws.Range("H7").Font.Italic = True
+                ws.Range("H7").Font.Bold = True
+                ws.Range("H7").HorizontalAlignment = xlCenter
+            End If
+            ws.Range("B18").Value = "[ LOCKED ]"
+            StyleLockedCell ws.Range("B18")
+            StyleDormantButton ws.Range("K18:AN18"), "[ SPRAY REAGENT ]"
+            StyleDormantButton ws.Range("C18:D18"), "[ SEAL ARCHIVE ]"
+            ws.Range("E18").Value = WaxSealLabel() & "[ 1/4: SETTLE FLAGGED FEE ABOVE ]"
+            If focusTarget Then
+                ws.Activate
+                ActiveWindow.ScrollRow = 1
+                ActiveWindow.ScrollColumn = 1
+                ws.Range("H7").Select
+            End If
+        ElseIf effPhase = 2 Then
+            Dim h7Curr As String
+            h7Curr = Trim$(CStr(ws.Range("H7").Value))
+            If Len(h7Curr) = 0 Or UCase$(h7Curr) = "[ TYPE FEE ]" Then
+                ws.Range("H7").Value = 7#
+            End If
+            ws.Range("H7").NumberFormat = "$#,##0.00"
+            ws.Range("H7").Font.Color = COLOR_CARBON
+            ws.Range("H7").Font.Italic = False
+            ws.Range("H7").Font.Bold = True
+            ws.Range("H7").HorizontalAlignment = xlRight
+
+            StyleLitButton ws.Range("K18:AN18"), COLOR_PHOSPHOR_GREEN, COLOR_BONE_PAPER, "[ SPRAY REAGENT ]"
+            ws.Range("B18").Value = "[ LOCKED ]"
+            StyleLockedCell ws.Range("B18")
+            StyleDormantButton ws.Range("C18:D18"), "[ SEAL ARCHIVE ]"
+            ws.Range("E18").Value = WaxSealLabel() & "[ 2/4: CLICK SPRAY REAGENT -> ]"
+            If focusTarget Then
+                ws.Activate
+                ActiveWindow.ScrollRow = 1
+                ActiveWindow.ScrollColumn = 1
+                ws.Range("I7").Select
+            End If
+        ElseIf effPhase = 3 Then
+            ws.Range("H7").NumberFormat = "$#,##0.00"
+            ws.Range("H7").Font.Color = COLOR_CARBON
+            ws.Range("H7").Font.Italic = False
+            ws.Range("H7").Font.Bold = True
+
+            StyleSpentButton ws.Range("K18:AN18"), "[ REAGENT APPLIED ]"
+            StyleActiveInputCell ws.Range("B18")
+            Dim b18Val As String
+            b18Val = UCase$(Trim$(CStr(ws.Range("B18").Value)))
+            If Not gHijackTriggered Then
+                If Len(b18Val) = 0 Or b18Val = "[ LOCKED ]" Or b18Val = "[ TYPE PHRASE ]" Then
+                    ws.Range("B18").Value = "[ TYPE PHRASE ]"
+                    ws.Range("B18").Font.Color = COLOR_HOSPITAL_GREEN
+                    ws.Range("B18").Font.Italic = True
+                    ws.Range("B18").Font.Bold = False
+                End If
+                ws.Range("E18").Value = WaxSealLabel() & "[ 3/4: DECODE STRIP -> TYPE LEFT ]"
+            Else
+                If b18Val = "[ LOCKED ]" Or b18Val = "[ TYPE PHRASE ]" Then
+                    ws.Range("B18").Value = Empty
+                End If
+                ws.Range("E18").Value = WaxSealLabel() & "[ 3/4: RE-ENTER 4-WORD PHRASE <- ]"
+            End If
+            StyleDormantButton ws.Range("C18:D18"), "[ SEAL ARCHIVE ]"
+            If focusTarget Then
+                ws.Activate
+                ws.Range("B18").Select
+            End If
+        ElseIf effPhase >= 4 Then
+            StyleSpentButton ws.Range("K18:AN18"), "[ REAGENT APPLIED ]"
+            StyleActiveInputCell ws.Range("B18")
+            Dim b18Done As String
+            b18Done = UCase$(Trim$(CStr(ws.Range("B18").Value)))
+            If Len(b18Done) = 0 Or b18Done = "[ LOCKED ]" Or b18Done = "[ TYPE PHRASE ]" Then
+                ws.Range("B18").Value = "SEAL THE DEEP VAULT"
+            End If
+            ws.Range("B18").Font.Color = COLOR_CARBON
+            ws.Range("B18").Font.Italic = False
+            ws.Range("B18").Font.Bold = True
+            StyleLitButton ws.Range("C18:D18"), COLOR_WARNING_RED, COLOR_BONE_PAPER, "[ SEAL ARCHIVE ]"
+            ws.Range("E18").Value = WaxSealLabel() & "[ 4/4: CLICK SEAL ARCHIVE <- ]"
+            If focusTarget Then
+                ws.Activate
+                ActiveWindow.ScrollRow = 1
+                ActiveWindow.ScrollColumn = 1
+                ws.Range("B18").Select
+            End If
+        End If
+    End If
+
+    Application.EnableEvents = eventsWereOn
+    On Error GoTo 0
+End Sub
+
+''' <summary>
+''' Displays actionable guidance when the player clicks or edits a locked control out of phase.
+''' </summary>
+Public Sub ShowLockedControlHint(ByVal controlName As String)
+    On Error Resume Next
+    CancelAmbientWhisper
+    Application.DisplayStatusBar = True
+    Select Case UCase$(controlName)
+        Case "SPRAY_REAGENT"
+            If gLocalPhase < 2 Then
+                Application.StatusBar = "REAGENT LOCKED (PHASE 2) - FIRST SETTLE WILBUR WHATELEY'S FEE IN [ TYPE FEE ] ABOVE."
+            Else
+                Application.StatusBar = "REAGENT ALREADY APPLIED - " & CurrentPhaseStatusText()
+            End If
+        Case "SEAL_ARCHIVE"
+            If gLocalPhase = 1 Then
+                Application.StatusBar = "SEAL LOCKED (PHASE 4) - FIRST SETTLE WILBUR WHATELEY'S FLAGGED FEE IN [ TYPE FEE ]."
+            ElseIf gLocalPhase = 2 Then
+                Application.StatusBar = "SEAL LOCKED (PHASE 4) - NEXT CLICK LIT GREEN [ SPRAY REAGENT ] ABOVE THE BASEMENT RADAR."
+            ElseIf gLocalPhase = 3 Then
+                Application.StatusBar = "SEAL LOCKED (PHASE 4) - DECODE THE CHARRED STRIP INTO EMERGENCY OVERRIDE FIRST."
+            End If
+        Case "OVERRIDE_B18"
+            If gLocalPhase = 1 Then
+                Application.StatusBar = "OVERRIDE LOCKED (PHASE 3) - FIRST SETTLE WILBUR WHATELEY'S FEE IN [ TYPE FEE ] ABOVE."
+            ElseIf gLocalPhase = 2 Then
+                Application.StatusBar = "OVERRIDE LOCKED (PHASE 3) - NEXT CLICK LIT GREEN [ SPRAY REAGENT ] ABOVE THE RADAR."
+            End If
+    End Select
+    On Error GoTo 0
+End Sub
+
+''' <summary>
+''' Displays spoiler-free corrective guidance after an invalid fee or cipher entry.
+''' </summary>
+Public Sub ShowWrongEntryGuidance(ByVal cellCoord As String)
+    On Error Resume Next
+    CancelAmbientWhisper
+    Application.DisplayStatusBar = True
+    Select Case UCase$(Trim$(cellCoord))
+        Case "H7"
+            Application.StatusBar = "DENIED: MULTIPLY WILBUR WHATELEY'S OVERDUE DAYS x $0.05/DAY & RE-ENTER IN [ TYPE FEE ]."
+        Case "B18"
+            Application.StatusBar = "CIPHER REJECTED - FIND BOTTOM LETTER ON CHARRED STRIP, TAKE LETTER DIRECTLY ABOVE IT (4 WORDS)."
+    End Select
+    On Error GoTo 0
+End Sub
+
+''' <summary>
+''' Reminds the player of the active step when re-editing an already completed phase cell.
+''' </summary>
+Public Sub ShowPhaseBlockedHint(ByVal cellCoord As String)
+    On Error Resume Next
+    CancelAmbientWhisper
+    Application.DisplayStatusBar = True
+    Application.StatusBar = "STEP ALREADY COMPLETED - " & CurrentPhaseStatusText()
+    On Error GoTo 0
+End Sub
+
+Private Sub StyleLockedCell(ByVal rng As Range)
+    On Error Resume Next
+    rng.Interior.Color = COLOR_DECAYING_PAPER
+    rng.Font.Color = COLOR_HOSPITAL_GREEN
+    rng.Font.Italic = True
+    rng.Font.Bold = False
+    rng.Borders(xlEdgeLeft).LineStyle = xlContinuous
+    rng.Borders(xlEdgeLeft).Weight = xlThin
+    rng.Borders(xlEdgeLeft).Color = COLOR_HOSPITAL_GREEN
+    rng.Borders(xlEdgeRight).LineStyle = xlContinuous
+    rng.Borders(xlEdgeRight).Weight = xlThin
+    rng.Borders(xlEdgeRight).Color = COLOR_HOSPITAL_GREEN
+    rng.Borders(xlEdgeTop).LineStyle = xlContinuous
+    rng.Borders(xlEdgeTop).Weight = xlThin
+    rng.Borders(xlEdgeTop).Color = COLOR_HOSPITAL_GREEN
+    rng.Borders(xlEdgeBottom).LineStyle = xlContinuous
+    rng.Borders(xlEdgeBottom).Weight = xlThin
+    rng.Borders(xlEdgeBottom).Color = COLOR_HOSPITAL_GREEN
+    On Error GoTo 0
+End Sub
+
+Private Sub StyleActiveInputCell(ByVal rng As Range)
+    On Error Resume Next
+    rng.Interior.Color = COLOR_BONE_PAPER
+    rng.Borders(xlEdgeLeft).LineStyle = xlDouble
+    rng.Borders(xlEdgeLeft).Color = COLOR_WARNING_RED
+    rng.Borders(xlEdgeRight).LineStyle = xlDouble
+    rng.Borders(xlEdgeRight).Color = COLOR_WARNING_RED
+    rng.Borders(xlEdgeTop).LineStyle = xlMedium
+    rng.Borders(xlEdgeTop).Color = COLOR_DRIED_BLOOD
+    rng.Borders(xlEdgeBottom).LineStyle = xlMedium
+    rng.Borders(xlEdgeBottom).Color = COLOR_DRIED_BLOOD
+    On Error GoTo 0
+End Sub
+
+Private Sub StyleDormantButton(ByVal btnRange As Range, ByVal caption As String)
+    On Error Resume Next
+    btnRange.Cells(1, 1).Value = caption
+    btnRange.Interior.Color = COLOR_CARBON
+    btnRange.Font.Color = COLOR_COLD_ASH
+    btnRange.Borders(xlInsideVertical).LineStyle = xlNone
+    btnRange.Borders(xlEdgeTop).LineStyle = xlContinuous
+    btnRange.Borders(xlEdgeTop).Weight = xlThin
+    btnRange.Borders(xlEdgeTop).Color = COLOR_HOSPITAL_GREEN
+    btnRange.Borders(xlEdgeBottom).LineStyle = xlContinuous
+    btnRange.Borders(xlEdgeBottom).Weight = xlThin
+    btnRange.Borders(xlEdgeBottom).Color = COLOR_HOSPITAL_GREEN
+    btnRange.Borders(xlEdgeLeft).LineStyle = xlContinuous
+    btnRange.Borders(xlEdgeLeft).Weight = xlThin
+    btnRange.Borders(xlEdgeLeft).Color = COLOR_HOSPITAL_GREEN
+    btnRange.Borders(xlEdgeRight).LineStyle = xlContinuous
+    btnRange.Borders(xlEdgeRight).Weight = xlThin
+    btnRange.Borders(xlEdgeRight).Color = COLOR_HOSPITAL_GREEN
+    On Error GoTo 0
+End Sub
+
+Private Sub StyleLitButton(ByVal btnRange As Range, ByVal bgColor As Long, ByVal fgColor As Long, ByVal caption As String)
+    On Error Resume Next
+    btnRange.Cells(1, 1).Value = caption
+    btnRange.Interior.Color = bgColor
+    btnRange.Font.Color = fgColor
+    btnRange.Borders(xlInsideVertical).LineStyle = xlNone
+    btnRange.Borders(xlEdgeTop).LineStyle = xlContinuous
+    btnRange.Borders(xlEdgeTop).Weight = xlMedium
+    btnRange.Borders(xlEdgeTop).Color = COLOR_BONE_PAPER
+    btnRange.Borders(xlEdgeLeft).LineStyle = xlContinuous
+    btnRange.Borders(xlEdgeLeft).Weight = xlMedium
+    btnRange.Borders(xlEdgeLeft).Color = COLOR_BONE_PAPER
+    btnRange.Borders(xlEdgeBottom).LineStyle = xlContinuous
+    btnRange.Borders(xlEdgeBottom).Weight = xlMedium
+    btnRange.Borders(xlEdgeBottom).Color = COLOR_CARBON
+    btnRange.Borders(xlEdgeRight).LineStyle = xlContinuous
+    btnRange.Borders(xlEdgeRight).Weight = xlMedium
+    btnRange.Borders(xlEdgeRight).Color = COLOR_CARBON
+    On Error GoTo 0
+End Sub
+
+Private Sub StyleSpentButton(ByVal btnRange As Range, ByVal caption As String)
+    On Error Resume Next
+    btnRange.Cells(1, 1).Value = caption
+    btnRange.Interior.Color = COLOR_DECAYING_PAPER
+    btnRange.Font.Color = COLOR_HOSPITAL_GREEN
+    btnRange.Borders(xlInsideVertical).LineStyle = xlNone
+    btnRange.Borders(xlEdgeTop).LineStyle = xlContinuous
+    btnRange.Borders(xlEdgeTop).Weight = xlThin
+    btnRange.Borders(xlEdgeTop).Color = COLOR_HOSPITAL_GREEN
+    btnRange.Borders(xlEdgeBottom).LineStyle = xlContinuous
+    btnRange.Borders(xlEdgeBottom).Weight = xlThin
+    btnRange.Borders(xlEdgeBottom).Color = COLOR_HOSPITAL_GREEN
+    btnRange.Borders(xlEdgeLeft).LineStyle = xlContinuous
+    btnRange.Borders(xlEdgeLeft).Weight = xlThin
+    btnRange.Borders(xlEdgeLeft).Color = COLOR_HOSPITAL_GREEN
+    btnRange.Borders(xlEdgeRight).LineStyle = xlContinuous
+    btnRange.Borders(xlEdgeRight).Weight = xlThin
+    btnRange.Borders(xlEdgeRight).Color = COLOR_HOSPITAL_GREEN
     On Error GoTo 0
 End Sub
 

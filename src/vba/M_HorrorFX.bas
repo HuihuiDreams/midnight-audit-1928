@@ -396,7 +396,7 @@ Public Sub TriggerAmbientWhisper()
 End Sub
 
 ''' <summary>
-''' Restores default 1928 status bar baseline.
+''' Restores the active phase status bar guidance after an ambient whisper finishes.
 ''' </summary>
 Public Sub ResetStatusBar()
     On Error Resume Next
@@ -404,7 +404,7 @@ Public Sub ResetStatusBar()
     If gArchiveSealed Then
         Application.StatusBar = "OCTOBER 31, 1928 - 00:01 AM | ARCHIVE SEALED | REST NOW, AUDITOR"
     Else
-        Application.StatusBar = "OCTOBER 31, 1928 - 11:47 PM | ALL HALLOWS' EVE | ANNEX ARCHIVE DELINQUENCY LEDGER"
+        Application.StatusBar = CurrentPhaseStatusText()
     End If
     On Error GoTo 0
 End Sub

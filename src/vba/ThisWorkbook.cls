@@ -22,6 +22,7 @@ Private Sub Workbook_Open()
     PollPendingHaunts
     SyncDaemonState
     StartHauntPolling
+    RefreshPhaseGuidance True
     On Error GoTo 0
 End Sub
 

@@ -34,23 +34,23 @@
 - **Starting State**:
   - Ledger contains rows 6 to 12 of borrowing records.
   - Row 7: Record `ARK-007`, Borrower: `Wilbur Whateley`, Tome: `Necronomicon (Dee Trans.)`, Due Date: `1928-06-13`, Overdue Days: `140` (counted to the game night, 1928-10-31, as for every record on the ledger: due date + overdue days = 1928-10-31).
-  - Column H ("Late Fee Paid ($)") is blank for Row 7. Status in Column I is `"FLAGGED"`.
+  - Column H ("Late Fee Paid ($)") shows an active italic placeholder `"[ TYPE FEE ]"` for Row 7 (focused on workbook open), while `"K18:AN18"` (`[ SPRAY REAGENT ]`), `"B18"` (`[ LOCKED ]`), and `"C18:D18"` (`[ SEAL ARCHIVE ]`) start visually dormant. Status in Column I is `"FLAGGED"`, and `E18:I18` + `Application.StatusBar` display Phase `1/4`.
 - **Player Action**:
-  - Yellow Handover Note Rule 1: *"For records overdue > 100 days, calculate late fee ($0.05 per overdue day) in Column H to balance delinquent ledger."*
+  - Yellow Handover Note Rule 1: *"Find the FLAGGED borrower overdue >100d. Multiply Overdue Days x $0.05 in [ TYPE FEE ] & press Enter."* (No `$7.00` answer spoiler or raw cell coordinates.)
   - Correct input in cell `H7`: `140 * 0.05 = 7.00` (accepts `7`, `7.0`, `7.00`, `$7.00`).
   - Rejected entries are counted in `attempts` (`H7` wrong or non-numeric fee, `B18` wrong override code) so the Agent can see when the player is stuck.
   - A cleared cell (empty or whitespace) is not an attempt: the VBA `Worksheet_Change` hook does not send it, the engine ignores it with no penalty effects, and in Phase 3 it does not consume the first-entry hijack.
 - **Triggered Effect**:
   - Cell `I7` changes to `"BALANCED (UNHOLY)"`.
   - **The Row 13 Abyss awakens**: Row 13 (A13:I13) shakes; text appears in red/bone font: `"STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS"`.
-  - Censored Rows 14-16 are unlocked: moving selection over Rows 14-16 inverts background `#000000` to `#D3CEB9` revealing the hidden borrower coordinates: `"ARCHIVE COORDINATE: RADAR GRID K20:AN49"`.
+  - Censored Rows 14-16 are unlocked: moving selection over Rows 14-16 inverts background `#000000` to `#D3CEB9` revealing the hidden anomaly cue: `"ANOMALY: BASEMENT RADAR ->"` in `I14` (without exposing raw grid coordinates). Button `K18:AN18` (`[ SPRAY REAGENT ]`) lights up Phosphor Green (`#3B533E`) with `#D3CEB9` text, and the live Phase HUD (`E18:I18` + `StatusBar`) advances to Phase `2/4`.
   - System advances to Phase 2.
 
 ### Phase 2: The Unseen Intruder (30x30 Radar Grid)
 - **Starting State**:
   - Grid region `K20:AN49` (30 columns by 30 rows) represents the Annex Basement Floorplan.
   - Cells are filled with glitch data (`#REF!`, `#ROT!`, `???`).
-  - Handover Note Rule 2: *"If Annex Basement plan exhibits spatial corruption (#ROT!), spray chemical developer [BUTTON: SPRAY REAGENT] to reveal floorplan anomalies."*
+  - Handover Note Rule 2: *"When the Basement Radar below glitches, click the lit [ SPRAY REAGENT ] bar directly above it."* Clicking `[ SPRAY REAGENT ]` or `[ SEAL ARCHIVE ]` while locked triggers contextual guidance (`ShowLockedControlHint`) in `Application.StatusBar`.
 - **Player Action**:
   - Player clicks `SPRAY REAGENT` button or runs `ApplyReagentDeveloper` macro (or daemon event).
 - **Triggered Effect**:
@@ -66,7 +66,8 @@
 
 ### Phase 3: Hijacked Typing & Cipher (The Possession)
 - **Starting State**:
-  - Handover Note Rule 3: *"Emergency Vault Override requires transcribing the sealed 4-word phrase into Cell B18. Warning: cipher strip is shifted by 3 positions."*
+  - Handover Note Rule 3: *"Decode the charred ROT-3 strip (bottom-left) into EMERGENCY OVERRIDE, then click [ SEAL ARCHIVE ]."*
+  - Entering Phase 3 illuminates `B18` with placeholder `"[ TYPE PHRASE ]"` and shifts cursor focus onto `B18`; the charred cipher strip (`B21:H28`) prints `"SEAL PHRASE (ROT-3):  VHDO WKH GHHS YDXOW"` directly above the `PLAIN (READ TOP)` / `CIPHER (FIND BELOW)` decoding rows. Mistyped entries or premature phase inputs receive non-spoiler hints via `ShowWrongEntryGuidance` / `ShowPhaseBlockedHint`.
   - Cipher Strip printed in cells:
     - Encrypted: `VHDO WKH GHHS YDXOW`
     - ROT-3 Key: `A->X, B->Y, C->Z, D->A...`
@@ -78,7 +79,7 @@
     `"YOUR SALARY CANNOT SAVE YOU"`
     accompanied by a low-frequency rumble.
   - Cell then clears, allowing the player to enter the true code: `SEAL THE DEEP VAULT` (case-insensitive, trims whitespace).
-  - Once verified, button `[SEAL ARCHIVE]` lights up red (`#8A1C14`).
+  - Once verified, button `[SEAL ARCHIVE]` lights up red (`#8A1C14`), `E18:I18` + `Application.StatusBar` display Phase `4/4` (`VAULT SEAL ARMED`), and sealing transitions the HUD to `ARCHIVE SEALED`.
   - System advances to Phase 4.
 
 ### Phase 4: Midnight Settlement (The Banishment)

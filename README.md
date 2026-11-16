@@ -88,9 +88,9 @@ Because `openpyxl` generates `.xlsx` styling and layout while Excel compiles mac
 2. **Emergency Reset (`Ctrl + Shift + R`)**: If at any point you want to restore standard Excel toolbars, ribbons, formula bars, and gridlines, press **`Ctrl + Shift + R`** (or run the `EmergencyReset` macro).
 
 ### Step 5: Solve the 4-Phase Audit Loop
-1. **Phase 1 (The Audit Discrepancy)**: Read Rule 1 on the Yellow Handover Note (`K4:AN12`). Check borrower `Wilbur Whateley` in Row 7 (Overdue: 140 days). Type `7.00` (or `7`) into **`H7`** (140 × $0.05) and press Enter (no need to type `$`; the cell is pre-formatted as currency). Watch Row 13 awaken.
-2. **Phase 2 (The Unseen Intruder)**: Read Rule 2. Click the green **`[ SPRAY REAGENT ]`** bar (`K18:AN18`). Watch the 30×30 occult sanctum and blinking cosmic eye (`W34:X35`) manifest.
-3. **Phase 3 (The Hijacked Typing)**: Read Rule 3. Decode the charred ROT-3 cipher strip (`B21:H28`: `VHDO WKH GHHS YDXOW` -> `SEAL THE DEEP VAULT`). Type anything into Cell **`B18`** first to experience the typewriter hijacking (`YOUR SALARY CANNOT SAVE YOU`), then enter **`SEAL THE DEEP VAULT`** and press Enter — `[ SEAL ARCHIVE ]` (`C18:D18`) turns warning red.
+1. **Phase 1 (The Audit Discrepancy)**: When opened, the cursor lands directly on **`H7`** (`[ TYPE FEE ]`), and the Custodial Wax Seal banner / Excel status bar show Phase `1/4`. Read Rule 1 on the Yellow Handover Note (`K4:AN12`), check borrower `Wilbur Whateley` in Row 7 (Overdue: 140 days), type `7.00` (or `7`) (140 × $0.05), and press Enter (no need to type `$`; the cell is pre-formatted as currency). Watch Row 13 awaken.
+2. **Phase 2 (The Unseen Intruder)**: Once Phase 1 clears, the **`[ SPRAY REAGENT ]`** bar (`K18:AN18`) lights up phosphor green (`#3B533E`) and the live HUD advances to `2/4`. Click **`[ SPRAY REAGENT ]`** to watch the 30×30 occult sanctum and blinking cosmic eye (`W34:X35`) manifest.
+3. **Phase 3 (The Hijacked Typing)**: Read Rule 3. Decode the charred ROT-3 cipher strip (`B21:H28`: `VHDO WKH GHHS YDXOW` -> `SEAL THE DEEP VAULT`). Now unlocked (`[ TYPE PHRASE ]` in **`B18`**), type anything first to experience the typewriter hijacking (`YOUR SALARY CANNOT SAVE YOU`), then enter **`SEAL THE DEEP VAULT`** and press Enter — `[ SEAL ARCHIVE ]` (`C18:D18`) turns warning red.
 4. **Phase 4 (The Midnight Settlement)**: Click **`[ SEAL ARCHIVE ]`** (`C18:D18`). Thunder lightning flashes, the window trembles, and the ledger is permanently stamped closed at `OCTOBER 31, 1928 - 00:01 AM`.
 
 ---

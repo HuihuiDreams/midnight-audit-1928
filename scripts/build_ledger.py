@@ -252,8 +252,10 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
             # Classic 1920s bookkeeper vertical double-red audit rule on Column H (Late Fee)
             if j == 8:
                 if i == 7:
-                    # Active input target H7: highlighted bone paper with blood-red focus frame
+                    # Active input target H7: highlighted bone paper with blood-red focus frame & placeholder
+                    cell.value = "[ TYPE FEE ]"
                     cell.fill = fill_bone
+                    cell.font = Font(name=FONT_MONO, size=9.5, bold=True, italic=True, color=COLOR_HOSPITAL_GREEN)
                     cell.border = Border(
                         left=Side(style='double', color=COLOR_WARNING_RED),
                         right=Side(style='double', color=COLOR_WARNING_RED),
@@ -281,7 +283,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
                 if i == 7:
                     cell.font = font_flagged
             elif j == 8:  # Fee
-                cell.alignment = Alignment(horizontal="right", vertical="center")
+                cell.alignment = Alignment(horizontal="center" if i == 7 else "right", vertical="center")
                 cell.number_format = "$#,##0.00"
             elif j == 9:  # Status
                 cell.alignment = Alignment(horizontal="center", vertical="center")
@@ -303,7 +305,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
 
     # 6. Censored Rows (Rows 14-16)
     censored_records = [
-        ("ARK-066", "[EXPUNGED BY ORDER]", "Dunwich Vault", "The Seven Cryptical Books", "1928-01-01", "1928-01-13", 292, None, "COORDINATE: RADAR GRID K20:AN49"),
+        ("ARK-066", "[EXPUNGED BY ORDER]", "Dunwich Vault", "The Seven Cryptical Books", "1928-01-01", "1928-01-13", 292, None, "ANOMALY: BASEMENT RADAR ->"),
         ("ARK-067", "[NAME MUTATED]", "Kadath Sub-basement", "Pnakotic Manuscripts", "1927-10-31", "1927-11-13", 353, None, "ACCESS DENIED"),
         ("ARK-068", "Keziah Mason", "Arkham Witch House", "Azathoth & Other Horrors", "1692-05-01", "1692-05-19", 86361, None, "REMAINS UNBURIED"),
     ]
@@ -334,7 +336,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
         ws.cell(row=17, column=c).fill = fill_decay
         ws.cell(row=17, column=c).border = thin_border
 
-    # 7. Row 18: Emergency Vault Override Input & Wax Seal Stamp
+    # 7. Row 18: Emergency Vault Override Input & Wax Seal Stamp (Starts Locked in Phase 1)
     ws.row_dimensions[18].height = 34
     ws["A18"] = "EMERGENCY OVERRIDE\nCODE (PHASE 3):"
     ws["A18"].font = Font(name=FONT_DISPLAY, size=8.5, bold=True, color=COLOR_CARBON)
@@ -342,36 +344,32 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     ws["A18"].border = thin_border
     ws["A18"].alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-    ws["B18"].font = Font(name=FONT_MONO, size=11, bold=True, color=COLOR_CARBON)
-    ws["B18"].fill = fill_bone
-    ws["B18"].border = Border(
-        left=Side(style='double', color=COLOR_WARNING_RED),
-        right=Side(style='double', color=COLOR_WARNING_RED),
-        top=Side(style='medium', color=COLOR_DRIED_BLOOD),
-        bottom=Side(style='medium', color=COLOR_DRIED_BLOOD)
-    )
+    ws["B18"].value = "[ LOCKED ]"
+    ws["B18"].font = Font(name=FONT_MONO, size=9.5, bold=False, italic=True, color=COLOR_HOSPITAL_GREEN)
+    ws["B18"].fill = fill_decay
+    ws["B18"].border = thin_border
     ws["B18"].alignment = Alignment(horizontal="center", vertical="center")
 
-    # Phase 4 Button: [ SEAL ARCHIVE ] (C18:D18)
+    # Phase 4 Button: [ SEAL ARCHIVE ] (C18:D18) — Dormant until Phase 4
     ws.merge_cells("C18:D18")
     seal_btn = ws["C18"]
     seal_btn.value = "[ SEAL ARCHIVE ]"
-    seal_btn.font = Font(name=FONT_DISPLAY, size=10, bold=True, color=COLOR_DECAYING_PAPER)
-    seal_btn.fill = fill_hospital
+    seal_btn.font = Font(name=FONT_DISPLAY, size=10, bold=True, color=COLOR_COLD_ASH)
+    seal_btn.fill = fill_carbon
     seal_btn.alignment = Alignment(horizontal="center", vertical="center")
     for c in range(3, 5):
         cell = ws.cell(row=18, column=c)
-        cell.fill = fill_hospital
+        cell.fill = fill_carbon
         cell.border = Border(
-            left=Side(style='medium', color=COLOR_BONE_PAPER) if c == 3 else None,
-            right=Side(style='medium', color=COLOR_CARBON) if c == 4 else None,
-            top=Side(style='medium', color=COLOR_BONE_PAPER),
-            bottom=Side(style='medium', color=COLOR_CARBON)
+            left=Side(style='thin', color=COLOR_HOSPITAL_GREEN) if c == 3 else None,
+            right=Side(style='thin', color=COLOR_HOSPITAL_GREEN) if c == 4 else None,
+            top=Side(style='thin', color=COLOR_HOSPITAL_GREEN),
+            bottom=Side(style='thin', color=COLOR_HOSPITAL_GREEN)
         )
 
-    # Row 18 trailer (E18:I18) — Official Custodial Wax Seal Authentication Box
+    # Row 18 trailer (E18:I18) — Official Custodial Wax Seal & Live Phase HUD Box
     ws.merge_cells("E18:I18")
-    ws["E18"] = "🕯️ CUSTODIAL WAX SEAL: [ UNSEALED — BREACH IMMINENT ]"
+    ws["E18"] = "🕯️ CUSTODIAL WAX SEAL: [ 1/4: SETTLE FLAGGED FEE ABOVE ]"
     ws["E18"].font = font_seal
     ws["E18"].alignment = Alignment(horizontal="center", vertical="center")
     for c in range(5, 10):
@@ -405,10 +403,10 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     telegram_cell = ws["B21"]
     telegram_cell.value = (
         "╔═══ [ POCKET FIELD ARTIFACT — CHARRED CIPHER KEY STRIP ] ═══════════════════╗\n"
-        "║  FOUND ON DESK OF MISSING AUDITOR WARD (OCT 30, 1928 — 11:59 PM):          ║\n"
-        "║  STANDARD ALPHABET :  A B C D E F G H I J K L M N O P Q R S T U V W X Y Z  ║\n"
-        "║  DESK STRIP (ROT-3):  D E F G H I J K L M N O P Q R S T U V W X Y Z A B C  ║\n"
-        "║  \"When the floorboards groan, shift three steps back from the abyss...\"    ║\n"
+        "║  SEAL PHRASE (ROT-3):  VHDO WKH GHHS YDXOW                                 ║\n"
+        "║  PLAIN  (READ TOP)  :  A B C D E F G H I J K L M N O P Q R S T U V W X Y Z ║\n"
+        "║  CIPHER (FIND BELOW):  D E F G H I J K L M N O P Q R S T U V W X Y Z A B C ║\n"
+        "║  \"Find each cipher letter below; take the letter directly above it.\"       ║\n"
         "╚════════════════════════════════════════════════════════════════════════════╝"
     )
     telegram_cell.font = Font(name=FONT_MONO, size=9, bold=False, color=COLOR_BONE_PAPER)
@@ -471,14 +469,14 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
         "  [📎 MISKATONIC ANNEX ARCHIVE — NIGHT AUDITOR HANDOVER NOTE]\n"
         "  Date: Oct 31, 1928 (All Hallows' Eve)  |  Station: Desk 04\n"
         "  ─────────────────────────────────────────────────────────\n"
-        "  • RULE 1 (Delinquent Audit): Verify overdue borrowings (>100d).\n"
-        "    Enter late fee ($0.05/day) in Column H to clear red flag.\n"
-        "  • RULE 2 (Basement Surveillance): If radar (K20:AN49) displays\n"
-        "    spatial anomalies (#ROT!), spray reagent: [ SPRAY REAGENT ].\n"
-        "  • RULE 3 (Vault Sealing): Decode desk ROT-3 strip into Cell B18:\n"
-        "    'VHDO WKH GHHS YDXOW' -> click [ SEAL ARCHIVE ] button.\n"
+        "  • RULE 1 (Audit): Find the FLAGGED borrower overdue >100d.\n"
+        "    Multiply Overdue Days x $0.05 in [ TYPE FEE ] & press Enter.\n"
+        "  • RULE 2 (Develop): When the Basement Radar below glitches,\n"
+        "    click the lit [ SPRAY REAGENT ] bar directly above it.\n"
+        "  • RULE 3 (Banish): Decode the charred ROT-3 strip (bottom-left)\n"
+        "    into EMERGENCY OVERRIDE, then click [ SEAL ARCHIVE ].\n"
         "  ─────────────────────────────────────────────────────────\n"
-        "  🩸 WARNING: Never alter or inspect Row 13.\n"
+        "  🩸 WARNING: Do NOT select the black abyss row below.\n"
         "     — Former Auditor Ward (Missing since Oct 30, 11:59 PM)"
     )
     note_cell.font = font_note
@@ -501,17 +499,17 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     dossier_cell = ws["K13"]
     dossier_cell.value = (
         "  🕯️ [ MISKATONIC SPECIAL COLLECTIONS — NIGHT PROTOCOL & REAGENT APPARATUS ]\n"
-        "  ARCHIVE DIRECTIVE #1928-X  |  AUTHORITY: DR. H. ARMITAGE  |  STATION: SUB-VAULT 13\n"
+        "  ARCHIVE DIRECTIVE #1928-X  |  AUTHORITY: DR. H. ARMITAGE  |  SUB-VAULT 13\n"
         "  ─────────────────────────────────────────────────────────────────────────────────────────\n"
-        "  I. OVERDUE CUSTODY LOCK (BORROWER: WHATELEY, WILBUR / RECORD ARK-007)\n"
-        "     • Tome: Necronomicon (John Dee Translation, Restricted Vault Folio)\n"
-        "     • Status: 140 Days Delinquent — Calculate & enter $7.00 penalty in Cell H7.\n\n"
+        "  I. DELINQUENCY STATUTE (STATUTORY RATE: $0.05 PER DAY PAST DUE)\n"
+        "     • Restricted folio 'Necronomicon (Dee Trans.)' remains unreturned by Wilbur Whateley.\n"
+        "     • Standard accounts balance cleanly; accounts past 100 days fracture the seal.\n\n"
         "  II. SANATORIUM KEROSENE LAMP & IBN-GHAZI REAGENT ATOMIZER\n"
         "     • Brass reagent atomizer pressurized with glowing phosphor developer mist.\n"
-        "     • Depress [ SPRAY REAGENT ] below to expose the unseen entity in Grid K20:AN49.\n\n"
-        "  III. MIDNIGHT VAULT SEALING (MANDATORY PRIOR TO 12:00 AM STROKE)\n"
-        "     • Decode missing Auditor Ward's charred ROT-3 strip ('VHDO WKH GHHS YDXOW').\n"
-        "     • Enter the 4-word banishment phrase into Cell B18 and click [ SEAL ARCHIVE ]."
+        "     • Once the delinquency clears, depress the lit [ SPRAY REAGENT ] bar below to expose\n"
+        "       what lurks beneath the corrupted Annex Basement floorplan.\n\n"
+        "  III. CUSTODIAL SEALING PROTOCOL (PRIOR TO 12:00 AM STROKE)\n"
+        "     • Only Ward's four-word banishment cipher unlocks the Emergency Override control."
     )
     dossier_cell.font = Font(name=FONT_TYPEWRITER, size=9.5, bold=False, color=COLOR_BONE_PAPER)
     dossier_cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
@@ -531,21 +529,21 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
     for c in range(11, 41):
         ws.cell(row=17, column=c).fill = fill_carbon
 
-    # 11. Phase 2 Button: [ SPRAY REAGENT ] (K18:AN18)
+    # 11. Phase 2 Button: [ SPRAY REAGENT ] (K18:AN18) — Dormant until Phase 2
     ws.merge_cells("K18:AN18")
     spray_btn = ws["K18"]
     spray_btn.value = "[ SPRAY REAGENT ]"
-    spray_btn.font = Font(name=FONT_DISPLAY, size=11, bold=True, color=COLOR_BONE_PAPER)
-    spray_btn.fill = fill_spray
+    spray_btn.font = Font(name=FONT_DISPLAY, size=11, bold=True, color=COLOR_COLD_ASH)
+    spray_btn.fill = fill_carbon
     spray_btn.alignment = Alignment(horizontal="center", vertical="center")
     for c in range(11, 41):
         cell = ws.cell(row=18, column=c)
-        cell.fill = fill_spray
+        cell.fill = fill_carbon
         cell.border = Border(
-            top=Side(style='medium', color=COLOR_BONE_PAPER),
-            bottom=Side(style='medium', color=COLOR_CARBON),
-            left=Side(style='medium', color=COLOR_BONE_PAPER) if c == 11 else None,
-            right=Side(style='medium', color=COLOR_CARBON) if c == 40 else None
+            top=Side(style='thin', color=COLOR_HOSPITAL_GREEN),
+            bottom=Side(style='thin', color=COLOR_HOSPITAL_GREEN),
+            left=Side(style='thin', color=COLOR_HOSPITAL_GREEN) if c == 11 else None,
+            right=Side(style='thin', color=COLOR_HOSPITAL_GREEN) if c == 40 else None
         )
 
     # 12. 30x30 Radar Grid (K20:AN49)
@@ -619,17 +617,16 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
         "  ─────────────────────────────────────────────────────────────────────────────────────────\n"
         "  ARCHIVAL INCIDENT LOG (ALL HALLOWS' EVE — OCTOBER 31, 1928):\n"
         "    1. Following Wilbur Whateley's nocturnal trespass, the campus watchdogs have\n"
-        "       barked incessantly at the reinforced floorboards beneath Row 13.\n"
+        "       barked incessantly at the reinforced floorboards beneath the black gap.\n"
         "    2. Night Auditor Ward vanished from Desk 04 at 11:59 PM last evening, leaving\n"
-        "       only a charred ROT-3 cipher strip and an unsealed delinquency ledger.\n"
+        "       only a charred cipher strip and an unbalanced delinquency ledger.\n"
         "    3. A pungent odour of ozonized tar and formaldehyde seeps through the sub-basement\n"
         "       stone joints; the timber beams exhibit non-Euclidean structural warping.\n\n"
-        "  CUSTODIAL INSTRUCTIONS FOR TONIGHT'S SHIFT:\n"
-        "    [x] Step 1: Audit Row 7 (Whateley, W. — 140 days overdue @ $0.05/day -> $7.00 in H7).\n"
-        "    [x] Step 2: Discharge Ibn-Ghazi reagent ([ SPRAY REAGENT ]) over the 30x30\n"
-        "                sub-basement floorplan (K20:AN49) to expose the entity's eye.\n"
-        "    [x] Step 3: Shift 'VHDO WKH GHHS YDXOW' three letters back -> enter in Cell B18.\n"
-        "    [x] Step 4: Depress [ SEAL ARCHIVE ] (C18:D18) prior to the stroke of midnight."
+        "  CUSTODIAL NOTES FOR TONIGHT'S WATCH:\n"
+        "    • Reconcile the unsettled delinquency in the ledger above to trace the breach.\n"
+        "    • Watch the basement floorplan closely after applying the Ibn-Ghazi mist.\n"
+        "    • Should the entity seize your quill inside the Emergency Override field,\n"
+        "      steady your hand and re-enter Ward's decoded 4-word phrase to arm the seal."
     )
     armitage_cell.font = Font(name=FONT_TYPEWRITER, size=9, bold=False, color=COLOR_BONE_PAPER)
     armitage_cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)

@@ -10,9 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`LICENSE`**: The MIT license the README already declared (copyright holder: the git author `huihuidreams`, 2026).
+- **Non-modal in-sheet onboarding & live Phase HUD (`src/vba/`, `scripts/build_ledger.py`)**:
+  - Added `RefreshPhaseGuidance`, `CurrentPhaseStatusText`, `ShowLockedControlHint`, `ShowWrongEntryGuidance`, `ShowPhaseBlockedHint`, and `StripPlaceholderPrefix` in `src/vba/M_DaemonBridge.bas` (wired through `ThisWorkbook.cls`, `Sheet1_Archive.cls`, and `M_HorrorFX.bas`'s `ResetStatusBar`). The VBA modules stay pure ASCII (the HUD candle is built with `ChrW` in `WaxSealLabel`) because the VBE imports them with the ANSI code page; lit buttons use `#D3CEB9` text instead of pure white.
+  - Opening the workbook now auto-scrolls to top-left and focuses `H7`, displays dynamic `1/4`–`4/4` mission guidance in `E18:I18` (`CUSTODIAL WAX SEAL`) and `Application.StatusBar`, and explains locked buttons/out-of-phase clicks instead of failing silently.
 
 ### Changed
 
+- **Template affordances, anti-spoiler clues, and label-based references (`scripts/build_ledger.py`, `Midnight_Audit_1928_Template.xlsx`)**:
+  - Added `H7` (`[ TYPE FEE ]`) and `B18` (`[ LOCKED ]` -> `[ TYPE PHRASE ]`) placeholders plus visually distinct dormant (`#181614`/`#8A8D8F`), lit (`#3B533E` for `[ SPRAY REAGENT ]`, `#8A1C14` for `[ SEAL ARCHIVE ]`, both with `#D3CEB9` text), and spent button styles on `K18:AN18` and `C18:D18`.
+  - Replaced raw cell coordinates (`H7`/`B18`/`K20:AN49`) and `$7.00` answer spoilers across `K4:AN12`, `K13:AN16`, `I14` (`ANOMALY: BASEMENT RADAR ->`), and `B30:H48` with concise 1928 archival action clues; embedded `"SEAL PHRASE (ROT-3):  VHDO WKH GHHS YDXOW"` and `PLAIN (READ TOP)` / `CIPHER (FIND BELOW)` decoding rows directly in `B21:H28`.
+  - Synchronized `.kiro/specs/midnight-audit/requirements.md`, `.kiro/specs/puzzle_engine_spec.md`, `.kiro/steering/aesthetic_autopsy.md`, `tests/test_build_ledger.py`, and `tests/test_fixes_verification.py`.
+
+  - Removed the `Ctrl+Shift+R` / Excel-toolbar line from the `K13` Special Collections protocol card: a 1928 archive document must not mention Excel. The hint remains in the status bar.
 - **Pre-formatted Fee Column (`scripts/build_ledger.py`, `M_DaemonBridge.bas`, `README.md`, `README_CN.md`)**: Cell `H7` now carries the `$#,##0.00` currency number format directly in the template and is enforced by VBA upon Phase 1 awakening, so users can enter plain numbers (`7` or `7.00`) without manually typing the currency symbol `$`.
 - **Zero-Warning Dev Dependencies (`requirements-dev.txt`)**: Added `httpx2>=2.16.0` to eliminate Starlette's `StarletteDeprecationWarning` under Python 3.14.
 - **Agent Ritual Reaches the Workbook (`mcp_server.py`, `server.py`, `puzzle_state.py`, `M_DaemonBridge.bas`)**: A successful `judge_ritual` (MCP) or `POST /api/banish` sealed only the backend, so the open workbook was never stamped or protected and rejected every entry until reopened. `judge_ritual(..., deliver_to_workbook=True)` now queues `THUNDER_STROBE`, `SCREEN_TREMOR` and `LOCK_SHEET` in the same save as the seal; `/api/pending` passes queued actions that carry a `command` through unchanged, and `PollPendingHaunts` runs any queued command, not only `TRIGGER_HAUNT`. The workbook's own seal (`/api/event`) is unchanged and does not lock twice.

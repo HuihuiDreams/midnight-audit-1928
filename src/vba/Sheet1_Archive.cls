@@ -18,7 +18,7 @@ Private mPrevSelectedCensored As Boolean
 Private mSelectionCounter As Long
 
 Private Sub Worksheet_Change(ByVal Target As Range)
-    On Error Resume Next
+    On Error GoTo CleanExit
     If Target Is Nothing Then Exit Sub
     If gArchiveSealed Then Exit Sub
     
@@ -26,8 +26,28 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     If Not Intersect(Target, Me.Range("H7")) Is Nothing Then
         ' A cleared cell is not an attempt
         If Len(Trim$(CStr(Me.Range("H7").Value))) = 0 Then Exit Sub
+        Dim rawFee As String
+        rawFee = Trim$(CStr(Me.Range("H7").Value))
+        If UCase$(rawFee) = "[ TYPE FEE ]" Then Exit Sub
+        If gLocalPhase > 1 Then
+            Application.EnableEvents = False
+            Me.Range("H7").NumberFormat = "$#,##0.00"
+            Me.Range("H7").Value = 7#
+            Me.Range("H7").Font.Color = COLOR_CARBON
+            Me.Range("H7").Font.Italic = False
+            Me.Range("H7").Font.Bold = True
+            ShowPhaseBlockedHint "H7"
+            Application.EnableEvents = True
+            Exit Sub
+        End If
+        rawFee = StripPlaceholderPrefix(rawFee, "[ TYPE FEE ]")
+        If Len(Trim$(rawFee)) = 0 Then Exit Sub
         Application.EnableEvents = False
-        PostEvent "cell_change", "H7", CStr(Me.Range("H7").Value)
+        Me.Range("H7").Font.Color = COLOR_CARBON
+        Me.Range("H7").Font.Italic = False
+        Me.Range("H7").Font.Bold = True
+        Me.Range("H7").HorizontalAlignment = xlRight
+        PostEvent "cell_change", "H7", rawFee
         Application.EnableEvents = True
         Exit Sub
     End If
@@ -36,13 +56,40 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     If Not Intersect(Target, Me.Range("B18")) Is Nothing Then
         ' A cleared cell is not an attempt
         If Len(Trim$(CStr(Me.Range("B18").Value))) = 0 Then Exit Sub
+        Dim rawCode As String
+        rawCode = Trim$(CStr(Me.Range("B18").Value))
+        If UCase$(rawCode) = "[ LOCKED ]" Or UCase$(rawCode) = "[ TYPE PHRASE ]" Then Exit Sub
+        If gLocalPhase < 3 Then
+            Application.EnableEvents = False
+            Me.Range("B18").Value = "[ LOCKED ]"
+            Me.Range("B18").Font.Color = COLOR_HOSPITAL_GREEN
+            Me.Range("B18").Font.Italic = True
+            ShowLockedControlHint "OVERRIDE_B18"
+            Application.EnableEvents = True
+            Exit Sub
+        End If
+        If gLocalPhase >= 4 Then
+            Application.EnableEvents = False
+            Me.Range("B18").Value = "SEAL THE DEEP VAULT"
+            Me.Range("B18").Font.Color = COLOR_CARBON
+            Me.Range("B18").Font.Italic = False
+            ShowPhaseBlockedHint "B18"
+            Application.EnableEvents = True
+            Exit Sub
+        End If
+        rawCode = StripPlaceholderPrefix(rawCode, "[ TYPE PHRASE ]")
+        If Len(Trim$(rawCode)) = 0 Then Exit Sub
         Application.EnableEvents = False
-        PostEvent "cell_change", "B18", CStr(Me.Range("B18").Value)
+        Me.Range("B18").Font.Color = COLOR_CARBON
+        Me.Range("B18").Font.Italic = False
+        Me.Range("B18").Font.Bold = True
+        PostEvent "cell_change", "B18", rawCode
         Application.EnableEvents = True
         Exit Sub
     End If
     
-    On Error GoTo 0
+CleanExit:
+    Application.EnableEvents = True
 End Sub
 
 Private Sub Worksheet_SelectionChange(ByVal Target As Range)
@@ -52,7 +99,11 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     
     ' Check for Click on [ SPRAY REAGENT ] Button (K18:AN18)
     If Not Intersect(Target, Me.Range("K18:AN18")) Is Nothing Then
-        TriggerReagentMacro
+        If gLocalPhase = 2 Then
+            TriggerReagentMacro
+        Else
+            ShowLockedControlHint "SPRAY_REAGENT"
+        End If
         Exit Sub
     End If
     
@@ -62,8 +113,18 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
             If Not gArchiveSealed Then
                 TriggerBanishMacro
             End If
+        Else
+            ShowLockedControlHint "SEAL_ARCHIVE"
         End If
         Exit Sub
+    End If
+
+    ' Provide live guidance if player selects locked B18 early
+    If Not Intersect(Target, Me.Range("B18")) Is Nothing Then
+        If gLocalPhase < 3 Then
+            ShowLockedControlHint "OVERRIDE_B18"
+            Exit Sub
+        End If
     End If
     
     ' Intersecting Row 13 Abyss

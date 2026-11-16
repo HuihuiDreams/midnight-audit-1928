@@ -32,11 +32,13 @@ The spreadsheet is not an office productivity tool — it is a decaying historic
    - **Tabular Ledger Data, Row 13 Abyss & Cipher Strip (`Courier New`)**: `Courier New`, 9pt–14pt (strict monospace for borrower rows `A6:I12`, Row 13 Abyss `A13` at 14pt Bold, censored rows `A14:I16`, ROT-3 cipher strip `B21:H28`, and radar telemetry tokens).
 2. **Alignment & Formatting**:
    - Dates: `YYYY-MM-DD` (e.g., `1928-10-14`).
-   - Monetary Amounts: `$#,##0.00` mechanical ledger format.
+   - Monetary Amounts: `$#,##0.00` mechanical ledger format (with `#454F48` italic `[ TYPE FEE ]` placeholder on `H7` before entry).
    - Text IDs: Left aligned, padded with leading zeroes (`ARK-0013`).
+   - Control Affordances & Live Phase HUD: Dormant controls (`K18:AN18`, `C18:D18`, and locked `B18`) render flat in Carbon Ink (`#181614`) / Decayed Vellum (`#C5BFA8`) with `#8A8D8F` Cold Ash text; active buttons lift with `#D3CEB9` text on a Phosphor Green (`#3B533E`) fill for `[ SPRAY REAGENT ]` and a crimson (`#8A1C14`) fill for `[ SEAL ARCHIVE ]`; `E18:I18` renders a continuous live 1/4–4/4 Custodial Wax Seal banner synchronized with `Application.StatusBar`.
 3. **The Stripped UI Protocol**:
    - On opening, standard Excel ribbons, toolbars, headings, formula bar, and default gridlines are suppressed.
    - The document appears floating in a sea of Bone Paper (`#D3CEB9`).
+   - To keep zero-context play legible without headings, onboarding relies on in-cell placeholders, automatic Phase 1 cursor focus (`H7`), label-relative clues (no raw cell coordinates or answer spoilers), and dynamic status-bar guidance.
 
 ---
 

@@ -85,3 +85,6 @@ Every Windows API declaration must be protected with `#If...#ElseIf...#End If` d
 
 ### 3.4 Emergency Escape Hatch (`Ctrl+Shift+R`)
 Stripping Excel UI (hiding toolbars, formula bars, scrollbars) poses a risk of locking the user out of their application if an error occurs. An infallible `EmergencyReset` routine bound to `Ctrl+Shift+R` must always be registered on `Workbook_Open` and restored on `Workbook_BeforeClose`.
+
+### 3.5 ASCII-Only VBA Sources
+The VBE imports `.bas` / `.cls` files with the system ANSI code page, so UTF-8 glyphs (em-dashes, arrows, emoji) arrive as mojibake. Every file in `src/vba/` must stay pure ASCII (enforced by `tests/test_fixes_verification.py`). Build non-ASCII characters at runtime with `ChrW`, e.g. the HUD candle in `WaxSealLabel()` (UTF-16 surrogate pair `ChrW(55357) & ChrW(56687)` plus the variation selector `ChrW(65039)`). Lit buttons use Bone Paper (`#D3CEB9`) text, never pure white.

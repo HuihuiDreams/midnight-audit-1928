@@ -1140,3 +1140,45 @@ def test_vba_screen_tremor_never_moves_a_foreign_window():
     code = "\n".join(line for line in tremor.splitlines() if not line.strip().startswith("'"))
     assert "SmallScroll" not in code
     assert "ActiveWindow" not in code
+
+
+def test_vba_onboarding_guidance_and_phase_hud_invariants():
+    """Verify event-driven phase HUD, initial focus on H7, locked-control feedback, and spoiler-free hints."""
+    wb_open = _vba_proc(_vba_source("ThisWorkbook.cls"), "Private Sub Workbook_Open()")
+    assert wb_open.index("StartHauntPolling") < wb_open.index("RefreshPhaseGuidance True")
+
+    cls = _vba_source("Sheet1_Archive.cls")
+    assert 'UCase$(rawFee) = "[ TYPE FEE ]"' in cls
+    assert 'UCase$(rawCode) = "[ LOCKED ]" Or UCase$(rawCode) = "[ TYPE PHRASE ]"' in cls
+    assert 'ShowLockedControlHint "SPRAY_REAGENT"' in cls
+    assert 'ShowLockedControlHint "SEAL_ARCHIVE"' in cls
+    assert 'ShowLockedControlHint "OVERRIDE_B18"' in cls
+
+    bas = _vba_source("M_DaemonBridge.bas")
+    refresh = _vba_proc(bas, "Public Sub RefreshPhaseGuidance(")
+    assert "If Not ws.ProtectContents Then" in refresh
+    assert 'ws.Range("H7").Select' in refresh
+    # Never auto-select SelectionChange buttons (clicking an already-selected button would not fire SelectionChange)
+    assert 'ws.Range("C18").Select' not in refresh
+    assert 'ws.Range("C18:D18").Select' not in refresh
+    assert 'ws.Range("K18").Select' not in refresh
+    assert 'ws.Range("K18:AN18").Select' not in refresh
+    for marker in ("1/4:", "2/4:", "3/4:", "4/4:", "SEALED - OCT 31, 1928"):
+        assert marker in refresh
+
+    wrong_hint = _vba_proc(bas, "Public Sub ShowWrongEntryGuidance(")
+    assert "$7.00" not in wrong_hint
+    assert "SEAL THE DEEP VAULT" not in wrong_hint
+
+    reset_bar = _vba_proc(_vba_source("M_HorrorFX.bas"), "Public Sub ResetStatusBar()")
+    assert "CurrentPhaseStatusText()" in reset_bar
+
+
+def test_vba_modules_are_ascii_only_and_never_use_pure_white_for_buttons():
+    """VBE imports .bas/.cls with the ANSI code page, so UTF-8 glyphs would arrive as mojibake."""
+    for name in ("M_Bootstrap.bas", "M_DaemonBridge.bas", "M_HorrorFX.bas", "Sheet1_Archive.cls", "ThisWorkbook.cls"):
+        _vba_source(name).encode("ascii")
+
+    bas = _vba_source("M_DaemonBridge.bas")
+    assert "RGB(255, 255, 255)" not in bas
+    assert "WaxSealLabel()" in _vba_proc(bas, "Public Sub RefreshPhaseGuidance(")

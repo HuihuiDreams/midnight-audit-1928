@@ -21,7 +21,7 @@ The player is the night auditor of the Miskatonic University Annex Archive on **
 **User story:** As the night auditor, I want to settle the delinquent fee so that the ledger balances.
 
 1. WHEN the player enters `7`, `7.0`, `7.00`, or `$7.00` in `H7` THE SYSTEM SHALL set `I7` to `BALANCED (UNHOLY)` and advance to Phase 2.
-2. WHEN Phase 1 is cleared THE SYSTEM SHALL awaken Row 13 with `STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS` and unlock censored rows 14–16, revealing `ARCHIVE COORDINATE: RADAR GRID K20:AN49`.
+2. WHEN Phase 1 is cleared THE SYSTEM SHALL awaken Row 13 with `STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS`, unlock censored rows 14–16 revealing `ANOMALY: BASEMENT RADAR ->` in `I14`, illuminate `[ SPRAY REAGENT ]` (`K18:AN18`), and advance the live Phase HUD (`E18:I18` and `Application.StatusBar`) to Phase 2/4.
 3. WHEN the player enters any other value in `H7` THE SYSTEM SHALL keep Phase 1, spread a dried-blood scab on `H7`, and play the taboo thud.
 4. WHEN the player selects Row 13 THE SYSTEM SHALL play the taboo thud and flash the hidden glyph.
 
@@ -59,6 +59,7 @@ The player is the night auditor of the Miskatonic University Annex Archive on **
 4. THE SYSTEM SHALL render the Radar as 30 columns × 30 rows at row height 12 pt and column width 2.2 (1:1 square cells).
 5. THE SYSTEM SHALL present only 1928 university archive artifacts: borrowing ledger, Ward's handover note (`K4:AN12`), protocol card (`K13:AN16`), ROT-3 cipher strip (`B21:H28`), Dr. Armitage's memorandum (`B30:H48`), and the Radar.
 6. WHEN the workbook opens THE SYSTEM SHALL hide ribbons, formula bar, headings, and gridlines.
+7. WHEN the workbook opens THE SYSTEM SHALL keep onboarding non-modal and in-sheet: auto-focus the Phase 1 target (`H7`), render explicit placeholders (`[ TYPE FEE ]`, `[ LOCKED ]`) and dormant button affordances (`C18:D18`, `K18:AN18`), show live 1/4–4/4 mission progress in `E18:I18` and `Application.StatusBar`, and present contextual status guidance on out-of-phase clicks or mistyped inputs without spoiling puzzle answers.
 
 ## Requirement 6 — Cross-Platform VBA & Offline Fallback
 

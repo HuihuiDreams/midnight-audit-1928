@@ -28,7 +28,7 @@ def test_build_ledger_generates_file(tmp_path):
     # Verify Wilbur Whateley in Row 7
     assert ws["B7"].value == "Wilbur Whateley"
     assert ws["G7"].value == 140
-    assert ws["H7"].value is None
+    assert ws["H7"].value == "[ TYPE FEE ]"
     assert ws["H7"].number_format == "$#,##0.00"
 
     # Verify Handover note exists & Halloween enhancements (Full-width K4:AN12)
@@ -60,11 +60,12 @@ def test_build_ledger_generates_file(tmp_path):
     assert ws["K19"].value is not None
     assert "RADAR" in ws["K19"].value
 
-    # Verify Interactive Button Cells & A18/B18 styling
+    # Verify Interactive Button Cells & A18/B18 dormant Phase 1 styling
     assert "EMERGENCY OVERRIDE" in ws["A18"].value
     assert ws["A18"].fill.start_color.rgb in ["00C5BFA8", "FFC5BFA8", "C5BFA8"]
     assert ws["A18"].border.left.style == "thin"
-    assert ws["B18"].fill.start_color.rgb in ["00D3CEB9", "FFD3CEB9", "D3CEB9"]
+    assert ws["B18"].value == "[ LOCKED ]"
+    assert ws["B18"].fill.start_color.rgb in ["00C5BFA8", "FFC5BFA8", "C5BFA8"]
     assert ws["C18"].value == "[ SEAL ARCHIVE ]"
     assert ws["K18"].value == "[ SPRAY REAGENT ]"
 
@@ -82,15 +83,29 @@ def test_build_ledger_generates_file(tmp_path):
     # Pinned Lamp Label & Charred Cipher Key Strip artifacts
     assert "SANATORIUM KEROSENE LAMP" in ws["K13"].value
     assert "CHARRED CIPHER KEY STRIP" in ws["B21"].value
+    assert "VHDO WKH GHHS YDXOW" in ws["B21"].value
     assert "CUSTODIAL WAX SEAL" in ws["E18"].value
+    assert "1/4:" in ws["E18"].value
     assert "OCCULT ALTAR" in ws["K3"].value
 
-    # Verify Pixel-Art Enhancements: 3D Bevels, Ordered Dithering, and Special Collections Card
-    # 1. 3D Bevels on Action Buttons & Custodial Wax Seal
-    assert ws["C18"].border.top.color.rgb in ["00D3CEB9", "FFD3CEB9", "D3CEB9"]
-    assert ws["C18"].border.bottom.color.rgb in ["00181614", "FF181614", "181614"]
-    assert ws["K18"].border.top.color.rgb in ["00D3CEB9", "FFD3CEB9", "D3CEB9"]
-    assert ws["K18"].border.bottom.color.rgb in ["00181614", "FF181614", "181614"]
+    # Verify spoiler-free & coordinate-independent diegetic guidance
+    for doc_cell in ("K4", "K13", "B30"):
+        doc_text = ws[doc_cell].value
+        assert "$7.00" not in doc_text
+        assert "[x]" not in doc_text
+        for hidden_ref in ("Cell H7", "Cell B18", "K20:AN49", "C18:D18"):
+            assert hidden_ref not in doc_text
+    assert "K20:AN49" not in ws["I14"].value
+    assert "Excel" not in ws["K13"].value and "Ctrl+Shift" not in ws["K13"].value  # 1928 artifact, no modern UI
+
+    # Verify Dormant Phase 1 Buttons & Custodial Wax Seal borders
+    # 1. Dormant dark buttons until unlocked by phase progression, with seamless composite borders
+    assert ws["C18"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
+    assert ws["C18"].font.color.rgb in ["008A8D8F", "FF8A8D8F", "8A8D8F"]
+    assert ws["C18"].border.top.color.rgb in ["00454F48", "FF454F48", "454F48"]
+    assert ws["K18"].fill.start_color.rgb in ["00181614", "FF181614", "181614"]
+    assert ws["K18"].font.color.rgb in ["008A8D8F", "FF8A8D8F", "8A8D8F"]
+    assert ws["K18"].border.top.color.rgb in ["00454F48", "FF454F48", "454F48"]
     assert ws["E18"].border.top.style == "double"
     assert ws["E18"].border.top.color.rgb in ["008A1C14", "FF8A1C14", "8A1C14"]
     # Verify seamless composite borders without internal green dividing lines
@@ -198,7 +213,9 @@ def test_paid_fees_are_five_cents_per_overdue_day(tmp_path):
 
     for row in VISIBLE_ROWS:
         fee = ws.cell(row=row, column=8).value
-        if fee is not None:
+        if row == 7:
+            assert fee == "[ TYPE FEE ]"
+        elif fee is not None:
             assert round(ws.cell(row=row, column=7).value * 0.05, 2) == fee, ws.cell(row=row, column=1).value
     assert round(ws["G7"].value * 0.05, 2) == 7.0   # Wilbur's unpaid fee is the Phase 1 answer
 
@@ -219,5 +236,6 @@ def test_sheet_ledger_matches_the_engine_records(tmp_path):
         assert ws.cell(row=row, column=1).value == record["id"]
         assert ws.cell(row=row, column=2).value == record["borrower"]
         assert ws.cell(row=row, column=7).value == record["overdue"]
-        assert ws.cell(row=row, column=8).value == record["fee"]
+        expected_fee = "[ TYPE FEE ]" if record["fee"] is None else record["fee"]
+        assert ws.cell(row=row, column=8).value == expected_fee
         assert ws.cell(row=row, column=9).value == record["status"]
