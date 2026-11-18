@@ -39,6 +39,8 @@ def test_build_ledger_generates_file(tmp_path):
     assert "RULE 1" in ws["K4"].value
     assert "RULE 2" in ws["K4"].value
     assert "RULE 3" in ws["K4"].value
+    # The midnight clock's late interest is announced in Ward's own hand, without spoilers
+    assert "Each wrong entry costs a minute. Seal it before midnight." in ws["K4"].value
     assert "K4:AN12" in [str(r) for r in ws.merged_cells.ranges]
     assert "K13:AN16" in [str(r) for r in ws.merged_cells.ranges]
 

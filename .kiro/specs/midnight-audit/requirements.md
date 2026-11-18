@@ -30,7 +30,7 @@ The player is the night auditor of the Miskatonic University Annex Archive on **
 **User story:** As the night auditor, I want to develop the corrupted floorplan so that I can see what lurks in the vault.
 
 1. WHEN the player clicks `[ SPRAY REAGENT ]` (`K18:AN18`) in Phase 2 THE SYSTEM SHALL paint the 30×30 pixel matrix onto `K20:AN49` and advance to Phase 3.
-2. WHILE the Radar is revealed THE SYSTEM SHALL blink the eye cells `W34`, `X34`, `W35`, `X35` between Phosphor Green `#3B533E` and Dried Blood `#2E0F0D` every 2 seconds.
+2. WHILE the Radar is revealed THE SYSTEM SHALL blink the 2x2 pupil (home position `W34`, `X34`, `W35`, `X35`) between Phosphor Green `#3B533E` and Dried Blood `#2E0F0D` every 2 seconds.
 3. WHEN the reagent is sprayed outside Phase 2 THE SYSTEM SHALL leave the phase unchanged.
 
 ## Requirement 3 — Phase 3: Hijacked Typing & Cipher
@@ -55,7 +55,7 @@ The player is the night auditor of the Miskatonic University Annex Archive on **
 
 1. THE SYSTEM SHALL confine every styled cell, document, and pixel to `A1:AN50`, with the left wing (`B50:H50`) and right wing (`K50:AN50`) ending flush on Row 50.
 2. THE SYSTEM SHALL use only the Morbid Archive palette defined in `.kiro/steering/aesthetic_autopsy.md` and `src/backend/puzzle_state.py`.
-3. THE SYSTEM SHALL render Row 13 at 220 pt with a `#000000` fill and initially invisible `#000000` glyph text.
+3. THE SYSTEM SHALL render Row 13 at 220 pt with a `#000000` fill and initially invisible `#000000` glyph text (the template height; at runtime it widens with the midnight clock, Requirement 8).
 4. THE SYSTEM SHALL render the Radar as 30 columns × 30 rows at row height 12 pt and column width 2.2 (1:1 square cells).
 5. THE SYSTEM SHALL present only 1928 university archive artifacts: borrowing ledger, Ward's handover note (`K4:AN12`), protocol card (`K13:AN16`), ROT-3 cipher strip (`B21:H28`), Dr. Armitage's memorandum (`B30:H48`), and the Radar.
 6. WHEN the workbook opens THE SYSTEM SHALL hide ribbons, formula bar, headings, and gridlines.
@@ -85,3 +85,16 @@ The player is the night auditor of the Miskatonic University Annex Archive on **
 7. WHEN a JSON-RPC message has no `id` THE SYSTEM SHALL treat it as a notification and send no response.
 8. WHEN a stdio request line exceeds 64 KB THE SYSTEM SHALL discard it and return a `-32700` parse error.
 9. WHEN a Daemon request carries an `Origin` whose host is not `localhost`, `127.0.0.1`, or `::1` THE SYSTEM SHALL respond 403.
+
+## Requirement 8 — Midnight Pressure, Camera & Gaze (VBA client)
+
+**User story:** As the night auditor, I want the night to run out and the ledger to watch me, so that every wrong entry feels costly.
+
+1. WHEN the workbook opens on an unsealed archive THE SYSTEM SHALL start the midnight clock at `11:47 PM` and advance it one in-game minute every 20 seconds, showing the time in `G1`, at the front of the phase status line, and in the ambient whispers.
+2. WHEN the player's fee or cipher entry is rejected WHILE the clock runs THE SYSTEM SHALL advance the clock by one minute and append `LATE INTEREST: ONE MINUTE OF YOUR NIGHT` to the status bar. A first-entry hijack or a cleared cell SHALL NOT be charged.
+3. WHEN the clock advances THE SYSTEM SHALL animate Row 13 to `220 + 14 x minutes elapsed` pt; WHILE 3 or fewer minutes remain THE SYSTEM SHALL turn the `G1:I1` stamp Dried Blood and flash the abyss on every advance.
+4. WHEN the clock reaches `12:00 MIDNIGHT` before the seal THE SYSTEM SHALL foreclose the ledger: freeze all input like a sealed archive, write `MIDNIGHT. THE AUDITOR IS NOW THE AUDITED.` in Row 13, stamp `[ FORECLOSED - OCTOBER 31, 1928 - 12:00 MIDNIGHT ]` across `B10:H12`, show `[ FORECLOSED - 12:00 MIDNIGHT ]` in `E18`, and protect the sheet.
+5. WHEN the archive is sealed THE SYSTEM SHALL stop the clock and close Row 13 back to 220 pt before protecting the sheet.
+6. WHEN Phase 1 clears THE SYSTEM SHALL dolly the camera into Row 13 and return it to the previous view; WHEN the reagent is sprayed THE SYSTEM SHALL lean over the Radar before painting and settle on a view holding `B18`, `B21:H28` and the eye. Camera moves SHALL only change `ThisWorkbook.Windows(1)`.
+7. WHILE the Radar is revealed and the archive is unsealed THE SYSTEM SHALL move the pupil one cell inside the iris `V33:Y36` toward each selected cell.
+8. WHEN `EmergencyReset` runs or the workbook closes THE SYSTEM SHALL cancel the clock timer.

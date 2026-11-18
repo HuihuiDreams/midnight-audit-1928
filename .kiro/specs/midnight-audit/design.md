@@ -23,7 +23,7 @@
 | Client | `ThisWorkbook.cls` | `Workbook_Open` strips the UI and binds `Ctrl+Shift+R`; `Workbook_BeforeClose` restores it and cancels `OnTime` timers. |
 | Client | `Sheet1_Archive.cls` | `Worksheet_Change` / `Worksheet_SelectionChange` forward edits and button clicks to `PostEvent`. |
 | Client | `M_DaemonBridge.bas` | Transport (`MSXML2.ServerXMLHTTP.6.0` on Windows, `curl` via `MacScript` on macOS), pure-VBA JSON parser, action dispatcher, `HandleOfflineEvent`. |
-| Client | `M_HorrorFX.bas` | `ThudBeep`, `ScreenTremor`, `ThunderInvert`, `SpreadBloodScab`, `RenderPixelFace`, eye blink timers, ambient whispers. |
+| Client | `M_HorrorFX.bas` | `ThudBeep`, `ScreenTremor`, `ThunderInvert`, `SpreadBloodScab`, `RenderPixelFace`, eye blink timers, ambient whispers, midnight clock and foreclosure, widening Row 13, camera moves, entity gaze. |
 | Daemon | `server.py` | `/api/status`, `/api/event`, `/api/pending`, `/api/pixel_radar`, `/api/haunt`, `/api/banish`, `/api/reset`; origin check and security headers. Port from `SERVER_PORT` (default 8000). |
 | Engine | `puzzle_state.py` | `PuzzleEngine` state machine (`PhaseEnum`), ledger data, radar matrix, ritual judgement, haunt queue. |
 | Agent | `mcp_server.py` | Tools `inspect_ledger`, `haunt_spreadsheet`, `judge_ritual`; stdio loop with a 64 KB line cap. |

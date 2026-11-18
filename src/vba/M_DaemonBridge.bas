@@ -318,6 +318,7 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                         ws.Range("A13").Value = "STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS"
                         ws.Range("A14:I16").Interior.Color = COLOR_DECAYING_PAPER
                         ws.Range("A14:I16").Font.Color = COLOR_CARBON
+                        CameraDollyToAbyss
                         RefreshPhaseGuidance False
                         ranPhaseRefresh = True
 
@@ -364,6 +365,8 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
                         gArchiveSealed = True
                         StopEyeBlink
                         StopHauntPolling
+                        StopMidnightClock
+                        CloseAbyss ws
                         ws.Range("B10:H12").Value = Empty
                         ws.Range("B10:H12").Interior.Color = COLOR_COLD_ASH
                         ws.Range("B10:H12").Font.Color = COLOR_WARNING_RED
@@ -398,6 +401,7 @@ Private Sub ProcessDaemonResponse(ByVal jsonResp As String, Optional ByVal cellC
     If Not ranPhaseRefresh And Not gArchiveSealed Then
         If LCase$(ExtractJsonField(jsonResp, "accepted")) = "false" And LCase$(ExtractJsonField(jsonResp, "hijacked")) <> "true" And Len(cellCoord) > 0 Then
             ShowWrongEntryGuidance cellCoord
+            ChargeLateInterest
         End If
     End If
 
@@ -829,12 +833,14 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
 
             ThudBeep
             ScreenTremor
+            CameraDollyToAbyss
             gLocalPhase = 2
             RefreshPhaseGuidance False
         Else
             SpreadBloodScab ws.Range("H7")
             ThudBeep
             ShowWrongEntryGuidance "H7"
+            ChargeLateInterest
         End If
         Exit Sub
     End If
@@ -880,6 +886,7 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
                 SpreadBloodScab ws.Range("B18")
                 ThudBeep
                 ShowWrongEntryGuidance "B18"
+                ChargeLateInterest
             End If
         End If
     End If
@@ -889,8 +896,10 @@ Public Sub HandleOfflineEvent(ByVal eventType As String, ByVal cellCoord As Stri
         gArchiveSealed = True
         StopEyeBlink
         StopHauntPolling
+        StopMidnightClock
         ThunderInvert
         ScreenTremor
+        CloseAbyss ws
 
         ' Apply Final Cold Ash Stamp
         ws.Range("B10:H12").Value = Empty
@@ -935,6 +944,10 @@ End Function
 ''' Returns the spoiler-free 1928 status bar guidance string for the active phase.
 ''' </summary>
 Public Function CurrentPhaseStatusText() As String
+    If gMidnightForeclosed Then
+        CurrentPhaseStatusText = "OCTOBER 31, 1928 - 12:00 MIDNIGHT | LEDGER FORECLOSED | CLOSE WITHOUT SAVING AND REOPEN TO AUDIT AGAIN"
+        Exit Function
+    End If
     If gArchiveSealed Then
         CurrentPhaseStatusText = "OCTOBER 31, 1928 - 00:01 AM | ARCHIVE SEALED | REST NOW, AUDITOR"
         Exit Function
@@ -954,6 +967,8 @@ Public Function CurrentPhaseStatusText() As String
         Case Else
             CurrentPhaseStatusText = "PHASE 1/4 | AUDIT WILBUR WHATELEY (140 DAYS x $0.05/DAY) IN [ TYPE FEE ] & PRESS ENTER | CTRL+SHIFT+R: RESET EXCEL"
     End Select
+    ' Live midnight clock in front of every phase line
+    CurrentPhaseStatusText = MidnightClockText() & " | " & CurrentPhaseStatusText
 End Function
 
 ''' <summary>
@@ -979,7 +994,10 @@ Public Sub RefreshPhaseGuidance(Optional ByVal focusTarget As Boolean = False)
         effPhase = gLocalPhase
         If effPhase = 0 Then effPhase = 1
 
-        If gArchiveSealed Then
+        If gMidnightForeclosed Then
+            ws.Range("E18").Value = WaxSealLabel() & "[ FORECLOSED - 12:00 MIDNIGHT ]"
+            ws.Range("E18").Font.Color = COLOR_WARNING_RED
+        ElseIf gArchiveSealed Then
             ws.Range("E18").Value = WaxSealLabel() & "[ SEALED - OCT 31, 1928 00:01 AM ]"
             ws.Range("E18").Font.Color = COLOR_WARNING_RED
         ElseIf effPhase = 1 Then

@@ -97,6 +97,9 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     If Target Is Nothing Then Exit Sub
     If gArchiveSealed Then Exit Sub
     
+    ' Once the radar is developed, the entity's pupil follows every selection
+    TrackEntityGaze Target
+    
     ' Check for Click on [ SPRAY REAGENT ] Button (K18:AN18)
     If Not Intersect(Target, Me.Range("K18:AN18")) Is Nothing Then
         If gLocalPhase = 2 Then

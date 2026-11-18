@@ -477,6 +477,7 @@ def build_ledger_workbook(output_path: str = TEMPLATE_FILENAME) -> Workbook:
         "    into EMERGENCY OVERRIDE, then click [ SEAL ARCHIVE ].\n"
         "  ─────────────────────────────────────────────────────────\n"
         "  🩸 WARNING: Do NOT select the black abyss row below.\n"
+        "     Each wrong entry costs a minute. Seal it before midnight.\n"
         "     — Former Auditor Ward (Missing since Oct 30, 11:59 PM)"
     )
     note_cell.font = font_note

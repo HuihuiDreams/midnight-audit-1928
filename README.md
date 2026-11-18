@@ -93,6 +93,8 @@ Because `openpyxl` generates `.xlsx` styling and layout while Excel compiles mac
 3. **Phase 3 (The Hijacked Typing)**: Read Rule 3. Decode the charred ROT-3 cipher strip (`B21:H28`: `VHDO WKH GHHS YDXOW` -> `SEAL THE DEEP VAULT`). Now unlocked (`[ TYPE PHRASE ]` in **`B18`**), type anything first to experience the typewriter hijacking (`YOUR SALARY CANNOT SAVE YOU`), then enter **`SEAL THE DEEP VAULT`** and press Enter — `[ SEAL ARCHIVE ]` (`C18:D18`) turns warning red.
 4. **Phase 4 (The Midnight Settlement)**: Click **`[ SEAL ARCHIVE ]`** (`C18:D18`). Thunder lightning flashes, the window trembles, and the ledger is permanently stamped closed at `OCTOBER 31, 1928 - 00:01 AM`.
 
+**The midnight clock**: The masthead stamp (`G1`) and the status bar keep live time from `11:47 PM`. One in-game minute passes every 20 seconds, and every wrong fee or cipher costs one more minute. Each minute widens the Row 13 abyss by 14 pt. In the last 3 minutes the stamp bleeds and the abyss pulses. If midnight strikes before the seal, the ledger is foreclosed and you are listed as the missing auditor. To play again, close the workbook without saving and reopen it. The camera dollies into Row 13 when Phase 1 clears and leans over the radar during the reagent reveal. From then on, the entity's pupil follows every cell you select.
+
 ---
 
 ## 🏛️ System Architecture

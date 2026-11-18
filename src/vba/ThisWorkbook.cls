@@ -22,6 +22,7 @@ Private Sub Workbook_Open()
     PollPendingHaunts
     SyncDaemonState
     StartHauntPolling
+    StartMidnightClock
     RefreshPhaseGuidance True
     On Error GoTo 0
 End Sub
@@ -30,6 +31,7 @@ Private Sub Workbook_BeforeClose(Cancel As Boolean)
     On Error Resume Next
     StopEyeBlink
     StopHauntPolling
+    StopMidnightClock
     CancelAmbientWhisper
     EmergencyReset True
     On Error GoTo 0

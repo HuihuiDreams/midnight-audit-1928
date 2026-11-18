@@ -99,6 +99,7 @@ Public Sub EmergencyReset(Optional ByVal silent As Boolean = False)
     ' Cancel timers
     StopEyeBlink
     StopHauntPolling
+    StopMidnightClock
     CancelAmbientWhisper
     
     If Not silent Then

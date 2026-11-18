@@ -45,12 +45,15 @@ The spreadsheet is not an office productivity tool — it is a decaying historic
 ## 4. The Row 13 Abyss
 
 - **Row Index**: 13 (A13:I13)
-- **Row Height**: `220 pt` (disrupts the neat visual rhythm of the spreadsheet like an open grave).
+- **Row Height**: `220 pt` (disrupts the neat visual rhythm of the spreadsheet like an open grave). At runtime the grave widens by `14 pt` per in-game minute of the midnight clock (at most `402 pt`, under Excel's `409 pt` limit) and closes back to `220 pt` when the archive is sealed. Row heights are shared by both wings, so the Row 50 baseline stays flush.
 - **Background**: `#000000` (Pure Black).
 - **Hidden Glyph**: Font color is initially `#000000`. Text: `"STOP AUDITING ROW 13 - HE SLEEPS BENEATH THE FLOORBOARDS"`.
 - **Interaction**:
   - When the user selects Row 13 or clears Phase 1, the cell text color briefly flashes `#D3CEB9` or inverts.
   - Accompanied by a low-frequency rumble.
+- **Midnight Clock**: The `G1` masthead stamp keeps live time from `11:47 PM` in Warning Red on Decaying Paper. In the last 3 minutes the `G1:I1` stamp bleeds to Dried Blood with Bone Paper text. A foreclosed ledger is stamped in Dried Blood with Bone Paper text across `B10:H12`.
+- **Camera**: Zoom and scroll moves ease `ThisWorkbook.Windows(1)` over 10 frames (smoothstep). There is a dolly into Row 13 when Phase 1 clears and a lean over the radar during the reagent reveal, which settles on scroll row 14 with `B18`, the cipher strip and the eye in frame.
+- **The Gaze**: After the reveal, the 2x2 Dried Blood pupil moves one cell inside the 4x4 Phosphor Green iris `V33:Y36` toward each selected cell. It never leaves the 30x30 canvas or paints over the face outline.
 
 ---
 

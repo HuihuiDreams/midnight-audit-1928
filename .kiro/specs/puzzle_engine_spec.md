@@ -60,7 +60,7 @@
     - Outline / Shadows: `#181614` (Carbon)
     - Pupil / Void: `#2E0F0D` (Dried Blood)
     - Iris: `#3B533E` (Phosphor Green)
-  - Eye center cells (`W34:X35`) start a background timer blinking between `#3B533E` and `#2E0F0D` every 2 seconds.
+  - Eye center cells (`W34:X35`) start a background timer blinking between `#3B533E` and `#2E0F0D` every 2 seconds. From then on the 2x2 pupil follows the player's selection inside the iris (`V33:Y36`, see Section 4), and the blink follows the pupil.
   - Subtitle: *"SOMETHING LURKS IN THE DEEP VAULT"* (optional aesthetic note; floorplan visual manifestation serves as primary feedback).
   - System advances to Phase 3.
 
@@ -109,3 +109,38 @@ When the Python Daemon is not running:
    - **Phase 3 (B18 Override Code)**: On initial interaction (`gHijackTriggered = False`), hijacks typing with `"YOUR SALARY CANNOT SAVE YOU"` in dried blood font, rumbles with `ThudBeep`, pauses 1.2s via `PlatformSleep`, and clears the cell. On subsequent input, checks `Trim(UCase(cellVal)) = "SEAL THE DEEP VAULT"`. If matched, arms the `[ SEAL ARCHIVE ]` button in `C18:D18` (`COLOR_WARNING_RED`) and advances `gLocalPhase` to 4. If invalid, triggers `SpreadBloodScab` on `B18` and `ThudBeep`.
    - **Phase 4 (banish / SEAL ARCHIVE)**: Calls `StopEyeBlink`, `ThunderInvert`, and `ScreenTremor` in `M_HorrorFX.bas`, paints the Cold Ash banishment stamp across `B10:H12` (`[ ARCHIVE SEALED - OCTOBER 31, 1928 - 00:01 AM ]`), and displays the termination notification.
 Thus the `.xlsm` file remains 100% playable in standalone offline mode without any external Python daemon or dependencies.
+
+---
+
+## 4. Midnight Clock, Widening Abyss, Camera & Gaze (VBA client)
+
+These run in the workbook in both modes (daemon and offline). They live in `src/vba/M_HorrorFX.bas`; the daemon does not track the clock.
+
+### 4.1 Midnight Clock & Late Interest
+- `Workbook_Open` calls `StartMidnightClock` after `SyncDaemonState`. The clock starts at `11:47 PM`, and the archive must be sealed before the midnight stroke, 13 in-game minutes later.
+- `MidnightClockTick` (`Application.OnTime`) advances one in-game minute every 20 real seconds, so an untouched clock runs out after 4 min 20 s. Each tick refreshes the status bar.
+- Every rejected fee (`H7`) or cipher (`B18`) calls `ChargeLateInterest` after the wrong-entry guidance. It costs one minute and appends `LATE INTEREST: ONE MINUTE OF YOUR NIGHT` to the status bar. The first-entry hijack and cleared cells are not charged. Ward's note announces the rule: *"Each wrong entry costs a minute. Seal it before midnight."*
+- The live time is shown in the `G1` masthead stamp, at the front of every phase status line (`11:52 PM | PHASE 3/4 | ...`), and in the ambient whispers. In the last 3 minutes the `G1:I1` stamp turns Dried Blood with Bone Paper text.
+- `StopMidnightClock` cancels the timer on seal (both modes), foreclosure, `EmergencyReset`, and workbook close. Without a running clock no interest is charged.
+
+### 4.2 The Widening Abyss
+- Row 13 height = `220 + 14 x minutes elapsed` pt, animated 2 pt per frame (at most `220 + 14 x 13 = 402` pt; Excel's limit is 409 pt). In the last 3 minutes every tick also flashes the abyss (`FlashAbyssAbsorption`).
+- Sealing the archive closes the abyss back to 220 pt (`CloseAbyss`) before the sheet is protected.
+
+### 4.3 Midnight Foreclosure (losing ending)
+- When the clock reaches `12:00 MIDNIGHT`, `ForecloseLedger` sets `gMidnightForeclosed` and `gArchiveSealed`, so the ledger freezes like a sealed one. It also stops the clock, the blink and the polling.
+- Row 13 reads `MIDNIGHT. THE AUDITOR IS NOW THE AUDITED.` and `B10:H12` is stamped in Dried Blood:
+  `[ FORECLOSED - OCTOBER 31, 1928 - 12:00 MIDNIGHT ]`
+  `ALL BALANCES TRANSFERRED TO THE BLACK GOAT'S LEDGER`
+  `NIGHT AUDITOR MISSING SINCE 12:00 MIDNIGHT`
+- `E18` shows `[ FORECLOSED - 12:00 MIDNIGHT ]`, the status bar says `LEDGER FORECLOSED | CLOSE WITHOUT SAVING AND REOPEN TO AUDIT AGAIN`, the sheet is protected, and a message box ends the run. The workbook is then marked saved (`ThisWorkbook.Saved = True`), so closing does not offer to save the ruined ledger (an explicit `Ctrl+S` still would). Reopening restarts the clock; with the daemon running, the saved phase resumes.
+
+### 4.4 Camera
+- `CameraMove` eases `ThisWorkbook.Windows(1)` (never `ActiveWindow`) to a scroll row, column and zoom over 10 frames, with zoom clamped to 10 to 400.
+- Phase 1 cleared: `CameraDollyToAbyss` pushes in on Row 12/13 (+40% zoom), holds for 0.9 s, and returns to the previous view.
+- Reagent reveal: `RenderPixelFace` leans over the radar (`K19`, +40% zoom) before painting, then settles on the Phase 3 working view (scroll row 14, original zoom). That view keeps `B18`, the cipher strip `B21:H28` and the eye in one frame.
+- Foreclosure frames the `B10:H12` stamp above the opened abyss (+20% zoom) and stays there.
+
+### 4.5 The Entity's Gaze
+- After the reveal, every `Worksheet_SelectionChange` calls `TrackEntityGaze`. It compares the selected cell's center with the iris center in points and moves the 2x2 pupil one cell inside the 4x4 iris `V33:Y36`, in one of 8 directions. Within 8 pt of the eye the pupil stays centered on `W34:X35`. The iris box is all iris or pupil in `ENTITY_FACE_MATRIX`, so the pupil never paints over the outline.
+- `ToggleEyeBlink` blinks wherever the pupil currently is.
